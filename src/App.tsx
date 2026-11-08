@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowLeft, CheckCheck, ClipboardList, DatabaseBackup, Keyboard, PartyPopper, Plus, SearchX, Tags, Trash2 } from 'lucide-react'
+import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
@@ -18,10 +18,9 @@ import { QuickAdd } from './components/QuickAdd'
 import { FilterBar } from './components/FilterBar'
 import { LabelManager } from './components/LabelManager'
 import { alertKey, MissedRemindersBanner, ReminderToast } from './components/ReminderAlerts'
-import { NotificationButton } from './components/NotificationButton'
+import { Header, type View } from './components/Header'
 import { TrashView } from './components/TrashView'
 import { BackupDialog, BackupNudge } from './components/Backup'
-import { ThemeToggle } from './components/ThemeToggle'
 import { SampleDataButton } from './components/SampleDataButton'
 import { Overview, OVERVIEW_TILE_COUNT } from './components/Overview'
 import { HeadingPanel } from './components/HeadingPanel'
@@ -30,7 +29,6 @@ import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
-import { btn, panel } from './ui'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
 type Modal = 'labels' | 'backup' | 'shortcuts' | null
@@ -49,7 +47,7 @@ export default function App() {
   const trashCount = useLiveQuery(() => taskRepo.countTrash(), []) ?? 0
   const now = useNow()
 
-  const [view, setView] = useState<'tasks' | 'trash'>('tasks')
+  const [view, setView] = useState<View>('tasks')
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [sort, setSort] = useState<SortKey>('smart')
   const [group, setGroup] = useState<GroupKey>('none')
@@ -127,59 +125,16 @@ export default function App() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
-      <header className="sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 border-b border-transparent bg-bg/75 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60 sm:py-5">
-        {view === 'trash' ? (
-          <div className="flex items-center gap-2">
-            <button onClick={() => setView('tasks')} aria-label="Back to tasks" className={btn.icon}>
-              <ArrowLeft className="size-5" />
-            </button>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Trash</h1>
-              <p className="text-xs text-muted">Restore or permanently delete</p>
-            </div>
-          </div>
-        ) : (
-          // The page heading lives in the heading panel below; the bar just carries the wordmark.
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${panel.brand}`}>
-              <CheckCheck className="size-5" strokeWidth={2.5} aria-hidden />
-            </span>
-            <span className="truncate font-display text-lg font-bold tracking-tight max-sm:hidden">Task Tracker</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-xl border border-line bg-surface/80 p-0.5 shadow-xs max-sm:[&>*]:size-8">
-          <NotificationButton />
-          <button onClick={() => setModal('labels')} aria-label="Projects & tags" title="Projects & tags" className={btn.icon}>
-            <Tags className="size-5" />
-          </button>
-          <button onClick={() => setModal('backup')} aria-label="Backup & restore" title="Backup & restore" className={btn.icon}>
-            <DatabaseBackup className="size-5" />
-          </button>
-          <button
-            onClick={() => setView(view === 'trash' ? 'tasks' : 'trash')}
-            aria-label={`Trash (${trashCount})`}
-            title="Trash"
-            aria-pressed={view === 'trash'}
-            className={`${btn.icon} relative ${view === 'trash' ? 'bg-subtle text-fg' : ''}`}
-          >
-            <Trash2 className="size-5" />
-            {trashCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 font-semibold text-on-accent ring-2 ring-surface">
-                {trashCount}
-              </span>
-            )}
-          </button>
-          <ThemeToggle />
-          <button onClick={() => setModal('shortcuts')} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.icon} max-sm:hidden`}>
-            <Keyboard className="size-5" />
-          </button>
-          </div>
-          <button onClick={() => setEditing({ mode: 'create' })} aria-label="New task" className={`${btn.primary} max-sm:size-9 max-sm:px-0`}>
-            <Plus className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">New task</span>
-          </button>
-        </div>
-      </header>
+      <Header
+        view={view}
+        trashCount={trashCount}
+        onToggleTrash={() => setView(view === 'trash' ? 'tasks' : 'trash')}
+        onBack={() => setView('tasks')}
+        onNewTask={() => setEditing({ mode: 'create' })}
+        onLabels={() => setModal('labels')}
+        onBackup={() => setModal('backup')}
+        onShortcuts={() => setModal('shortcuts')}
+      />
 
       {view === 'trash' ? (
         <TrashView />

@@ -19,6 +19,8 @@ export const DURATION = {
 export const SPRING = {
   /** Gentle settle for panels, dialogs and items gliding to a new position. */
   soft: { type: 'spring', stiffness: 260, damping: 28 },
+  /** A quick, slightly bouncy pop for small things that change, e.g. the Trash count badge. */
+  pop: { type: 'spring', stiffness: 520, damping: 16 },
 } as const satisfies Record<string, Transition>
 
 /** Where things start as they enter (faded, a little low), and where they settle. */

@@ -11,6 +11,10 @@ export const btn = {
   danger: `${btnBase} px-3 py-2 text-danger hover:bg-danger/10`,
   small: `${btnBase} rounded-md px-2 py-1 text-xs hover:bg-subtle`,
   icon: `${btnBase} size-9 shrink-0 text-muted hover:bg-subtle hover:text-fg`,
+  /** The most prominent action (New task): the orange brand panel, lighting up mustard on hover as in Sill. */
+  brand: `${btnBase} rounded-xl bg-panel-orange px-4 py-2.5 font-semibold text-on-panel-orange hover:bg-panel-mustard hover:text-on-panel-mustard active:translate-y-px`,
+  /** An icon button in the header's panel: a square tile that lights up mustard on hover. */
+  headerIcon: `${btnBase} size-9 shrink-0 rounded-xl text-fg/80 hover:bg-panel-mustard hover:text-on-panel-mustard`,
 }
 
 /** Flat input: a filled well with no outline at rest; the border appears on hover and focus. */

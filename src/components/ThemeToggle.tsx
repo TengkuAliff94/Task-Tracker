@@ -22,7 +22,7 @@ export function ThemeToggle() {
       }}
       aria-label={`${LABEL[pref]} (click to change)`}
       title={`${LABEL[pref]}. Click for ${LABEL[NEXT[pref]].toLowerCase()}.`}
-      className={btn.icon}
+      className={btn.headerIcon}
     >
       <Icon className="size-5" />
     </button>

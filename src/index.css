@@ -134,6 +134,8 @@
   --shadow-pop: var(--shadow-pop);
   --shadow-modal: var(--shadow-modal);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Mirrors DURATION.base in src/components/motion/presets.ts. Keep the two in sync. */
+  --duration-base: 320ms;
   --animate-fade-up: fade-up 320ms var(--ease-out-soft) both;
   --animate-pop-in: pop-in 220ms var(--ease-out-soft) both;
   --animate-slide-in: slide-in 280ms var(--ease-out-soft) both;
@@ -255,6 +257,36 @@ input[type='checkbox'] {
 }
 .task-check:checked::after {
   transform: scale(1);
+}
+
+/*
+ * The header slides up out of view while you scroll down (see useHideOnScroll). Whenever focus is
+ * inside it, it shows at once, with no transition: the browser checks whether the focused button is
+ * on screen straight away, and a header still mid-slide would make it jump the page to reveal it.
+ */
+.hide-on-scroll {
+  transition: transform var(--duration-base) var(--ease-out-soft);
+}
+.hide-on-scroll[data-hidden='true'] {
+  transform: translateY(-100%);
+}
+.hide-on-scroll:focus-within {
+  transform: none;
+  transition: none;
+}
+
+/*
+ * While the theme switches (src/lib/theme.ts adds this class for the length of the fade), colours
+ * cross-fade instead of snapping. Never added under reduced motion, so there the switch is instant.
+ */
+.theme-fade,
+.theme-fade *,
+.theme-fade *::before,
+.theme-fade *::after {
+  /* transform stays in the list so the header's slide (and other movement) isn't cut short mid-fade. */
+  transition-property: background-color, color, border-color, outline-color, fill, stroke, box-shadow, transform !important;
+  transition-duration: var(--duration-base) !important;
+  transition-timing-function: var(--ease-out-soft) !important;
 }
 
 /* Modal dialogs: fade the backdrop and lift the panel in. */
