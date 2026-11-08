@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+/* Placeholder look until the design system is generated in milestone 4. */
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased;
+}
