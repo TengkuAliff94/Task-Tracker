@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test --project=chromium",
+    "screenshots": "playwright test --project=screenshots"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
@@ -22,6 +24,7 @@
     "ui-ux-pro-max-cli": "^2.15.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",

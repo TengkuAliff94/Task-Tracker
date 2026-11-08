@@ -123,7 +123,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
 
         <div className="space-y-4 px-6 py-5">
           <Field label="Title">
-            <input autoFocus required value={title} onChange={(e) => setTitle(e.target.value)} className={field} />
+            <input autoFocus required value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" className={field} />
           </Field>
 
           <div className="space-y-1">

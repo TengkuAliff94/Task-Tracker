@@ -5,6 +5,7 @@ import { db } from './db/db'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
+import { sampleData } from './db/sample'
 import { applyFilters, EMPTY_FILTERS, hasActiveFilters, type Filters } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { useNow } from './hooks/useNow'
@@ -50,6 +51,7 @@ export default function App() {
   const [modal, setModal] = useState<Modal>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastData[]>([])
+  const [loadingSample, setLoadingSample] = useState(false)
   const { alerts, dismiss, dismissAll } = useReminders(tasks)
 
   // Clear out Trash items past the retention period once per launch.
@@ -147,7 +149,7 @@ export default function App() {
             )}
           </button>
           <ThemeToggle />
-          <button onClick={() => setModal('shortcuts')} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.icon} hidden sm:inline-flex`}>
+          <button onClick={() => setModal('shortcuts')} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.icon} max-sm:hidden`}>
             <Keyboard className="size-5" />
           </button>
           <button onClick={() => setEditing({ mode: 'create' })} className={`${btn.primary} ml-1`}>
@@ -182,9 +184,22 @@ export default function App() {
 
           {tasks === undefined ? null : visible.length === 0 ? (
             <p className="rounded-lg border border-dashed border-line-strong p-8 text-center text-muted">
-              {tasks.length === 0
-                ? 'No tasks yet. Type one in the quick-add bar above.'
-                : hasActiveFilters(filters)
+              {tasks.length === 0 ? (
+                <>
+                  No tasks yet. Type one in the quick-add bar above, or{' '}
+                  <button
+                    disabled={loadingSample}
+                    onClick={() => {
+                      setLoadingSample(true)
+                      sampleData.load().finally(() => setLoadingSample(false))
+                    }}
+                    className="font-medium text-primary underline underline-offset-2 hover:text-primary-hover disabled:opacity-50"
+                  >
+                    load sample data
+                  </button>
+                  .
+                </>
+              ) : hasActiveFilters(filters)
                   ? 'No tasks match these filters.'
                   : 'Nothing left to do.'}
             </p>
