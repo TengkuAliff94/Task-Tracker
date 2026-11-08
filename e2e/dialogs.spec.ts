@@ -1,7 +1,7 @@
 // Dialogs and toasts: dialogs keep native <dialog> behaviour (Escape closes, focus returns to what
 // opened them), and both dialogs and toasts animate in and out unless motion is reduced.
 import type { Locator, Page } from '@playwright/test'
-import { expect, test, type App } from './fixtures'
+import { expect, isAnimating, test, type App } from './fixtures'
 
 const opener = (page: Page, name: string) => page.getByRole('banner').getByRole('button', { name, exact: true })
 
@@ -28,10 +28,6 @@ for (const [button, dialogName] of [
     await expect(trigger).toBeFocused()
   })
 }
-
-/** Whether `el` is running any CSS or Web Animation right now. */
-const isAnimating = (el: Locator) =>
-  el.evaluate((node) => node.getAnimations({ subtree: true }).some((a) => a.playState === 'running'))
 
 /** Whether `el` sits exactly where layout put it: no transform, or one that moves it nowhere. */
 const isUntransformed = (el: Locator) =>

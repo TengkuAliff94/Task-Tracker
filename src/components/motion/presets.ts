@@ -16,6 +16,8 @@ export const DURATION = {
   count: 1.1,
   /** The little celebration when a task is completed. */
   burst: 0.45,
+  /** One slow bob of a decorative icon, e.g. on empty states (CSS only: `--duration-float` in index.css mirrors this). */
+  float: 3.6,
 } as const
 
 export const SPRING = {

@@ -182,15 +182,11 @@ export default function App() {
             <EmptyState
               icon={tasks.length === 0 ? ClipboardList : hasActiveFilters(filters) ? SearchX : PartyPopper}
               title={tasks.length === 0 ? 'No tasks yet' : hasActiveFilters(filters) ? 'No matches' : 'All clear'}
+              action={tasks.length === 0 && <SampleDataButton prominent />}
             >
-              {tasks.length === 0 ? (
-                <>
-                  Type one in the quick-add bar above, or try the app with example tasks.
-                  <span className="mt-5 block">
-                    <SampleDataButton />
-                  </span>
-                </>
-              ) : hasActiveFilters(filters)
+              {tasks.length === 0
+                ? 'Type one in the quick-add bar above, or try the app with example tasks.'
+                : hasActiveFilters(filters)
                   ? 'No tasks match these filters.'
                   : 'Nothing left to do.'}
             </EmptyState>

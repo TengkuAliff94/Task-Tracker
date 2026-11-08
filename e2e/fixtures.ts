@@ -75,6 +75,10 @@ export const test = base.extend<{ app: App }>({
   },
 })
 
+/** Whether anything inside `el` is running a CSS or Web Animation right now. */
+export const isAnimating = (el: Locator) =>
+  el.evaluate((node) => node.getAnimations({ subtree: true }).some((a) => a.playState === 'running'))
+
 /** Where something is drawn on screen; fails the test if it isn't rendered. */
 export async function box(locator: Locator) {
   const b = await locator.boundingBox()

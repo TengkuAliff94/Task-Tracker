@@ -142,6 +142,15 @@
   --duration-spring: 480ms;
   --ease-spring: linear(0, 0.18 5%, 0.5 12%, 0.8 20%, 0.97 28%, 1.03 36%, 1.04 42%, 1.02 55%, 1 70%, 1);
   --animate-spring-in: spring-in var(--duration-spring) var(--ease-spring) both;
+  /* A slow, endless bob for decorative icons (empty states). Use it as `motion-safe:animate-float`.
+     Mirrors DURATION.float in src/components/motion/presets.ts. Keep the two in sync. */
+  --duration-float: 3.6s;
+  --animate-float: float var(--duration-float) ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 @keyframes fade-up {
