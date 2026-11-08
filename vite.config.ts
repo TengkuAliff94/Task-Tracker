@@ -19,8 +19,8 @@ export default defineConfig({
         name: 'Task Tracker',
         short_name: 'Tasks',
         description: 'A personal task tracker that works offline.',
-        theme_color: '#0f766e',
-        background_color: '#f8fafc',
+        theme_color: '#cf6224',
+        background_color: '#f4f1ee',
         display: 'standalone',
         start_url: '/',
         icons: [

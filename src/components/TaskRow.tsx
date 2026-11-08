@@ -4,13 +4,14 @@ import { formatDeadline, isOverdue } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
 import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Priority, type Task } from '../types'
+import { panel } from '../ui'
 import { LabelChip } from './LabelChip'
 
-const PRIORITY_STYLE: Record<Priority, { badge: string; dot: string }> = {
-  low: { badge: 'bg-slate-500/8 text-slate-600 ring-slate-500/15 dark:text-slate-300', dot: 'bg-slate-400' },
-  medium: { badge: 'bg-sky-500/8 text-sky-700 ring-sky-500/20 dark:text-sky-300', dot: 'bg-sky-500' },
-  high: { badge: 'bg-amber-500/10 text-amber-800 ring-amber-500/25 dark:text-amber-300', dot: 'bg-amber-500' },
-  urgent: { badge: 'bg-red-500/10 text-red-700 ring-red-500/25 dark:text-red-300', dot: 'bg-red-500' },
+const PRIORITY_PANEL: Record<Priority, string> = {
+  low: panel.neutral,
+  medium: panel.calm,
+  high: panel.warning,
+  urgent: panel.danger,
 }
 
 interface Props {
@@ -26,14 +27,13 @@ interface Props {
 }
 
 const meta = 'inline-flex items-center gap-1 text-muted'
-const badge = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium ring-1 ring-inset'
+const badge = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium'
 
 export function TaskRow({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, index = 0 }: Props) {
   const overdue = isOverdue(task, now)
   const done = task.status === 'done'
   const project = task.projectId ? projectsById.get(task.projectId) : undefined
   const checked = task.checklist.filter((c) => c.done).length
-  const p = PRIORITY_STYLE[task.priority]
 
   return (
     <li
@@ -59,21 +59,11 @@ export function TaskRow({ task, now, projectsById, tagsById, attachmentCount, se
         >
           {task.title}
         </div>
-        <div className={`mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs ${done ? 'opacity-60' : ''}`}>
-          <span className={`${badge} ${p.badge}`}>
-            <span className={`size-1.5 rounded-full ${p.dot}`} aria-hidden />
-            {PRIORITY_LABEL[task.priority]}
-          </span>
-          {task.status === 'in_progress' && (
-            <span className={`${badge} bg-violet-500/10 text-violet-700 ring-violet-500/25 dark:text-violet-300`}>
-              {STATUS_LABEL.in_progress}
-            </span>
-          )}
-          {overdue && (
-            <span className={`${badge} bg-red-600 text-white ring-red-600 dark:bg-red-500/20 dark:text-red-300 dark:ring-red-500/40`}>
-              Overdue
-            </span>
-          )}
+        {/* Completed tasks keep full-strength metadata: fading it would push the text below 4.5:1. */}
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
+          <span className={`${badge} ${PRIORITY_PANEL[task.priority]}`}>{PRIORITY_LABEL[task.priority]}</span>
+          {task.status === 'in_progress' && <span className={`${badge} ${panel.info}`}>{STATUS_LABEL.in_progress}</span>}
+          {overdue && <span className={`${badge} ${panel.critical}`}>Overdue</span>}
           {task.deadline && (
             <span className={overdue ? 'inline-flex items-center gap-1 font-medium text-danger' : meta}>
               <CalendarDays className="size-3.5" aria-hidden />

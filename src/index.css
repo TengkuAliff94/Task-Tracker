@@ -4,65 +4,88 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design tokens, from design-system/task-tracker/MASTER.md (Minimalism & Swiss style,
- * teal primary, orange accent, Inter). The generator's palette is dark-only; the light
- * values use darker shades of the same hues so text and buttons keep 4.5:1 contrast.
- * Surfaces are layered: bg (canvas) < surface (cards) < raised (popovers), with soft
- * multi-layer shadows in light mode and hairline highlights in dark mode.
+ * Design tokens: flat, saturated colour panels on a plain canvas, after the Sill template
+ * (see issue #9). Colour and spacing do the separating, not borders or heavy shadows.
+ * Dark is Sill as-is (near-black canvas, off-white text); light inverts it onto warm off-white.
+ * Surfaces still layer: bg (canvas) < surface (cards) < raised (dialogs, popovers).
+ *
+ * Every text/background pair here meets WCAG AA (4.5:1). Ratios are noted where a value was
+ * adjusted from the Sill swatches to get there; e2e/contrast.spec.ts checks the rendered screens.
  */
 :root {
-  --bg: #f5f7fa;
-  --surface: #ffffff;
-  --raised: #ffffff;
-  --subtle: #f1f4f8;
-  --hover: #f6f8fb;
-  --fg: #0b1220;
-  --muted: #566173;
-  --line: #e6eaf0;
-  --line-strong: #d2d9e3;
-  --primary: #0f766e;
-  --primary-hover: #115e59;
-  --primary-soft: #0f766e14;
-  --on-primary: #ffffff;
-  --accent: #c2410c;
-  --danger: #dc2626;
-  --ring: #0d9488;
-  --glow: #14b8a61f;
+  /* Panels look the same in both themes, as in Sill. Each has a paired text colour. */
+  --panel-orange: #cf6224;
+  /* Sill puts off-white on orange, but that's 3.4:1. Near-black is 4.9:1. */
+  --on-panel-orange: #141110;
+  --panel-mustard: #e3b867;
+  --on-panel-mustard: #141110; /* 10.1:1 */
+  --panel-maroon: #6e1116;
+  --on-panel-maroon: #f4f1ee; /* 10.6:1 */
+  --panel-rust: #9b3418;
+  --on-panel-rust: #f4f1ee; /* 6.4:1 */
+  --panel-violet: #5a3cd4;
+  --on-panel-violet: #f4f1ee; /* 6.2:1 */
+  --panel-sage: #80a89b;
+  --on-panel-sage: #141110; /* 7.2:1 */
+  --panel-taupe: #bca59d;
+  --on-panel-taupe: #141110; /* 8.1:1 */
+  --panel-mauve: #a97d9c;
+  --on-panel-mauve: #141110; /* 5.5:1 */
 
-  --shadow-xs: 0 1px 2px rgb(16 24 40 / 0.05);
-  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
-  --shadow-pop: 0 4px 6px -2px rgb(16 24 40 / 0.05), 0 12px 24px -4px rgb(16 24 40 / 0.1);
-  --shadow-modal: 0 24px 48px -12px rgb(16 24 40 / 0.25);
-  --shadow-primary: 0 1px 2px rgb(15 118 110 / 0.3), 0 4px 12px -2px rgb(15 118 110 / 0.35),
-    inset 0 1px 0 rgb(255 255 255 / 0.15);
+  /* Soft-square corners. One value, so the whole app can be dialled toward Sill's square panels. */
+  --panel-radius: 1rem;
+
+  --bg: #f4f1ee;
+  --surface: #fbfaf8;
+  --raised: #ffffff;
+  --subtle: #ebe5df;
+  --hover: #f1ece7;
+  --fg: #141110;
+  --muted: #5c534d; /* 6.0:1 on subtle, the lowest surface it sits on */
+  --line: #e4ddd6;
+  --line-strong: #d3c9c0;
+  /* Sill orange is too light for text on the light canvas; this darker shade is 5.0:1 on subtle. */
+  --primary: #a3440f;
+  --primary-hover: #8a390c;
+  --primary-soft: #a3440f14;
+  --on-primary: #ffffff; /* 6.2:1 */
+  --accent: var(--panel-rust);
+  --on-accent: var(--on-panel-rust);
+  --danger: #b42318; /* 5.3:1 on subtle */
+  --ring: var(--fg);
+
+  --shadow-xs: 0 1px 2px rgb(20 17 16 / 0.06);
+  --shadow-card: none;
+  --shadow-pop: 0 4px 6px -2px rgb(20 17 16 / 0.06), 0 12px 24px -4px rgb(20 17 16 / 0.12);
+  --shadow-modal: 0 24px 48px -12px rgb(20 17 16 / 0.3);
   color-scheme: light;
 }
 
 .dark {
-  --bg: #090e17;
-  --surface: #0f1622;
-  --raised: #151d2b;
-  --subtle: #19222f;
-  --hover: #141c29;
-  --fg: #eef2f7;
-  --muted: #9aa6b8;
-  --line: #1e2837;
-  --line-strong: #2b3749;
-  --primary: #14b8a6;
-  --primary-hover: #2dd4bf;
-  --primary-soft: #14b8a61f;
-  --on-primary: #042f2e;
-  --accent: #fb923c;
-  --danger: #f87171;
-  --ring: #14b8a6;
-  --glow: #14b8a614;
+  --bg: #0b0a0a;
+  --surface: #171413;
+  --raised: #1f1b19;
+  --subtle: #26211f;
+  --hover: #1d1917;
+  --fg: #f4f1ee;
+  --muted: #b0a69e; /* 6.7:1 on subtle */
+  --line: #2a2522;
+  --line-strong: #3a332f;
+  /* A lighter orange so it reads as text on the dark canvas (6.0:1 on raised). */
+  --primary: #ec7a3a;
+  --primary-hover: #f28f55;
+  --primary-soft: #ec7a3a1f;
+  --on-primary: #0b0a0a; /* 7.0:1 */
+  --accent: var(--panel-mustard);
+  --on-accent: var(--on-panel-mustard);
+  --danger: #f0866a; /* 6.8:1 on raised */
+  --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.03);
+  /* No drop shadow; just a faint top highlight so dark panels don't look cut out. */
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.03);
   --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.04);
   --shadow-modal: 0 32px 64px -16px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.05);
-  --shadow-primary: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px -4px rgb(20 184 166 / 0.45),
-    inset 0 1px 0 rgb(255 255 255 / 0.2);
   color-scheme: dark;
 }
 
@@ -84,13 +107,30 @@
   --color-primary-soft: var(--primary-soft);
   --color-on-primary: var(--on-primary);
   --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
+  --color-panel-orange: var(--panel-orange);
+  --color-on-panel-orange: var(--on-panel-orange);
+  --color-panel-mustard: var(--panel-mustard);
+  --color-on-panel-mustard: var(--on-panel-mustard);
+  --color-panel-maroon: var(--panel-maroon);
+  --color-on-panel-maroon: var(--on-panel-maroon);
+  --color-panel-rust: var(--panel-rust);
+  --color-on-panel-rust: var(--on-panel-rust);
+  --color-panel-violet: var(--panel-violet);
+  --color-on-panel-violet: var(--on-panel-violet);
+  --color-panel-sage: var(--panel-sage);
+  --color-on-panel-sage: var(--on-panel-sage);
+  --color-panel-taupe: var(--panel-taupe);
+  --color-on-panel-taupe: var(--on-panel-taupe);
+  --color-panel-mauve: var(--panel-mauve);
+  --color-on-panel-mauve: var(--on-panel-mauve);
+  --radius-panel: var(--panel-radius);
   --color-ring: var(--ring);
   --shadow-xs: var(--shadow-xs);
   --shadow-card: var(--shadow-card);
   --shadow-pop: var(--shadow-pop);
   --shadow-modal: var(--shadow-modal);
-  --shadow-primary: var(--shadow-primary);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --animate-fade-up: fade-up 320ms var(--ease-out-soft) both;
   --animate-pop-in: pop-in 220ms var(--ease-out-soft) both;
@@ -121,21 +161,36 @@ html {
 
 body {
   @apply min-h-dvh bg-bg font-sans text-fg antialiased;
-  /* A soft brand glow behind the header; fixed so it doesn't scroll with long lists. */
-  background-image:
-    radial-gradient(60rem 28rem at 50% -12rem, var(--glow), transparent 70%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+}
+
+/* Headings use the heavy display face; body text stays Inter. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }
 
 ::selection {
   background: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
-/* One visible focus style everywhere, for keyboard users. */
+/*
+ * One visible focus style everywhere, for keyboard users. Two tones: a canvas-coloured halo fills
+ * the offset gap and the outline sits outside it in the text colour, so the ring shows on every
+ * panel colour (a single orange ring would vanish on an orange panel).
+ * The outline is unlayered so nothing can remove it; the halo is in the base layer so a
+ * component's own focus shadow (e.g. the fields' soft glow) still wins.
+ */
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+@layer base {
+  :focus-visible {
+    box-shadow: 0 0 0 2px var(--bg);
+  }
 }
 
 button:not(:disabled),
@@ -149,7 +204,7 @@ input[type='checkbox']:not(:disabled) {
 /* Native selects get a consistent chevron instead of each browser's own arrow. */
 select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8079' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.55rem center;
   background-size: 1rem;
@@ -205,7 +260,7 @@ dialog[open] {
   animation: var(--animate-pop-in);
 }
 dialog::backdrop {
-  background: rgb(9 14 23 / 0.45);
+  background: rgb(11 10 10 / 0.5);
   backdrop-filter: blur(6px);
   animation: backdrop-in 200ms ease-out both;
 }

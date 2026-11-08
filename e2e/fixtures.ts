@@ -33,6 +33,13 @@ export class App {
     await expect(this.quickAddInput).toHaveValue('')
   }
 
+  /** Loads the demo tasks from the empty state and waits until they show. */
+  async loadSampleData() {
+    await this.page.getByRole('button', { name: 'Load sample data' }).click()
+    // The load is one transaction, so the first row to appear means the full set is in.
+    await expect(this.taskRow('Renew car insurance')).toBeVisible()
+  }
+
   /** The task list row whose title is exactly `title`. */
   taskRow(title: string): Locator {
     const checkbox = this.page.getByRole('checkbox', {

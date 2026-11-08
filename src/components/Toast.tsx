@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
+import { hoverHighlight, panel } from '../ui'
 
 export interface ToastData {
   id: string
@@ -25,7 +26,7 @@ export function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: 
             toast.action!.run()
             onDismiss(toast.id)
           }}
-          className="rounded-md px-2 py-1 font-semibold text-teal-300 transition-colors hover:bg-white/10 dark:text-teal-700 dark:hover:bg-black/5"
+          className={`rounded-md px-2 py-1 font-semibold transition-colors ${panel.brand} ${hoverHighlight}`}
         >
           {toast.action.label}
         </button>

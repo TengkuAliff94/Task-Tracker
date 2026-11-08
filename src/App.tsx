@@ -25,7 +25,7 @@ import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
-import { btn, card } from './ui'
+import { btn, card, panel } from './ui'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
 type Modal = 'labels' | 'backup' | 'shortcuts' | null
@@ -129,7 +129,7 @@ export default function App() {
           </div>
         ) : (
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl max-sm:hidden bg-gradient-to-br from-teal-500 to-teal-700 text-white shadow-primary">
+            <span className={`grid size-9 shrink-0 place-items-center rounded-xl max-sm:hidden ${panel.brand}`}>
               <CheckCheck className="size-5" strokeWidth={2.5} aria-hidden />
             </span>
             <div className="min-w-0">
@@ -156,7 +156,7 @@ export default function App() {
           >
             <Trash2 className="size-5" />
             {trashCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 font-semibold text-white ring-2 ring-surface dark:text-black">
+              <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 font-semibold text-on-accent ring-2 ring-surface">
                 {trashCount}
               </span>
             )}

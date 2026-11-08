@@ -63,7 +63,7 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Theme preference** (system/light/dark) is stored in localStorage, because it's a per-browser convenience. Everything else is in IndexedDB.
 - **Sample data** is offered in the empty state and in the Backup & restore window. When tasks already exist it asks first, and it always adds to existing data, never replacing it. It loads in one transaction, with dates set relative to today, and reuses any projects or tags with the same names (ignoring case), so loading it twice never duplicates labels.
 - **Deploy target** is Vercel. `vercel.json` rewrites page paths (anything outside `/assets/` without a file extension) to `index.html` so deep links and reloads never 404. Everything except hashed `/assets/` must revalidate on each load, so a new `sw.js` and app shell are picked up after a deploy. The service worker (`registerType: autoUpdate`) skips waiting, claims clients and deletes outdated caches.
-- **Design system**: see `design-system/task-tracker/MASTER.md`. Tokens live in `src/index.css`, and the light palette uses darker shades of the generated dark palette so text keeps 4.5:1 contrast.
+- **Design system**: flat colour panels after the Sill template (issue #9). Tokens live in `src/index.css`: dark is a near-black canvas with off-white text, light inverts it onto warm off-white, and the panel colours are shared. Where a Sill swatch failed 4.5:1 contrast it was shifted (noted beside the token), and `e2e/contrast.spec.ts` checks the rendered screens with axe.
 
 ## Deferred
 Kanban board, calendar view, CSV export, multi-device sync, custom repeat rules, full subtasks.

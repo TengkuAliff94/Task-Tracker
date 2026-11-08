@@ -11,8 +11,7 @@ test.use({ reducedMotion: 'reduce' })
 const AT_ONCE = { timeout: 750 }
 
 test('sample data shows in its final state, and completing a task hides it at once', async ({ app, page }) => {
-  await page.getByRole('button', { name: 'Load sample data' }).click()
-  await expect(app.taskRow('Renew car insurance')).toBeVisible()
+  await app.loadSampleData()
 
   // Expected counts at FIXED_NOW (Tue 10 Mar, 09:00), worked out from the sample set:
   // 10 tasks, 2 done. Due today: "Reply to recruiter email" (18:00) and "Morning run" (07:00).
