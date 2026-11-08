@@ -1,25 +1,31 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { taskRepo } from '../db/tasks'
+import { formatEffort, parseEffort } from '../lib/effort'
 import {
   PRIORITIES,
   PRIORITY_LABEL,
   STATUSES,
   STATUS_LABEL,
   type Deadline,
+  type Label,
   type Priority,
   type Status,
   type Task,
 } from '../types'
+import { ProjectPicker } from './ProjectPicker'
+import { TagPicker } from './TagPicker'
 
 interface Props {
   task?: Task // absent = create
+  projects: Label[]
+  tags: Label[]
   onClose: () => void
 }
 
 const field =
   'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800'
 
-export function TaskForm({ task, onClose }: Props) {
+export function TaskForm({ task, projects, tags, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
@@ -27,6 +33,9 @@ export function TaskForm({ task, onClose }: Props) {
   const [priority, setPriority] = useState<Priority>(task?.priority ?? 'medium')
   const [date, setDate] = useState(task?.deadline?.date ?? '')
   const [time, setTime] = useState(task?.deadline?.time ?? '')
+  const [projectId, setProjectId] = useState(task?.projectId)
+  const [tagIds, setTagIds] = useState(task?.tagIds ?? [])
+  const [effort, setEffort] = useState(task?.effortMinutes ? formatEffort(task.effortMinutes) : '')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -36,12 +45,15 @@ export function TaskForm({ task, onClose }: Props) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const deadline: Deadline | undefined = date ? { date, time: time || undefined } : undefined
+    const effortMinutes = parseEffort(effort)
+    if (effort.trim() && effortMinutes === undefined) {
+      setError('Effort should look like 30m, 2h or 1h30m')
+      return
+    }
+    const fields = { title, description, status, priority, deadline, projectId, tagIds, effortMinutes }
     try {
-      if (task) {
-        await taskRepo.update(task.id, { title, description, status, priority, deadline })
-      } else {
-        await taskRepo.create({ title, description, status, priority, deadline })
-      }
+      if (task) await taskRepo.update(task.id, fields)
+      else await taskRepo.create(fields)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -104,6 +116,19 @@ export function TaskForm({ task, onClose }: Props) {
               className={field}
             />
           </label>
+          <label className="block space-y-1">
+            <span className="text-sm font-medium">Project</span>
+            <ProjectPicker projects={projects} value={projectId} onChange={setProjectId} className={field} />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-sm font-medium">Effort</span>
+            <input value={effort} onChange={(e) => setEffort(e.target.value)} placeholder="e.g. 30m, 2h" className={field} />
+          </label>
+        </div>
+
+        <div className="space-y-1">
+          <span className="text-sm font-medium">Tags</span>
+          <TagPicker tags={tags} value={tagIds} onChange={setTagIds} />
         </div>
 
         {task && (

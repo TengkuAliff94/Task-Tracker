@@ -55,17 +55,14 @@ export interface Task {
   deletedAt?: number // set when moved to Trash
 }
 
-export interface Project {
+/** A named, colored label. Projects (one per task) and tags (many per task) share this shape. */
+export interface Label {
   id: string
   name: string
   color: string
 }
-
-export interface Tag {
-  id: string
-  name: string
-  color: string
-}
+export type Project = Label
+export type Tag = Label
 
 export interface Attachment {
   id: string

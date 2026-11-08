@@ -1,6 +1,8 @@
 import { taskRepo } from '../db/tasks'
 import { formatDeadline, isOverdue } from '../lib/deadline'
-import { PRIORITY_LABEL, STATUS_LABEL, type Priority, type Task } from '../types'
+import { formatEffort } from '../lib/effort'
+import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Priority, type Task } from '../types'
+import { LabelChip } from './LabelChip'
 
 const PRIORITY_STYLE: Record<Priority, string> = {
   low: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
@@ -12,11 +14,14 @@ const PRIORITY_STYLE: Record<Priority, string> = {
 interface Props {
   task: Task
   now: Date
+  projectsById: Map<string, Label>
+  tagsById: Map<string, Label>
   onEdit: () => void
 }
 
-export function TaskRow({ task, now, onEdit }: Props) {
+export function TaskRow({ task, now, projectsById, tagsById, onEdit }: Props) {
   const overdue = isOverdue(task, now)
+  const project = task.projectId ? projectsById.get(task.projectId) : undefined
   const done = task.status === 'done'
 
   return (
@@ -49,6 +54,14 @@ export function TaskRow({ task, now, onEdit }: Props) {
               {formatDeadline(task.deadline, now)}
             </span>
           )}
+          {task.effortMinutes !== undefined && (
+            <span className="text-slate-500">~{formatEffort(task.effortMinutes)}</span>
+          )}
+          {project && <LabelChip name={project.name} color={project.color} prefix="@" />}
+          {task.tagIds.map((id) => {
+            const tag = tagsById.get(id)
+            return tag ? <LabelChip key={id} name={tag.name} color={tag.color} prefix="#" /> : null
+          })}
         </div>
       </button>
     </li>

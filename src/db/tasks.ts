@@ -8,6 +8,9 @@ export interface TaskInput {
   status?: Status
   priority?: Priority
   deadline?: Deadline
+  projectId?: string
+  tagIds?: string[]
+  effortMinutes?: number
 }
 
 export type TaskPatch = Partial<Omit<Task, 'id' | 'createdAt'>>
@@ -48,7 +51,9 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
         status,
         priority: input.priority ?? 'medium',
         deadline: input.deadline,
-        tagIds: [],
+        projectId: input.projectId,
+        tagIds: input.tagIds ?? [],
+        effortMinutes: input.effortMinutes,
         checklist: [],
         reminders: [],
         createdAt: now,
