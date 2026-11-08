@@ -1,36 +1,55 @@
 // Regenerates the README images: `npm run screenshots`.
-import { expect, test, type Page } from '@playwright/test'
+// The clock is frozen at FIXED_NOW, so the sample data's relative dates ("Today", "In 3 days")
+// and the timestamps shown in the editor come out the same on every run.
+import type { Page } from '@playwright/test'
+import { expect, FIXED_NOW, test, type App } from './fixtures'
 
 /** Loads the demo tasks and hides the backup nudge, which would otherwise top every shot. */
-async function loadSample(page: Page) {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Load sample data' }).click()
-  // The load is one transaction, so the first rows to appear are the full set.
-  await expect(page.locator('li[data-task-id]').first()).toBeVisible()
-  await page.getByRole('button', { name: 'Remind me later' }).click()
+async function loadSample(app: App) {
+  // The fixture's clock keeps running from FIXED_NOW; stop it so "Added …" timestamps don't drift by seconds.
+  await app.page.clock.setFixedTime(FIXED_NOW)
+  await app.page.getByRole('button', { name: 'Load sample data' }).click()
+  // The load is one transaction, so the first row to appear means the full set is in.
+  await expect(app.taskRow('Prepare quarterly review slides')).toBeVisible()
+  await app.page.getByRole('button', { name: 'Remind me later' }).click()
+}
+
+/** Takes a shot that comes out the same every run: fonts loaded, no hover state, no animations. */
+async function shoot(page: Page, name: string) {
+  await page.mouse.move(0, 0)
+  await page.evaluate(() => document.fonts.ready)
+  await page.screenshot({ path: `${OUT}/${name}.png`, animations: 'disabled' })
 }
 
 const OUT = 'docs/screenshots'
 
-for (const scheme of ['light', 'dark'] as const) {
-  test(`list view (${scheme})`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: scheme })
-    await page.setViewportSize({ width: 1000, height: 900 })
-    await loadSample(page)
-    await page.screenshot({ path: `${OUT}/list-${scheme}.png` })
+for (const colorScheme of ['light', 'dark'] as const) {
+  test.describe(colorScheme, () => {
+    test.use({ colorScheme, viewport: { width: 1000, height: 900 } })
+
+    test(`list view (${colorScheme})`, async ({ app, page }) => {
+      await loadSample(app)
+      await shoot(page, `list-${colorScheme}`)
+    })
   })
 }
 
-test('task editor', async ({ page }) => {
-  await page.setViewportSize({ width: 1000, height: 1100 })
-  await loadSample(page)
-  await page.locator('li[data-task-id]').filter({ hasText: 'Prepare quarterly review slides' }).getByRole('button').click()
-  await expect(page.getByRole('dialog', { name: 'Edit task' })).toBeVisible()
-  await page.screenshot({ path: `${OUT}/editor.png` })
+test.describe('task editor', () => {
+  test.use({ viewport: { width: 1000, height: 1100 } })
+
+  test('task editor', async ({ app, page }) => {
+    await loadSample(app)
+    await app.taskRow('Prepare quarterly review slides').getByRole('button').click()
+    await expect(page.getByRole('dialog', { name: 'Edit task' })).toBeVisible()
+    await shoot(page, 'editor')
+  })
 })
 
-test('mobile', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 })
-  await loadSample(page)
-  await page.screenshot({ path: `${OUT}/mobile.png` })
+test.describe('mobile', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('mobile', async ({ app, page }) => {
+    await loadSample(app)
+    await shoot(page, 'mobile')
+  })
 })
