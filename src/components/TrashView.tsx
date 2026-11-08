@@ -30,15 +30,20 @@ export function TrashView() {
         )}
       </div>
       {trashed.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-line-strong p-8 text-center text-muted">Trash is empty.</p>
+        <div className="rounded-xl border border-dashed border-line-strong bg-surface/50 px-6 py-12 text-center">
+          <span className="mx-auto mb-4 grid size-12 place-items-center rounded-2xl border border-line bg-surface text-muted shadow-card">
+            <Trash2 className="size-6" aria-hidden />
+          </span>
+          <p className="text-sm text-muted">Trash is empty.</p>
+        </div>
       ) : (
         <ul aria-label="Trashed tasks" className={`${card} divide-y divide-line overflow-hidden`}>
           {trashed.map((t) => {
             const daysLeft = Math.max(0, Math.ceil((t.deletedAt! + TRASH_RETENTION_DAYS * DAY - now) / DAY))
             return (
-              <li key={t.id} className="flex items-center gap-3 px-4 py-3">
+              <li key={t.id} className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-hover sm:px-5">
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{t.title}</div>
+                  <div className="truncate font-medium text-muted line-through decoration-muted/50">{t.title}</div>
                   <div className="text-xs text-muted">
                     Deleted {new Date(t.deletedAt!).toLocaleDateString('en-GB')} · {daysLeft} day{daysLeft === 1 ? '' : 's'} left
                   </div>

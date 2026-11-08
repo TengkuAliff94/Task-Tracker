@@ -17,13 +17,13 @@ export function MissedRemindersBanner({ alerts, onDismissAll, onOpen }: Omit<Pro
   const missed = alerts.filter((a) => a.missed)
   if (!missed.length) return null
   return (
-    <div role="status" className="mb-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm">
+    <div role="status" className="mb-4 animate-fade-up rounded-xl border border-accent/30 bg-accent/8 p-3.5 text-sm shadow-xs">
       <div className="mb-1 flex items-center justify-between gap-2">
         <strong className="inline-flex items-center gap-1.5">
           <Bell className="size-4 text-accent" aria-hidden />
           {missed.length} reminder{missed.length === 1 ? '' : 's'} went off while you were away
         </strong>
-        <button onClick={onDismissAll} className="text-xs text-accent hover:underline">
+        <button onClick={onDismissAll} className="rounded-md px-2 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-accent/10">
           Dismiss all
         </button>
       </div>
@@ -43,14 +43,16 @@ export function MissedRemindersBanner({ alerts, onDismissAll, onOpen }: Omit<Pro
 
 export function ReminderToast({ alert, onDismiss, onOpen }: { alert: Alert; onDismiss: () => void; onOpen: () => void }) {
   return (
-    <div role="alert" className="rounded-lg border border-line bg-surface p-3 shadow-lg">
+    <div role="alert" className="animate-slide-in rounded-xl border border-line bg-raised p-3.5 shadow-pop">
       <div className="flex items-start gap-2">
-        <Bell className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden />
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-accent/12 text-accent">
+          <Bell className="size-4" aria-hidden />
+        </span>
         <button onClick={onOpen} className="min-w-0 flex-1 text-left">
           <div className="truncate text-sm font-medium">{alert.task.title}</div>
           <div className="text-xs text-muted">Reminder · {time(alert.at)}</div>
         </button>
-        <button onClick={onDismiss} aria-label="Dismiss" className="rounded p-0.5 text-muted hover:text-fg">
+        <button onClick={onDismiss} aria-label="Dismiss" className="rounded-md p-1 text-muted transition-colors hover:bg-subtle hover:text-fg">
           <X className="size-4" />
         </button>
       </div>

@@ -123,8 +123,10 @@ export function BackupNudge({ oldestTaskAt, onOpen }: { oldestTaskAt?: number; o
   }
 
   return (
-    <div role="status" className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-subtle px-3 py-2 text-sm">
-      <DatabaseBackup className="size-4 shrink-0 text-muted" aria-hidden />
+    <div role="status" className="mb-4 flex animate-fade-up flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm shadow-xs">
+      <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
+        <DatabaseBackup className="size-4" aria-hidden />
+      </span>
       <span className="flex-1">{text}</span>
       <button onClick={onOpen} className={btn.small}>
         Back up now

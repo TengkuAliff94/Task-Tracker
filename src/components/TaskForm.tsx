@@ -114,8 +114,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   return (
     <dialog ref={dialogRef} onClose={onClose} aria-label={task ? 'Edit task' : 'New task'} className={`${dialog} max-w-2xl`}>
       <form onSubmit={handleSubmit}>
-        <div className="flex items-center justify-between border-b border-line px-6 py-4">
-          <h2 className="text-lg font-semibold">{task ? 'Edit task' : 'New task'}</h2>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-raised/90 px-6 py-4 backdrop-blur">
+          <h2 className="text-base font-semibold tracking-tight">{task ? 'Edit task' : 'New task'}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className={btn.icon}>
             <X className="size-5" />
           </button>
@@ -139,7 +139,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
               </div>
             </div>
             {preview ? (
-              <div className="min-h-24 rounded-md border border-line px-3 py-2">
+              <div className="min-h-24 rounded-lg border border-line bg-subtle/40 px-3 py-2">
                 {description.trim() ? (
                   <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
                     <Markdown text={description} />
@@ -226,7 +226,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
           {error && <p className="text-sm text-danger">{error}</p>}
         </div>
 
-        <div className="flex items-center gap-2 border-t border-line px-6 py-4">
+        <div className="sticky bottom-0 flex items-center gap-2 border-t border-line bg-subtle/80 px-6 py-3.5 backdrop-blur">
           {task && (
             <button type="button" onClick={() => onTrash(task)} className={btn.danger}>
               <Trash2 className="size-4" /> Delete

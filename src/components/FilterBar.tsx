@@ -17,7 +17,8 @@ interface Props {
   doneCount: number
 }
 
-const select = 'rounded-md border border-line-strong bg-surface px-2 py-1.5 text-sm focus:border-ring focus:outline-none'
+const select =
+  'h-9 rounded-lg border border-line bg-subtle/60 px-2.5 text-sm text-fg transition-[border-color,box-shadow,background-color] duration-200 hover:border-line-strong focus:border-ring focus:bg-surface focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none'
 
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
@@ -29,8 +30,10 @@ function Pill({ active, onClick, children, color }: { active: boolean; onClick: 
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors duration-200 ${
-        active ? 'border-primary bg-primary text-on-primary' : 'border-line-strong text-muted hover:bg-subtle hover:text-fg'
+      className={`h-7 rounded-full border px-3 text-xs font-medium transition-all duration-200 ${
+        active
+          ? 'border-primary bg-primary text-on-primary shadow-xs'
+          : 'border-line bg-surface text-muted hover:border-line-strong hover:bg-hover hover:text-fg'
       }`}
       style={active && color ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
     >
@@ -39,15 +42,15 @@ function Pill({ active, onClick, children, color }: { active: boolean; onClick: 
   )
 }
 
-const Divider = () => <span className="mx-1 h-4 w-px bg-line-strong" aria-hidden />
+const Divider = () => <span className="mx-1.5 h-4 w-px bg-line" aria-hidden />
 
 export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup, projects, tags, doneCount }: Props) {
   const set = (patch: Partial<Filters>) => onFilters({ ...f, ...patch })
 
   return (
-    <div className={`${card} mb-4 space-y-3 p-3`}>
-      <div className="flex flex-wrap gap-2">
-        <div className="relative min-w-0 flex-1 basis-48">
+    <div className={`${card} mb-6 divide-y divide-line`}>
+      <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-[minmax(0,1fr)_9rem_9rem_9rem]">
+        <div className="relative col-span-2 min-w-0 sm:col-span-1">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <input
             id="search"
@@ -57,29 +60,32 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
             onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
             placeholder="Search tasks…"
             aria-label="Search tasks"
-            className={`${select} w-full pl-8`}
+            className={`${select} w-full pr-9 pl-8 [&::-webkit-search-cancel-button]:hidden`}
           />
+          <kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 max-sm:hidden" aria-hidden>
+            /
+          </kbd>
         </div>
-        <select aria-label="Filter by project" value={f.projectId ?? ''} onChange={(e) => set({ projectId: e.target.value || undefined })} className={select}>
+        <select aria-label="Filter by project" value={f.projectId ?? ''} onChange={(e) => set({ projectId: e.target.value || undefined })} className={`${select} min-w-0`}>
           <option value="">All projects</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
           <option value={NO_PROJECT}>No project</option>
         </select>
-        <select aria-label="Sort by" value={sort} onChange={(e) => onSort(e.target.value as SortKey)} className={select}>
+        <select aria-label="Sort by" value={sort} onChange={(e) => onSort(e.target.value as SortKey)} className={`${select} min-w-0 truncate`}>
           {Object.entries(SORT_LABEL).map(([k, v]) => (
             <option key={k} value={k}>Sort: {v}</option>
           ))}
         </select>
-        <select aria-label="Group by" value={group} onChange={(e) => onGroup(e.target.value as GroupKey)} className={select}>
+        <select aria-label="Group by" value={group} onChange={(e) => onGroup(e.target.value as GroupKey)} className={`${select} min-w-0 truncate`}>
           {Object.entries(GROUP_LABEL).map(([k, v]) => (
             <option key={k} value={k}>{k === 'none' ? v : `Group: ${v}`}</option>
           ))}
         </select>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5 px-3 py-2.5">
         {PRIORITIES.map((p) => (
           <Pill key={p} active={f.priorities.includes(p)} onClick={() => set({ priorities: toggle(f.priorities, p) })}>
             {PRIORITY_LABEL[p]}
@@ -99,13 +105,13 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
         ))}
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted">
+      <div className="flex items-center justify-between rounded-b-xl bg-subtle/40 px-3 py-2 text-sm text-muted">
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={f.showCompleted} onChange={(e) => set({ showCompleted: e.target.checked })} className="accent-primary" />
           Show completed ({doneCount})
         </label>
         {hasActiveFilters(f) && (
-          <button type="button" onClick={() => onFilters({ ...EMPTY_FILTERS, showCompleted: f.showCompleted })} className="text-primary hover:underline">
+          <button type="button" onClick={() => onFilters({ ...EMPTY_FILTERS, showCompleted: f.showCompleted })} className="rounded-md px-2 py-0.5 text-xs font-medium text-primary transition-colors hover:bg-primary-soft">
             Clear filters
           </button>
         )}

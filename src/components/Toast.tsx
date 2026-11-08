@@ -17,7 +17,7 @@ export function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: 
   }, [toast.id, onDismiss])
 
   return (
-    <div role="status" className="flex items-center gap-3 rounded-lg bg-fg px-4 py-3 text-sm text-bg shadow-lg">
+    <div role="status" className="flex animate-slide-in items-center gap-3 rounded-xl bg-fg py-3 pr-3 pl-4 text-sm text-bg shadow-modal ring-1 ring-white/10">
       <span className="flex-1">{toast.message}</span>
       {toast.action && (
         <button
@@ -25,12 +25,12 @@ export function Toast({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: 
             toast.action!.run()
             onDismiss(toast.id)
           }}
-          className="font-semibold text-primary-hover underline-offset-2 hover:underline dark:text-primary"
+          className="rounded-md px-2 py-1 font-semibold text-teal-300 transition-colors hover:bg-white/10 dark:text-teal-700 dark:hover:bg-black/5"
         >
           {toast.action.label}
         </button>
       )}
-      <button onClick={() => onDismiss(toast.id)} aria-label="Dismiss" className="opacity-70 hover:opacity-100">
+      <button onClick={() => onDismiss(toast.id)} aria-label="Dismiss" className="rounded-md p-1 opacity-60 transition-opacity hover:opacity-100">
         <X className="size-4" />
       </button>
     </div>
