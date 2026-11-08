@@ -5,7 +5,6 @@ import { db } from './db/db'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
-import { sampleData } from './db/sample'
 import { applyFilters, EMPTY_FILTERS, hasActiveFilters, type Filters } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { useNow } from './hooks/useNow'
@@ -21,6 +20,7 @@ import { NotificationButton } from './components/NotificationButton'
 import { TrashView } from './components/TrashView'
 import { BackupDialog, BackupNudge } from './components/Backup'
 import { ThemeToggle } from './components/ThemeToggle'
+import { SampleDataButton } from './components/SampleDataButton'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
@@ -51,7 +51,6 @@ export default function App() {
   const [modal, setModal] = useState<Modal>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastData[]>([])
-  const [loadingSample, setLoadingSample] = useState(false)
   const { alerts, dismiss, dismissAll } = useReminders(tasks)
 
   // Clear out Trash items past the retention period once per launch.
@@ -186,18 +185,10 @@ export default function App() {
             <p className="rounded-lg border border-dashed border-line-strong p-8 text-center text-muted">
               {tasks.length === 0 ? (
                 <>
-                  No tasks yet. Type one in the quick-add bar above, or{' '}
-                  <button
-                    disabled={loadingSample}
-                    onClick={() => {
-                      setLoadingSample(true)
-                      sampleData.load().finally(() => setLoadingSample(false))
-                    }}
-                    className="font-medium text-primary underline underline-offset-2 hover:text-primary-hover disabled:opacity-50"
-                  >
-                    load sample data
-                  </button>
-                  .
+                  No tasks yet. Type one in the quick-add bar above, or try the app with example tasks.
+                  <span className="mt-4 block">
+                    <SampleDataButton />
+                  </span>
                 </>
               ) : hasActiveFilters(filters)
                   ? 'No tasks match these filters.'

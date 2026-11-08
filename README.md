@@ -22,7 +22,7 @@ A personal task tracker that runs entirely in the browser. There's no server and
 - **Keyboard shortcuts**: `N` quick-add, `/` search, `J`/`K` move, `E` edit, `X` toggle done, `?` help.
 - **Themes**: light and dark, following the system setting by default. Responsive down to phone widths.
 
-New here? Open the app and click **load sample data** to see a filled-in list.
+New here? Open the app and click **Load sample data** to see a filled-in list. It is also in the Backup & restore window.
 
 ## Tech
 
