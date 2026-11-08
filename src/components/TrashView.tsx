@@ -32,7 +32,7 @@ export function TrashView() {
       {trashed.length === 0 ? (
         <p className="rounded-lg border border-dashed border-line-strong p-8 text-center text-muted">Trash is empty.</p>
       ) : (
-        <ul className={`${card} divide-y divide-line overflow-hidden`}>
+        <ul aria-label="Trashed tasks" className={`${card} divide-y divide-line overflow-hidden`}>
           {trashed.map((t) => {
             const daysLeft = Math.max(0, Math.ceil((t.deletedAt! + TRASH_RETENTION_DAYS * DAY - now) / DAY))
             return (
@@ -43,7 +43,7 @@ export function TrashView() {
                     Deleted {new Date(t.deletedAt!).toLocaleDateString('en-GB')} · {daysLeft} day{daysLeft === 1 ? '' : 's'} left
                   </div>
                 </div>
-                <button onClick={() => taskRepo.restore(t.id)} className={btn.secondary}>
+                <button onClick={() => taskRepo.restore(t.id)} aria-label={`Restore "${t.title}"`} className={btn.secondary}>
                   <RotateCcw className="size-4" /> Restore
                 </button>
                 <button

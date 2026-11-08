@@ -32,13 +32,24 @@ test('delete with undo, then restore from Trash', async ({ app, page }) => {
   }
 
   await deleteTask()
-  await page.getByRole('status').getByRole('button', { name: 'Undo' }).click()
+  const toast = page.getByRole('status').filter({ hasText: '“Old errand” moved to Trash' })
+  await expect(toast).toBeVisible()
+  await toast.getByRole('button', { name: 'Undo' }).click()
+  await expect(toast).toBeHidden()
   await expect(app.taskRow('Old errand')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Trash (0)' })).toBeVisible()
 
   await deleteTask()
   await page.getByRole('button', { name: 'Trash (1)' }).click()
   await expect(page.getByRole('heading', { name: 'Trash' })).toBeVisible()
-  await page.getByRole('button', { name: 'Restore', exact: true }).click()
+  // The clock is pinned (see fixtures.ts), so it was deleted today with the full 30 days to go.
+  const trashed = page.getByRole('list', { name: 'Trashed tasks' }).getByRole('listitem').filter({ hasText: 'Old errand' })
+  await expect(trashed).toContainText('Deleted 10/03/2026')
+  await expect(trashed).toContainText('30 days left')
+
+  await trashed.getByRole('button', { name: 'Restore "Old errand"' }).click()
+  await expect(page.getByText('Trash is empty.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Trash (0)' })).toBeVisible()
   await page.getByRole('button', { name: 'Back to tasks' }).click()
   await expect(app.taskRow('Old errand')).toBeVisible()
 })
