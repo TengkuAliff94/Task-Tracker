@@ -14,6 +14,8 @@ import {
 } from '../types'
 import { ProjectPicker } from './ProjectPicker'
 import { TagPicker } from './TagPicker'
+import { RecurrenceEditor } from './RecurrenceEditor'
+import { RemindersEditor } from './RemindersEditor'
 
 interface Props {
   task?: Task // absent = create
@@ -36,6 +38,8 @@ export function TaskForm({ task, projects, tags, onClose }: Props) {
   const [projectId, setProjectId] = useState(task?.projectId)
   const [tagIds, setTagIds] = useState(task?.tagIds ?? [])
   const [effort, setEffort] = useState(task?.effortMinutes ? formatEffort(task.effortMinutes) : '')
+  const [reminders, setReminders] = useState(task?.reminders ?? [])
+  const [recurrence, setRecurrence] = useState(task?.recurrence)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -50,7 +54,18 @@ export function TaskForm({ task, projects, tags, onClose }: Props) {
       setError('Effort should look like 30m, 2h or 1h30m')
       return
     }
-    const fields = { title, description, status, priority, deadline, projectId, tagIds, effortMinutes }
+    const fields = {
+      title,
+      description,
+      status,
+      priority,
+      deadline,
+      projectId,
+      tagIds,
+      effortMinutes,
+      reminders,
+      recurrence: deadline ? recurrence : undefined,
+    }
     try {
       if (task) await taskRepo.update(task.id, fields)
       else await taskRepo.create(fields)
@@ -64,7 +79,7 @@ export function TaskForm({ task, projects, tags, onClose }: Props) {
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="m-auto w-full max-w-lg rounded-xl bg-white p-0 text-slate-900 shadow-xl backdrop:bg-black/40 dark:bg-slate-900 dark:text-slate-100"
+      className="m-auto max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white p-0 text-slate-900 shadow-xl backdrop:bg-black/40 dark:bg-slate-900 dark:text-slate-100"
     >
       <form onSubmit={handleSubmit} className="space-y-4 p-6">
         <h2 className="text-lg font-semibold">{task ? 'Edit task' : 'New task'}</h2>
@@ -129,6 +144,17 @@ export function TaskForm({ task, projects, tags, onClose }: Props) {
         <div className="space-y-1">
           <span className="text-sm font-medium">Tags</span>
           <TagPicker tags={tags} value={tagIds} onChange={setTagIds} />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
+            <span className="text-sm font-medium">Repeat</span>
+            <RecurrenceEditor value={recurrence} onChange={setRecurrence} hasDeadline={Boolean(date)} className={field} />
+          </div>
+          <div className="space-y-1">
+            <span className="text-sm font-medium">Reminders</span>
+            <RemindersEditor value={reminders} onChange={setReminders} hasDeadline={Boolean(date)} className={field} />
+          </div>
         </div>
 
         {task && (

@@ -1,6 +1,7 @@
 import { taskRepo } from '../db/tasks'
 import { formatDeadline, isOverdue } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
+import { describeRecurrence } from '../lib/recurrence'
 import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Priority, type Task } from '../types'
 import { LabelChip } from './LabelChip'
 
@@ -53,6 +54,12 @@ export function TaskRow({ task, now, projectsById, tagsById, onEdit }: Props) {
             <span className={overdue ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500'}>
               {formatDeadline(task.deadline, now)}
             </span>
+          )}
+          {task.recurrence && (
+            <span className="text-slate-500" title="Repeats">🔁 {describeRecurrence(task.recurrence)}</span>
+          )}
+          {task.reminders.length > 0 && (
+            <span className="text-slate-500" title={`${task.reminders.length} reminder(s)`}>🔔{task.reminders.length}</span>
           )}
           {task.effortMinutes !== undefined && (
             <span className="text-slate-500">~{formatEffort(task.effortMinutes)}</span>

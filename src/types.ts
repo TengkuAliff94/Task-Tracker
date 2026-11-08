@@ -52,6 +52,8 @@ export interface Task {
   checklist: ChecklistItem[]
   reminders: Reminder[]
   recurrence?: Recurrence
+  /** For a completed recurring task: the instance its completion created. Stops duplicates. */
+  nextInstanceId?: string
   deletedAt?: number // set when moved to Trash
 }
 

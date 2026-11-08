@@ -48,5 +48,14 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 4. **Extras**: checklist, attachments, export/import, Trash, shortcuts, theme.
 5. **Release**: tests, sample data, deploy, README.
 
+## Decisions made during build
+- **Recurrence needs a deadline.** A repeat rule is dropped when a task has no deadline.
+- **Late completion skips ahead.** The next deadline steps forward until it is no longer overdue, so finishing a daily task a week late creates one new task, not seven.
+- **Month-end clamping.** 31 Jan + 1 month = 28/29 Feb.
+- **Re-opening a completed recurring task** moves its spawned next instance to Trash, unless that instance has already been started.
+- **Missed reminders** are tracked with a "checked up to" time stored in IndexedDB. On launch, anything due since then shows in a banner instead of firing as a burst of notifications. On the very first launch nothing counts as missed.
+- **Relative reminders** need a deadline. Absolute ones work on any task.
+- **Status filter "Done"** shows completed tasks even when "Show completed" is off.
+
 ## Deferred
 Kanban board, calendar view, CSV export, multi-device sync, custom repeat rules, full subtasks.

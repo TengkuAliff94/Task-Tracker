@@ -10,6 +10,9 @@ import { TaskForm } from './components/TaskForm'
 import { QuickAdd } from './components/QuickAdd'
 import { FilterBar } from './components/FilterBar'
 import { LabelManager } from './components/LabelManager'
+import { ReminderAlerts } from './components/ReminderAlerts'
+import { NotificationButton } from './components/NotificationButton'
+import { useReminders } from './hooks/useReminders'
 import type { Task } from './types'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
@@ -25,6 +28,13 @@ export default function App() {
   const [group, setGroup] = useState<GroupKey>('none')
   const [editing, setEditing] = useState<Editing>(null)
   const [managingLabels, setManagingLabels] = useState(false)
+  const { alerts, dismiss, dismissAll } = useReminders(tasks)
+
+  // Alerts hold a snapshot of the task, so open the latest version if it still exists.
+  const openTask = (t: Task) => {
+    const latest = tasks?.find((x) => x.id === t.id)
+    if (latest) setEditing({ mode: 'edit', task: latest })
+  }
 
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects])
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
@@ -40,7 +50,8 @@ export default function App() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <header className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Tasks</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <NotificationButton />
           <button
             onClick={() => setManagingLabels(true)}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
@@ -55,6 +66,8 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      <ReminderAlerts alerts={alerts} onDismiss={dismiss} onDismissAll={dismissAll} onOpen={openTask} />
 
       <QuickAdd />
 
