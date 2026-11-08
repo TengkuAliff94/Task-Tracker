@@ -4,7 +4,7 @@ import { DatabaseBackup, Download, Upload } from 'lucide-react'
 import { taskRepo } from '../db/tasks'
 import { backup, BACKUP_NUDGE_DAYS } from '../db/backup'
 import { toDateInput } from '../lib/deadline'
-import { btn } from '../ui'
+import { attentionAction, attentionQuiet, btn, INVERTED_PANEL, panel } from '../ui'
 import { Dialog } from './Dialog'
 import { SampleDataButton } from './SampleDataButton'
 
@@ -123,15 +123,15 @@ export function BackupNudge({ oldestTaskAt, onOpen }: { oldestTaskAt?: number; o
   }
 
   return (
-    <div role="status" className="mb-4 flex animate-fade-up flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm shadow-xs">
-      <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
-        <DatabaseBackup className="size-4" aria-hidden />
+    <div role="status" className={`mb-4 flex animate-fade-up flex-wrap items-center gap-3 rounded-panel px-5 py-4 text-sm ${panel.info}`}>
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white/15">
+        <DatabaseBackup className="size-4.5" aria-hidden />
       </span>
-      <span className="flex-1">{text}</span>
-      <button onClick={onOpen} className={btn.small}>
+      <span className="flex-1 font-medium">{text}</span>
+      <button onClick={onOpen} className={`${attentionAction} ${INVERTED_PANEL.info}`}>
         Back up now
       </button>
-      <button onClick={() => backup.snoozeNudge(now + SNOOZE_DAYS * DAY)} className={`${btn.small} text-muted`}>
+      <button onClick={() => backup.snoozeNudge(now + SNOOZE_DAYS * DAY)} className={attentionQuiet}>
         Remind me later
       </button>
     </div>

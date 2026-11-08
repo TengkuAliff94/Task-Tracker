@@ -10,6 +10,8 @@ export const DURATION = {
   fast: 0.18,
   /** Entrances and reveals. */
   base: 0.32,
+  /** Dialogs springing in (a CSS spring: `--duration-spring` in index.css mirrors this). */
+  spring: 0.48,
   /** Number count-ups. */
   count: 1.1,
   /** The little celebration when a task is completed. */
@@ -28,6 +30,9 @@ export const ENTER_FROM = { opacity: 0, y: 8 } as const
 export const ENTER_TO = { opacity: 1, y: 0, scale: 1 } as const
 /** Small things popping into place, e.g. the quick-add preview chips. */
 export const POP_FROM = { opacity: 0, y: 4, scale: 0.8 } as const
+/** Toasts sliding in from the screen edge, and back out the same way. */
+export const SLIDE_FROM = { opacity: 0, x: 32 } as const
+export const SLIDE_TO = { opacity: 1, x: 0 } as const
 /** Big decorative shapes rising into view, e.g. the heading panel's sun. */
 export const RISE_FROM = { opacity: 0, y: 60 } as const
 

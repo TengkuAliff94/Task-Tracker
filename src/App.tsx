@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { AnimatePresence } from 'motion/react'
 import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
@@ -226,12 +227,15 @@ export default function App() {
 
       <BurstLayer />
       <div className="fixed right-4 bottom-4 z-50 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-2">
-        {liveAlerts.map((a) => (
-          <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />
-        ))}
-        {toasts.map((t) => (
-          <Toast key={t.id} toast={t} onDismiss={closeToast} />
-        ))}
+        {/* Lets a dismissed toast slide out; the rest of the stack then glides into its place. */}
+        <AnimatePresence>
+          {liveAlerts.map((a) => (
+            <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />
+          ))}
+          {toasts.map((t) => (
+            <Toast key={t.id} toast={t} onDismiss={closeToast} />
+          ))}
+        </AnimatePresence>
       </div>
 
       {editing && (

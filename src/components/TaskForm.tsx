@@ -1,5 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Trash2, X } from 'lucide-react'
+import { lazy, Suspense, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { Trash2 } from 'lucide-react'
+import { useModalDialog } from '../hooks/useModalDialog'
+import { DialogTitleBar } from './Dialog'
 import { taskRepo } from '../db/tasks'
 import { attachmentRepo, type PendingAttachment } from '../db/attachments'
 import { formatEffort, parseEffort } from '../lib/effort'
@@ -44,7 +46,7 @@ function Field({ label, children, className = '' }: { label: string; children: R
 }
 
 export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  const { ref: dialogRef, close } = useModalDialog()
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
   const [preview, setPreview] = useState(false)
@@ -63,11 +65,6 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [pendingFiles, setPendingFiles] = useState<PendingAttachment[]>([])
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-
-  useEffect(() => {
-    const el = dialogRef.current
-    if (el && !el.open) el.showModal()
-  }, [])
 
   useEffect(() => {
     if (task) attachmentRepo.listForTask(task.id).then(setExistingFiles)
@@ -100,7 +97,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
       if (id) await taskRepo.update(id, fields)
       else id = (await taskRepo.create(fields)).id
       if (pendingFiles.length || removedFiles.length) await attachmentRepo.apply(id, pendingFiles, removedFiles)
-      onClose()
+      close()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -114,12 +111,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   return (
     <dialog ref={dialogRef} onClose={onClose} aria-label={task ? 'Edit task' : 'New task'} className={`${dialog} max-w-2xl`}>
       <form onSubmit={handleSubmit}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-raised/90 px-6 py-4 backdrop-blur">
-          <h2 className="text-base font-semibold tracking-tight">{task ? 'Edit task' : 'New task'}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className={btn.icon}>
-            <X className="size-5" />
-          </button>
-        </div>
+        <DialogTitleBar title={task ? 'Edit task' : 'New task'} onClose={close} />
 
         <div className="space-y-4 px-6 py-5">
           <Field label="Title">
@@ -228,12 +220,19 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
 
         <div className="sticky bottom-0 flex items-center gap-2 border-t border-line bg-subtle/80 px-6 py-3.5 backdrop-blur">
           {task && (
-            <button type="button" onClick={() => onTrash(task)} className={btn.danger}>
+            <button
+              type="button"
+              onClick={() => {
+                onTrash(task)
+                close()
+              }}
+              className={btn.danger}
+            >
               <Trash2 className="size-4" /> Delete
             </button>
           )}
           <div className="ml-auto flex gap-2">
-            <button type="button" onClick={onClose} className={btn.ghost}>
+            <button type="button" onClick={close} className={btn.ghost}>
               Cancel
             </button>
             <button type="submit" disabled={saving} className={btn.primary}>

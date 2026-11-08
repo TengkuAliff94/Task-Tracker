@@ -38,7 +38,7 @@ export const labelText = 'text-[13px] font-medium text-fg/90'
 export const panel = {
   /** Brand and primary emphasis (orange). */
   brand: 'bg-panel-orange text-on-panel-orange',
-  /** Open or in progress (violet). */
+  /** Open or in progress, and general notices such as toasts and the backup reminder (violet). */
   info: 'bg-panel-violet text-on-panel-violet',
   /** Needs attention soon: due today, high priority (mustard). */
   warning: 'bg-panel-mustard text-on-panel-mustard',
@@ -50,6 +50,12 @@ export const panel = {
   calm: 'bg-panel-sage text-on-panel-sage',
   /** Low emphasis: low priority (taupe). */
   neutral: 'bg-panel-taupe text-on-panel-taupe',
+} as const
+
+/** A panel's two colours swapped, for a solid button sitting on that panel. Same contrast as the panel. */
+export const INVERTED_PANEL = {
+  warning: 'bg-on-panel-mustard text-panel-mustard',
+  info: 'bg-on-panel-violet text-panel-violet',
 } as const
 
 /** Each priority's colour, wherever a priority is shown (task badges, the quick-add preview). */
@@ -71,6 +77,19 @@ export const STATUS_PANEL: Record<Status, string> = {
 export const SELECTED_OUTLINE = 'ring-2 ring-fg ring-offset-2 ring-offset-bg'
 /** Something that needs attention now, e.g. an overdue card: outlined in the `critical` colour. */
 export const ALERT_OUTLINE = 'ring-2 ring-panel-maroon'
+
+/**
+ * Buttons inside an attention panel (the missed-reminders banner, the backup reminder). The main
+ * action is the panel's colours swapped (`INVERTED_PANEL`), the quiet one is plain text in the
+ * panel's own text colour that gains a tint on hover.
+ */
+const attentionBase = 'rounded-lg px-3 py-1.5 text-xs font-semibold transition'
+export const attentionAction = `${attentionBase} hover:opacity-85`
+/** Dimmed to 85% at rest; on violet that is still about 5.6:1. */
+export const attentionQuiet = `${attentionBase} opacity-85 hover:bg-black/10 hover:opacity-100`
+
+/** The Dismiss (×) button on a toast panel, in the panel's own text colour (75% at rest, still AA on violet and mustard). */
+export const toastDismiss = 'rounded-md p-1 opacity-75 transition hover:bg-black/10 hover:opacity-100'
 
 /** Sill's hover: a coloured control lights up mustard. */
 export const hoverHighlight = 'hover:bg-panel-mustard hover:text-on-panel-mustard'
