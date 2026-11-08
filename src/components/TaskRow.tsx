@@ -3,16 +3,9 @@ import { taskRepo } from '../db/tasks'
 import { formatDeadline, isOverdue } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
-import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Priority, type Task } from '../types'
-import { panel } from '../ui'
+import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Task } from '../types'
+import { panel, PRIORITY_PANEL } from '../ui'
 import { LabelChip } from './LabelChip'
-
-const PRIORITY_PANEL: Record<Priority, string> = {
-  low: panel.neutral,
-  medium: panel.calm,
-  high: panel.warning,
-  urgent: panel.danger,
-}
 
 interface Props {
   task: Task

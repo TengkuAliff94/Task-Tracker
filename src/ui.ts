@@ -1,4 +1,5 @@
 // Shared class strings so every component uses the same tokens.
+import type { Priority } from './types'
 
 const btnBase =
   'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50'
@@ -46,6 +47,14 @@ export const panel = {
   /** Low emphasis: low priority (taupe). */
   neutral: 'bg-panel-taupe text-on-panel-taupe',
 } as const
+
+/** Each priority's colour, wherever a priority is shown (task badges, the quick-add preview). */
+export const PRIORITY_PANEL: Record<Priority, string> = {
+  low: panel.neutral,
+  medium: panel.calm,
+  high: panel.warning,
+  urgent: panel.danger,
+}
 
 /** Sill's hover: a coloured control lights up mustard. */
 export const hoverHighlight = 'hover:bg-panel-mustard hover:text-on-panel-mustard'

@@ -1,5 +1,6 @@
 // With reduced motion on, nothing should animate into place: content shows in its final state
 // at once, so no count-up, reveal or exit animation can leave something hidden, partial or lingering.
+import type { Locator } from '@playwright/test'
 import { expect, test } from './fixtures'
 
 test.use({ reducedMotion: 'reduce' })
@@ -30,8 +31,19 @@ test('sample data shows in its final state, and completing a task hides it at on
   await page.getByLabel('Mark "Book dentist appointment" as done').click()
   await expect(app.taskRow('Book dentist appointment')).toBeHidden(AT_ONCE)
   expect(await overview.innerText()).toMatch(/Completed\s*3/)
-  await expect(overview.getByRole('progressbar', { name: 'Tasks completed' })).toHaveAttribute('aria-valuenow', '30', AT_ONCE)
+  const meter = overview.getByRole('progressbar', { name: 'Tasks completed' })
+  await expect(meter).toHaveAttribute('aria-valuenow', '30', AT_ONCE)
+  // The bar itself, not just its value: it must already be drawn at 30%, not still filling.
+  expect(await filledFraction(meter)).toBeCloseTo(0.3, 2)
 })
+
+/** How much of a progress bar is drawn filled, from 0 to 1, as it looks on screen right now. */
+async function filledFraction(meter: Locator): Promise<number> {
+  const track = await meter.boundingBox()
+  const fill = await meter.locator(':scope > *').boundingBox()
+  if (!track || !fill) throw new Error('progress bar not rendered')
+  return fill.width / track.width
+}
 
 test('the task editor opens and closes at once', async ({ app, page }) => {
   await app.quickAdd('Water the plants')

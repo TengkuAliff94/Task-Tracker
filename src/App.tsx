@@ -20,7 +20,9 @@ import { TrashView } from './components/TrashView'
 import { BackupDialog, BackupNudge } from './components/Backup'
 import { ThemeToggle } from './components/ThemeToggle'
 import { SampleDataButton } from './components/SampleDataButton'
-import { Overview } from './components/Overview'
+import { Overview, OVERVIEW_TILE_COUNT } from './components/Overview'
+import { HeadingPanel } from './components/HeadingPanel'
+import { Reveal } from './components/motion/Reveal'
 import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
@@ -115,7 +117,7 @@ export default function App() {
   const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-16">
+    <div className="mx-auto max-w-6xl px-4 pb-16">
       <header className="sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 border-b border-transparent bg-bg/75 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60 sm:py-5">
         {view === 'trash' ? (
           <div className="flex items-center gap-2">
@@ -128,14 +130,12 @@ export default function App() {
             </div>
           </div>
         ) : (
-          <div className="flex min-w-0 items-center gap-3">
-            <span className={`grid size-9 shrink-0 place-items-center rounded-xl max-sm:hidden ${panel.brand}`}>
+          // The page heading lives in the heading panel below; the bar just carries the wordmark.
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${panel.brand}`}>
               <CheckCheck className="size-5" strokeWidth={2.5} aria-hidden />
             </span>
-            <div className="min-w-0">
-              <h1 className="text-xl leading-tight font-semibold tracking-tight sm:text-2xl">Tasks</h1>
-              <p className="truncate text-xs text-muted">{todayLabel}</p>
-            </div>
+            <span className="truncate font-display text-lg font-bold tracking-tight max-sm:hidden">Task Tracker</span>
           </div>
         )}
         <div className="flex items-center gap-2">
@@ -178,8 +178,20 @@ export default function App() {
         <>
           <MissedRemindersBanner alerts={alerts} onDismissAll={dismissAll} onOpen={openTask} />
           <BackupNudge oldestTaskAt={oldestTaskAt} onOpen={() => setModal('backup')} />
-          {tasks && tasks.length > 0 && <Overview tasks={tasks} now={now} />}
-          <QuickAdd />
+          {/* The bento: heading and Overview share a row on wide screens, quick add spans below. */}
+          <div className="mb-3 grid gap-3 md:grid-cols-12">
+            <Reveal index={0} className={tasks?.length ? 'md:col-span-5' : 'md:col-span-12'}>
+              <HeadingPanel dateLabel={todayLabel} />
+            </Reveal>
+            {tasks && tasks.length > 0 && (
+              <div className="md:col-span-7">
+                <Overview tasks={tasks} now={now} firstIndex={1} />
+              </div>
+            )}
+            <Reveal index={tasks?.length ? 1 + OVERVIEW_TILE_COUNT : 1} className="md:col-span-12">
+              <QuickAdd />
+            </Reveal>
+          </div>
           <FilterBar
             filters={filters}
             onFilters={setFilters}
