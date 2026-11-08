@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { labelTint } from '../lib/colors'
 
 interface Props {
   name: string
@@ -16,10 +17,7 @@ export function LabelChip({ name, color, prefix, onRemove }: Props) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-fg ring-1 ring-inset"
-      style={{
-        backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
-        ['--tw-ring-color' as string]: `color-mix(in srgb, ${color} 45%, transparent)`,
-      }}
+      style={labelTint(color)}
     >
       <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
       <span className="text-muted">{prefix}</span>

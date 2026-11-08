@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ComponentProps, type RefObject } from 'react'
 import { AnimatePresence, motion, useReducedMotionConfig, type HTMLMotionProps } from 'motion/react'
 import { cn } from '../../lib/utils'
-import { ENTER_FROM, ENTER_TO, enterTransition, exitTransition, SPRING } from './presets'
+import { ENTER_FROM, ENTER_TO, enterTransition, exitTransition, HOVER_LIFT, SPRING } from './presets'
 
 /** Whether the list has finished its first render; items added after that skip the stagger delay. */
 const ListMounted = createContext<RefObject<boolean>>({ current: false })
@@ -28,16 +28,22 @@ export function AnimatedList({ children, className, ...props }: ComponentProps<'
   )
 }
 
-type ItemProps = Omit<HTMLMotionProps<'li'>, 'initial' | 'animate' | 'exit' | 'layout' | 'transition'> & {
+type ItemProps = Omit<
+  HTMLMotionProps<'li'>,
+  'initial' | 'animate' | 'whileInView' | 'viewport' | 'exit' | 'layout' | 'transition' | 'whileHover'
+> & {
   /** Position in the list, for a short staggered entrance on the list's first render. */
   index?: number
+  /** Lift slightly under the pointer. */
+  lift?: boolean
 }
 
 /**
- * One item of an `AnimatedList`. Under reduced motion it neither moves nor fades: it appears and
- * disappears at once, so a removed item never lingers on screen.
+ * One item of an `AnimatedList`. It fades up the first time it scrolls into view (so items below
+ * the fold reveal as you reach them). Under reduced motion it neither moves nor fades: it appears
+ * and disappears at once, so a removed item never lingers on screen, and it doesn't lift on hover.
  */
-export function AnimatedItem({ index = 0, ...props }: ItemProps) {
+export function AnimatedItem({ index = 0, lift = false, ...props }: ItemProps) {
   const reduce = useReducedMotionConfig()
   const listMounted = useContext(ListMounted)
   // Fixed at the item's own mount: stagger with the first batch, otherwise enter straight away.
@@ -49,7 +55,9 @@ export function AnimatedItem({ index = 0, ...props }: ItemProps) {
       {...props}
       layout="position"
       initial={ENTER_FROM}
-      animate={{ ...ENTER_TO, transition: enterTransition(delayIndex) }}
+      whileInView={{ ...ENTER_TO, transition: enterTransition(delayIndex) }}
+      viewport={{ once: true, amount: 0.15 }}
+      whileHover={lift ? HOVER_LIFT : undefined}
       exit={{ opacity: 0, scale: 0.97, transition: exitTransition }}
       transition={{ layout: SPRING.soft }}
     />

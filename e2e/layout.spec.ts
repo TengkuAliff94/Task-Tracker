@@ -1,18 +1,11 @@
 // The top of the Task List view: a heading panel with today's date, the Overview tiles and the
 // quick-add panel. Side by side on a wide screen, stacked in one column on a phone, and never
 // wider than the screen.
-import type { Locator, Page } from '@playwright/test'
-import { expect, test } from './fixtures'
+import type { Page } from '@playwright/test'
+import { box, expect, test } from './fixtures'
 
-async function box(locator: Locator) {
-  const b = await locator.boundingBox()
-  if (!b) throw new Error('not rendered')
-  return b
-}
-
-/** True when the page can scroll sideways, i.e. something is wider than the screen. */
-const scrollsSideways = (page: Page) =>
-  page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+// These measure where panels settle, so run with reduced motion: mid-entrance they're offset.
+test.use({ reducedMotion: 'reduce' })
 
 const heading = (page: Page) => page.getByRole('heading', { level: 1, name: 'Tasks' })
 const overview = (page: Page) => page.getByRole('region', { name: 'Overview' })
@@ -36,7 +29,7 @@ test.describe('wide screen', () => {
     expect(o.x, 'Overview is to the right of the heading').toBeGreaterThan(h.x + h.width)
     expect(o.y, 'and shares its row').toBeLessThan(h.y + h.height)
     expect(q.y, 'quick add comes after both').toBeGreaterThan(o.y + o.height)
-    expect(await scrollsSideways(page)).toBe(false)
+    expect(await app.scrollsSideways()).toBe(false)
   })
 })
 
@@ -51,6 +44,6 @@ test.describe('phone', () => {
 
     expect(o.y, 'Overview is below the heading').toBeGreaterThan(h.y + h.height)
     expect(q.y, 'quick add is below the Overview').toBeGreaterThan(o.y + o.height)
-    expect(await scrollsSideways(page)).toBe(false)
+    expect(await app.scrollsSideways()).toBe(false)
   })
 })

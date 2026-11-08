@@ -12,6 +12,18 @@ export const LABEL_COLORS = [
   '#f97316', // orange
 ]
 
+/**
+ * Inline styles that show a user-picked label colour as a tint with an outline (pair it with
+ * `ring-1 ring-inset` and body-coloured text). The colour never colours the text itself: with
+ * light hues that fell to 2:1 contrast.
+ */
+export function labelTint(color: string, tintPercent = 12): Record<string, string> {
+  return {
+    backgroundColor: `color-mix(in srgb, ${color} ${tintPercent}%, transparent)`,
+    '--tw-ring-color': `color-mix(in srgb, ${color} 45%, transparent)`,
+  }
+}
+
 export function nextColor(used: string[]): string {
   return LABEL_COLORS.find((c) => !used.includes(c)) ?? LABEL_COLORS[used.length % LABEL_COLORS.length]
 }

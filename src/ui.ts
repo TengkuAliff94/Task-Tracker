@@ -1,5 +1,5 @@
 // Shared class strings so every component uses the same tokens.
-import type { Priority } from './types'
+import type { Priority, Status } from './types'
 
 const btnBase =
   'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50'
@@ -55,6 +55,18 @@ export const PRIORITY_PANEL: Record<Priority, string> = {
   high: panel.warning,
   urgent: panel.danger,
 }
+
+/** Each status's colour, e.g. for status group headings. */
+export const STATUS_PANEL: Record<Status, string> = {
+  todo: panel.neutral,
+  in_progress: panel.info,
+  done: panel.calm,
+}
+
+/** The keyboard-selected card: an outline (not colour alone) that reads in any theme and on any card. */
+export const SELECTED_OUTLINE = 'ring-2 ring-fg ring-offset-2 ring-offset-bg'
+/** Something that needs attention now, e.g. an overdue card: outlined in the `critical` colour. */
+export const ALERT_OUTLINE = 'ring-2 ring-panel-maroon'
 
 /** Sill's hover: a coloured control lights up mustard. */
 export const hoverHighlight = 'hover:bg-panel-mustard hover:text-on-panel-mustard'

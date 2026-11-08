@@ -45,6 +45,29 @@ async function filledFraction(meter: Locator): Promise<number> {
   return fill.width / track.width
 }
 
+test.describe('short screen', () => {
+  // Short enough that most of the sample list starts below the fold.
+  test.use({ viewport: { width: 1000, height: 500 } })
+
+  test('cards below the fold are fully shown once scrolled to', async ({ app, page }) => {
+    await app.loadSampleData()
+    const last = app.taskCards().last()
+    await last.scrollIntoViewIfNeeded()
+    // Playwright counts a see-through element as visible, so check it really is opaque.
+    await expect(last).toHaveCSS('opacity', '1', AT_ONCE)
+    await expect(last).toBeInViewport()
+  })
+})
+
+test('cards stay put under the pointer', async ({ app }) => {
+  await app.loadSampleData()
+  const card = app.taskCards().first()
+  await card.hover()
+  // Give a hover lift time to show if there were one.
+  await card.page().waitForTimeout(300)
+  expect(await card.evaluate((el) => getComputedStyle(el).transform)).toBe('none')
+})
+
 test('the task editor opens and closes at once', async ({ app, page }) => {
   await app.quickAdd('Water the plants')
 

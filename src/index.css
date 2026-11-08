@@ -55,7 +55,9 @@
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(20 17 16 / 0.06);
-  --shadow-card: none;
+  /* An empty shadow, not `none`: Tailwind combines shadows and rings into one box-shadow list,
+     and `none` inside a list voids the whole thing (rings would vanish in light mode). */
+  --shadow-card: 0 0 #0000;
   --shadow-pop: 0 4px 6px -2px rgb(20 17 16 / 0.06), 0 12px 24px -4px rgb(20 17 16 / 0.12);
   --shadow-modal: 0 24px 48px -12px rgb(20 17 16 / 0.3);
   color-scheme: light;

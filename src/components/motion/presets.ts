@@ -12,6 +12,8 @@ export const DURATION = {
   base: 0.32,
   /** Number count-ups. */
   count: 1.1,
+  /** The little celebration when a task is completed. */
+  burst: 0.45,
 } as const
 
 export const SPRING = {
@@ -28,6 +30,25 @@ export const POP_FROM = { opacity: 0, y: 4, scale: 0.8 } as const
 export const RISE_FROM = { opacity: 0, y: 60 } as const
 
 export type EnterFrom = typeof ENTER_FROM | typeof POP_FROM | typeof RISE_FROM
+
+/** A card lifting slightly under the pointer (Motion skips it for touch). */
+export const HOVER_LIFT = { y: -3, scale: 1.005 } as const
+
+/** The completion celebration: dots fly out on the soft ease, but grow and fade on a linear clock
+ *  (under the front-loaded ease alone they'd be gone before anyone saw them). */
+export const BURST = {
+  particles: 8,
+  /** How far (px) the dots travel from the centre. */
+  radius: 20,
+  scale: [0, 1.3, 0.6],
+  opacity: [1, 1, 0],
+  transition: {
+    duration: DURATION.burst,
+    ease: EASE_OUT_SOFT,
+    scale: { duration: DURATION.burst, times: [0, 0.3, 1], ease: 'linear' },
+    opacity: { duration: DURATION.burst, times: [0, 0.65, 1], ease: 'linear' },
+  } satisfies Transition,
+}
 
 const STAGGER_STEP = 0.025
 /** Items past this index all share the last delay, so long lists don't take ages to appear. */

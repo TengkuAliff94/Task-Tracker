@@ -9,7 +9,10 @@ import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { useNow } from './hooks/useNow'
 import { useReminders } from './hooks/useReminders'
 import { useShortcuts } from './hooks/useShortcuts'
-import { TaskRow } from './components/TaskRow'
+import { TaskCard } from './components/TaskCard'
+import { GroupHeading } from './components/GroupHeading'
+import { AnimatedList } from './components/motion/AnimatedList'
+import { BurstLayer, celebrate } from './components/motion/Burst'
 import { TaskForm } from './components/TaskForm'
 import { QuickAdd } from './components/QuickAdd'
 import { FilterBar } from './components/FilterBar'
@@ -27,7 +30,7 @@ import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
-import { btn, card, panel } from './ui'
+import { btn, panel } from './ui'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
 type Modal = 'labels' | 'backup' | 'shortcuts' | null
@@ -89,6 +92,12 @@ export default function App() {
     showToast({ message: `“${task.title}” moved to Trash`, action: { label: 'Undo', run: () => taskRepo.restore(task.id) } })
   }
 
+  /** The X shortcut: same as ticking the card's checkbox, celebration included. */
+  function toggleDone(task: Task) {
+    if (task.status !== 'done') celebrate(document.querySelector(`[data-task-id="${task.id}"] input[type="checkbox"]`))
+    taskRepo.setStatus(task.id, task.status === 'done' ? 'todo' : 'done')
+  }
+
   function moveSelection(delta: number) {
     if (!ordered.length) return
     const i = ordered.findIndex((t) => t.id === selectedId)
@@ -106,7 +115,7 @@ export default function App() {
           j: () => moveSelection(1),
           k: () => moveSelection(-1),
           e: () => selected && openTask(selected),
-          x: () => selected && taskRepo.setStatus(selected.id, selected.status === 'done' ? 'todo' : 'done'),
+          x: () => selected && toggleDone(selected),
           '?': () => setModal('shortcuts'),
           Escape: () => setSelectedId(null),
         }
@@ -230,24 +239,14 @@ export default function App() {
                   : 'Nothing left to do.'}
             </EmptyState>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {groups.map((g) => (
                 <section key={g.key}>
-                  {g.label && (
-                    <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold tracking-wide text-muted uppercase">
-                      {g.color && <span className="size-2 rounded-full" style={{ backgroundColor: g.color }} />}
-                      {g.label}
-                      <span className="rounded-full bg-subtle px-1.5 py-px text-[11px] font-medium tracking-normal tabular-nums">
-                        {g.tasks.length}
-                      </span>
-                    </h2>
-                  )}
-                  <ul
-                    aria-label={g.label ? `${g.label} tasks` : 'Tasks'}
-                    className={`${card} divide-y divide-line overflow-hidden`}
-                  >
+                  {g.label && <GroupHeading by={group} group={g} />}
+                  {/* Cards fill rows left to right, the same order J/K walk them in. */}
+                  <AnimatedList aria-label={g.label ? `${g.label} tasks` : 'Tasks'} className="grid gap-3 md:grid-cols-2">
                     {g.tasks.map((task, i) => (
-                      <TaskRow
+                      <TaskCard
                         key={task.id}
                         index={i}
                         task={task}
@@ -262,7 +261,7 @@ export default function App() {
                         }}
                       />
                     ))}
-                  </ul>
+                  </AnimatedList>
                 </section>
               ))}
             </div>
@@ -270,6 +269,7 @@ export default function App() {
         </>
       )}
 
+      <BurstLayer />
       <div className="fixed right-4 bottom-4 z-50 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-2">
         {liveAlerts.map((a) => (
           <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />

@@ -91,7 +91,7 @@ npm run test:e2e
 
 `npm run test:e2e` starts the dev server on port 4173 (or reuses one that is already running) and gives each test a fresh browser with empty storage. If a test fails, open the report with `npx playwright show-report`. Test results go to `test-results/` and the report to `playwright-report/`, and git ignores both. New tests should import `test` and `expect` from `e2e/fixtures.ts`. Its `app` fixture opens the app and finds elements by role and label. Vitest only runs `src/**/*.test.ts`, so it skips the e2e files.
 
-Beyond the user flows, two suites guard the design: `contrast.spec.ts` runs axe's colour-contrast check on the main screens in both themes, and `reduced-motion.spec.ts` checks that with reduced motion on, everything shows in its final state at once.
+Beyond the user flows, a few suites guard the design: `contrast.spec.ts` runs axe's colour-contrast check on the main screens in both themes; `reduced-motion.spec.ts` checks that with reduced motion on, everything shows in its final state at once; and `layout.spec.ts` and `task-cards.spec.ts` check the responsive layout, the card grid's reading order (J/K), the selection outline and that scroll-revealed cards never stay hidden.
 
 ## Keyboard shortcuts
 
