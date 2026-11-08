@@ -68,6 +68,8 @@
 
 @theme inline {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Heavy display face for headings and big numbers (`font-display`). */
+  --font-display: 'Gabarito Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-raised: var(--raised);
