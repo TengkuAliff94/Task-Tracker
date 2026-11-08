@@ -1,5 +1,7 @@
 # Task Tracker
 
+[![CI](https://github.com/TengkuAliff94/Task-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/TengkuAliff94/Task-Tracker/actions/workflows/ci.yml)
+
 **Live demo: [task-tracker-eta-blush.vercel.app](https://task-tracker-eta-blush.vercel.app)**
 
 A personal task tracker that runs entirely in the browser. There's no server and no login: your tasks stay on your device in IndexedDB. It installs as a PWA, works offline and can send reminder notifications.
