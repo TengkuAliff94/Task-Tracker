@@ -1,7 +1,8 @@
 // Shared Playwright setup for the e2e flows. Import `test` and `expect` from here, not '@playwright/test'.
 //
 // Every test gets a fresh browser context, so IndexedDB and localStorage start empty.
-// The `app` fixture opens the app and checks that it really is empty before the test runs.
+// The `app` fixture pins the clock to FIXED_NOW, opens the app and checks that it really is empty
+// before the test runs.
 import { expect, test as base, type Locator, type Page } from '@playwright/test'
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -41,8 +42,16 @@ export class App {
   }
 }
 
+/**
+ * Every test starts at this moment (Malaysia time, set in playwright.config.ts) instead of the real clock,
+ * so "today", "tomorrow" and "in 7 days" mean the same dates on every run. Mid-morning on a Tuesday keeps
+ * clear of midnight and month ends. Time still moves forward from here, so timers behave normally.
+ */
+export const FIXED_NOW = new Date('2026-03-10T09:00:00+08:00')
+
 export const test = base.extend<{ app: App }>({
   app: async ({ page }, use) => {
+    await page.clock.install({ time: FIXED_NOW })
     const app = new App(page)
     await app.open()
     await use(app)

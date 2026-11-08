@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures'
 
+// "tomorrow 5pm" is relative, but the fixture pins the clock, so it always lands on 11 March 2026.
 test('quick-add parses tokens, shows the task and keeps it after a reload', async ({ app, page }) => {
   await app.quickAddInput.fill('Pay rent #finance @home !high ~30m tomorrow 5pm')
 

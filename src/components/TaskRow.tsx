@@ -63,7 +63,7 @@ export function TaskRow({ task, now, projectsById, tagsById, attachmentCount, se
           )}
           {task.recurrence && (
             <span className={meta} title="Repeats">
-              <Repeat className="size-3.5" aria-hidden /> {describeRecurrence(task.recurrence)}
+              <Repeat className="size-3.5" role="img" aria-label="Repeats" /> {describeRecurrence(task.recurrence)}
             </span>
           )}
           {task.reminders.length > 0 && (
