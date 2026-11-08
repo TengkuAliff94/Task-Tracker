@@ -7,7 +7,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  // The HTML report always goes to playwright-report/ (CI uploads it when a run fails).
+  reporter: [[process.env.CI ? 'github' : 'list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',

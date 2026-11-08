@@ -214,7 +214,10 @@ export default function App() {
                       <span className="font-normal">{g.tasks.length}</span>
                     </h2>
                   )}
-                  <ul className={`${card} divide-y divide-line overflow-hidden`}>
+                  <ul
+                    aria-label={g.label ? `${g.label} tasks` : 'Tasks'}
+                    className={`${card} divide-y divide-line overflow-hidden`}
+                  >
                     {g.tasks.map((task) => (
                       <TaskRow
                         key={task.id}
