@@ -6,6 +6,7 @@ import { backup, BACKUP_NUDGE_DAYS, LAST_BACKUP_KEY } from '../db/backup'
 import { toDateInput } from '../lib/deadline'
 import { btn } from '../ui'
 import { Dialog } from './Dialog'
+import { SampleDataButton } from './SampleDataButton'
 
 const DAY = 86_400_000
 const SNOOZE_KEY = 'backupNudgeSnoozedUntil'
@@ -92,6 +93,10 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => importFile(e.target.files?.[0])} />
         </div>
         <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
+        <div className="space-y-2 border-t border-line pt-4">
+          <p className="text-muted">Want to explore? Add example tasks that show off every feature. Your own tasks are kept.</p>
+          <SampleDataButton onLoaded={(n) => setMessage({ ok: true, text: `Added ${n} sample tasks.` })} />
+        </div>
         {message && <p className={message.ok ? 'text-primary' : 'text-danger'}>{message.text}</p>}
       </div>
     </Dialog>

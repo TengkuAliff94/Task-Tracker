@@ -3,6 +3,7 @@
 import type { ChecklistItem, Deadline, Priority, Recurrence, Reminder, Status } from '../types'
 import { toDateInput } from '../lib/deadline'
 import { db as defaultDb, type TaskTrackerDB } from './db'
+import { createAttachmentRepo } from './attachments'
 import { createLabelRepo } from './labels'
 import { createTaskRepo } from './tasks'
 
@@ -20,6 +21,10 @@ interface SampleTask {
   effortMinutes?: number
   checklist?: [string, boolean][]
   remindersBefore?: number[]
+  /** A reminder at a fixed time: days from today and HH:mm. */
+  remindAt?: { days: number; time: string }
+  /** Link attachments as [name, url]. */
+  links?: [string, string][]
   recurrence?: Recurrence
   /** How many days ago the task was added. */
   addedDaysAgo: number
@@ -61,7 +66,8 @@ const TASKS: SampleTask[] = [
   },
   {
     title: 'Prepare quarterly review slides',
-    description: '- Revenue vs target\n- Hiring update\n- Risks for next quarter',
+    description:
+      '## Agenda\n\n- Revenue vs target\n- Hiring update\n- Risks for next quarter\n\nStart from the [team slide template](https://example.com/slides-template).',
     status: 'in_progress',
     priority: 'high',
     project: 'Work',
@@ -73,6 +79,7 @@ const TASKS: SampleTask[] = [
       ['Design slides', false],
       ['Dry run with team', false],
     ],
+    links: [['Sales dashboard', 'https://example.com/dashboard']],
     addedDaysAgo: 6,
   },
   {
@@ -86,6 +93,7 @@ const TASKS: SampleTask[] = [
   },
   {
     title: 'Morning run',
+    priority: 'medium',
     project: 'Health',
     due: { days: 0, time: '07:00' },
     effortMinutes: 30,
@@ -96,7 +104,7 @@ const TASKS: SampleTask[] = [
     title: 'Book dentist appointment',
     project: 'Health',
     tags: ['errand', 'quick'],
-    due: { days: 7 },
+    remindAt: { days: 1, time: '09:00' },
     addedDaysAgo: 4,
   },
   {
@@ -140,14 +148,16 @@ const TASKS: SampleTask[] = [
 export function createSampleData(db: TaskTrackerDB = defaultDb) {
   const labels = createLabelRepo(db)
   const tasks = createTaskRepo(db)
+  const attachments = createAttachmentRepo(db)
 
   return {
     /**
      * Adds the sample projects, tags and tasks in one transaction, so the list never shows a half-loaded set.
-     * Existing labels with the same name are reused. Returns the task count.
+     * Adds to existing data, never replaces it. Labels with the same name (ignoring case) are reused.
+     * Returns the task count.
      */
     load(now: Date = new Date()): Promise<number> {
-      return db.transaction('rw', db.projects, db.tags, db.tasks, () => addAll(now))
+      return db.transaction('rw', [db.projects, db.tags, db.tasks, db.attachments], () => addAll(now))
     },
   }
 
@@ -175,8 +185,13 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
         kind: 'relative',
         minutesBefore,
       }))
+      if (s.remindAt) {
+        const [h, m] = s.remindAt.time.split(':').map(Number)
+        const at = new Date(today.getFullYear(), today.getMonth(), today.getDate() + s.remindAt.days, h, m).getTime()
+        reminders.push({ id: crypto.randomUUID(), kind: 'absolute', at })
+      }
       const addedAt = now.getTime() - s.addedDaysAgo * DAY
-      await tasks.create(
+      const task = await tasks.create(
         {
           title: s.title,
           description: s.description,
@@ -192,6 +207,7 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
         },
         addedAt,
       )
+      for (const [name, url] of s.links ?? []) await attachments.addLink(task.id, url, name, addedAt)
     }
     return TASKS.length
   }

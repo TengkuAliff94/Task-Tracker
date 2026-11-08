@@ -44,7 +44,35 @@ test('delete with undo, then restore from Trash', async ({ app, page }) => {
 })
 
 test('demo visitors can load sample data', async ({ app, page }) => {
-  await page.getByRole('button', { name: 'load sample data' }).click()
+  await page.getByRole('button', { name: 'Load sample data' }).click()
   await expect(app.taskRow('Renew car insurance')).toContainText('Overdue')
   await expect(page.getByText('No tasks yet')).toBeHidden()
+})
+
+test('loading sample data over existing tasks asks first, and Cancel changes nothing', async ({ app, page }) => {
+  await app.quickAdd('My own task')
+  await expect(app.taskRow('My own task')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Backup & restore' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Backup & restore' })
+
+  let question = ''
+  page.once('dialog', (d) => {
+    question = d.message()
+    void d.dismiss()
+  })
+  await dialog.getByRole('button', { name: 'Load sample data' }).click()
+  await expect.poll(() => question).toContain('1 existing task')
+  await expect(dialog.getByRole('button', { name: 'Load sample data' })).toBeEnabled()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByText(/^1 task\b/)).toBeVisible()
+  await expect(app.taskRow('Renew car insurance')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Backup & restore' }).click()
+  page.once('dialog', (d) => d.accept())
+  await dialog.getByRole('button', { name: 'Load sample data' }).click()
+  await expect(dialog.getByText(/Added \d+ sample tasks/)).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(app.taskRow('My own task')).toBeVisible()
+  await expect(app.taskRow('Renew car insurance')).toBeVisible()
 })

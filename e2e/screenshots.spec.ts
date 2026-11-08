@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test'
 /** Loads the demo tasks and hides the backup nudge, which would otherwise top every shot. */
 async function loadSample(page: Page) {
   await page.goto('/')
-  await page.getByRole('button', { name: 'load sample data' }).click()
+  await page.getByRole('button', { name: 'Load sample data' }).click()
   // The load is one transaction, so the first rows to appear are the full set.
   await expect(page.locator('li[data-task-id]').first()).toBeVisible()
   await page.getByRole('button', { name: 'Remind me later' }).click()

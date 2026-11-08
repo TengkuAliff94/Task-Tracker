@@ -61,7 +61,7 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Trash purge** runs once per launch and removes items trashed more than 30 days ago, along with their attachments.
 - **Attachments are staged in the form.** They're only saved or removed when you click Save, so Cancel discards changes. Only http(s) links are allowed, and imported links are checked again before rendering.
 - **Theme preference** (system/light/dark) is stored in localStorage, because it's a per-browser convenience. Everything else is in IndexedDB.
-- **Sample data** is offered only in the empty state, so demo tasks never mix with real ones. It loads in one transaction, with dates set relative to today, and reuses any projects or tags with the same names.
+- **Sample data** is offered in the empty state and in the Backup & restore window. When tasks already exist it asks first, and it always adds to existing data, never replacing it. It loads in one transaction, with dates set relative to today, and reuses any projects or tags with the same names (ignoring case), so loading it twice never duplicates labels.
 - **Deploy target** is Vercel. `vercel.json` rewrites page paths (anything outside `/assets/` without a file extension) to `index.html` so deep links and reloads never 404. Everything except hashed `/assets/` must revalidate on each load, so a new `sw.js` and app shell are picked up after a deploy. The service worker (`registerType: autoUpdate`) skips waiting, claims clients and deletes outdated caches.
 - **Design system**: see `design-system/task-tracker/MASTER.md`. Tokens live in `src/index.css`, and the light palette uses darker shades of the generated dark palette so text keeps 4.5:1 contrast.
 
