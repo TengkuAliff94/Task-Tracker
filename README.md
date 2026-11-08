@@ -45,6 +45,17 @@ npm run dev          # http://localhost:5173
 | `npm run test:e2e` | End-to-end flows (Playwright; first run `npx playwright install chromium`) |
 | `npm run screenshots` | Regenerates the README screenshots from sample data |
 
+### End-to-end tests
+
+The e2e tests live in `e2e/` and use Playwright with Chromium. Before the first run, install the browser:
+
+```bash
+npx playwright install chromium   # add --with-deps on a fresh Linux machine
+npm run test:e2e
+```
+
+`npm run test:e2e` starts the dev server on port 4173 (or reuses one that is already running) and gives each test a fresh browser with empty storage. If a test fails, open the report with `npx playwright show-report`. Test results go to `test-results/` and the report to `playwright-report/`, and git ignores both. New tests should import `test` and `expect` from `e2e/fixtures.ts`. Its `app` fixture opens the app and finds elements by role and label. Vitest only runs `src/**/*.test.ts`, so it skips the e2e files.
+
 ## Deploying
 
 The app is a static site. `vercel.json` sets the build and stops the service worker and manifest from being cached, so updates reach installed copies.

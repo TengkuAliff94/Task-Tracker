@@ -1,13 +1,15 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 4173
+// Override with E2E_PORT to run several checkouts side by side without reusing each other's server.
+const PORT = Number(process.env.E2E_PORT ?? 4173)
 
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? 'github' : 'list',
+  // The HTML report always goes to playwright-report/ (CI uploads it when a run fails).
+  reporter: [[process.env.CI ? 'github' : 'list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry',
