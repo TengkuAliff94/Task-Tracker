@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 4173
+// Override with E2E_PORT to run several checkouts side by side without reusing each other's server.
+const PORT = Number(process.env.E2E_PORT ?? 4173)
 
 export default defineConfig({
   testDir: 'e2e',
