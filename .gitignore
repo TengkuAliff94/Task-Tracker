@@ -7,3 +7,6 @@ playwright-report
 
 .vercel
 .env*
+
+# Claude Code local files (agent worktrees, settings)
+.claude/
