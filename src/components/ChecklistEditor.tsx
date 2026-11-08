@@ -27,7 +27,11 @@ export function ChecklistEditor({ value, onChange }: Props) {
       {value.length > 0 && (
         <>
           <div className="h-1 overflow-hidden rounded-full bg-subtle" aria-hidden>
-            <div className="h-full bg-primary transition-all" style={{ width: `${(done / value.length) * 100}%` }} />
+            {/* Scaled, not resized, so the fill animates on transform only. */}
+            <div
+              className="h-full origin-left bg-primary transition-transform duration-200"
+              style={{ transform: `scaleX(${done / value.length})` }}
+            />
           </div>
           <ul className="space-y-0.5">
             {value.map((item) => (
@@ -44,7 +48,7 @@ export function ChecklistEditor({ value, onChange }: Props) {
                   onChange={(e) => update(item.id, { text: e.target.value })}
                   onBlur={(e) => !e.target.value.trim() && onChange(value.filter((i) => i.id !== item.id))}
                   aria-label="Checklist item"
-                  className={`min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 text-sm hover:border-line focus:border-ring focus:outline-none ${item.done ? 'text-muted line-through' : ''}`}
+                  className={`min-w-0 flex-1 rounded border border-transparent bg-transparent px-1.5 py-1 text-sm hover:border-line focus:border-ring ${item.done ? 'text-muted line-through' : ''}`}
                 />
                 <button
                   type="button"

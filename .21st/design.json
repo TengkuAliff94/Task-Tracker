@@ -1,0 +1,314 @@
+{
+  "version": 1,
+  "project": {
+    "name": "task-tracker",
+    "productType": null,
+    "stack": [
+      "react",
+      "shadcn",
+      "tailwind-v4",
+      "vite"
+    ]
+  },
+  "sources": {
+    "tokens": [
+      "src/index.css"
+    ],
+    "components": [],
+    "assets": [],
+    "instructions": []
+  },
+  "design": {
+    "colorMode": "light-and-dark",
+    "colors": {
+      "--muted": {
+        "value": "#b0a69e",
+        "source": "src/index.css"
+      },
+      "--primary": {
+        "value": "#ec7a3a",
+        "source": "src/index.css"
+      },
+      "--primary-hover": {
+        "value": "#f28f55",
+        "source": "src/index.css"
+      },
+      "--primary-soft": {
+        "value": "#ec7a3a1f",
+        "source": "src/index.css"
+      },
+      "--on-primary": {
+        "value": "#0b0a0a",
+        "source": "src/index.css"
+      },
+      "--accent": {
+        "value": "var(--panel-mustard)",
+        "source": "src/index.css"
+      },
+      "--on-accent": {
+        "value": "var(--on-panel-mustard)",
+        "source": "src/index.css"
+      },
+      "--ring": {
+        "value": "var(--fg)",
+        "source": "src/index.css"
+      },
+      "--color-bg": {
+        "value": "var(--bg)",
+        "source": "src/index.css"
+      },
+      "--color-surface": {
+        "value": "var(--surface)",
+        "source": "src/index.css"
+      },
+      "--color-raised": {
+        "value": "var(--raised)",
+        "source": "src/index.css"
+      },
+      "--color-subtle": {
+        "value": "var(--subtle)",
+        "source": "src/index.css"
+      },
+      "--color-hover": {
+        "value": "var(--hover)",
+        "source": "src/index.css"
+      },
+      "--color-fg": {
+        "value": "var(--fg)",
+        "source": "src/index.css"
+      },
+      "--color-muted": {
+        "value": "var(--muted)",
+        "source": "src/index.css"
+      },
+      "--color-line": {
+        "value": "var(--line)",
+        "source": "src/index.css"
+      },
+      "--color-line-strong": {
+        "value": "var(--line-strong)",
+        "source": "src/index.css"
+      },
+      "--color-primary": {
+        "value": "var(--primary)",
+        "source": "src/index.css"
+      },
+      "--color-primary-hover": {
+        "value": "var(--primary-hover)",
+        "source": "src/index.css"
+      },
+      "--color-primary-soft": {
+        "value": "var(--primary-soft)",
+        "source": "src/index.css"
+      },
+      "--color-on-primary": {
+        "value": "var(--on-primary)",
+        "source": "src/index.css"
+      },
+      "--color-accent": {
+        "value": "var(--accent)",
+        "source": "src/index.css"
+      },
+      "--color-on-accent": {
+        "value": "var(--on-accent)",
+        "source": "src/index.css"
+      },
+      "--color-danger": {
+        "value": "var(--danger)",
+        "source": "src/index.css"
+      },
+      "--color-panel-orange": {
+        "value": "var(--panel-orange)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-orange": {
+        "value": "var(--on-panel-orange)",
+        "source": "src/index.css"
+      },
+      "--color-panel-mustard": {
+        "value": "var(--panel-mustard)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-mustard": {
+        "value": "var(--on-panel-mustard)",
+        "source": "src/index.css"
+      },
+      "--color-panel-maroon": {
+        "value": "var(--panel-maroon)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-maroon": {
+        "value": "var(--on-panel-maroon)",
+        "source": "src/index.css"
+      },
+      "--color-panel-rust": {
+        "value": "var(--panel-rust)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-rust": {
+        "value": "var(--on-panel-rust)",
+        "source": "src/index.css"
+      },
+      "--color-panel-violet": {
+        "value": "var(--panel-violet)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-violet": {
+        "value": "var(--on-panel-violet)",
+        "source": "src/index.css"
+      },
+      "--color-panel-sage": {
+        "value": "var(--panel-sage)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-sage": {
+        "value": "var(--on-panel-sage)",
+        "source": "src/index.css"
+      },
+      "--color-panel-taupe": {
+        "value": "var(--panel-taupe)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-taupe": {
+        "value": "var(--on-panel-taupe)",
+        "source": "src/index.css"
+      },
+      "--color-panel-mauve": {
+        "value": "var(--panel-mauve)",
+        "source": "src/index.css"
+      },
+      "--color-on-panel-mauve": {
+        "value": "var(--on-panel-mauve)",
+        "source": "src/index.css"
+      },
+      "--color-ring": {
+        "value": "var(--ring)",
+        "source": "src/index.css"
+      },
+      "--duration-spring": {
+        "value": "480ms",
+        "source": "src/index.css"
+      },
+      "--ease-spring": {
+        "value": "linear(0, 0.18 5%, 0.5 12%, 0.8 20%, 0.97 28%, 1.03 36%, 1.04 42%, 1.02 55%, 1 70%, 1)",
+        "source": "src/index.css"
+      },
+      "--animate-spring-in": {
+        "value": "spring-in var(--duration-spring) var(--ease-spring) both",
+        "source": "src/index.css"
+      }
+    },
+    "typography": {
+      "--font-sans": {
+        "value": "'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+        "source": "src/index.css"
+      },
+      "--font-display": {
+        "value": "'Gabarito Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif",
+        "source": "src/index.css"
+      }
+    },
+    "spacing": {},
+    "radius": {
+      "--panel-radius": {
+        "value": "1rem",
+        "source": "src/index.css"
+      },
+      "--radius-panel": {
+        "value": "var(--panel-radius)",
+        "source": "src/index.css"
+      }
+    },
+    "shadows": {
+      "--shadow-xs": {
+        "value": "var(--shadow-xs)",
+        "source": "src/index.css"
+      },
+      "--shadow-card": {
+        "value": "var(--shadow-card)",
+        "source": "src/index.css"
+      },
+      "--shadow-pop": {
+        "value": "var(--shadow-pop)",
+        "source": "src/index.css"
+      },
+      "--shadow-modal": {
+        "value": "var(--shadow-modal)",
+        "source": "src/index.css"
+      }
+    },
+    "motion": {
+      "--ease-out-soft": {
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "source": "src/index.css"
+      },
+      "--duration-base": {
+        "value": "320ms",
+        "source": "src/index.css"
+      },
+      "--duration-float": {
+        "value": "3.6s",
+        "source": "src/index.css"
+      }
+    },
+    "density": "unknown"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [
+      "Direction (issue #9): card-style, colour-panel UI inspired by the 21st.dev Sill template. Dark follows Sill (canvas #0b0a0a, off-white text, saturated panels); light inverts it (warm off-white canvas, near-black text) with the same panels",
+      "Panel palette (same in both themes; panel / on-panel text): orange #cf6224 / #141110, mustard #e3b867 / #141110, maroon #6e1116 / #f4f1ee, rust #9b3418 / #f4f1ee, violet #5a3cd4 / #f4f1ee, sage #80a89b / #141110, taupe #bca59d / #141110, mauve #a97d9c / #141110",
+      "Canvas and text tokens, light / dark: bg #f4f1ee / #0b0a0a, surface #fbfaf8 / #171413, raised #ffffff / #1f1b19, subtle #ebe5df / #26211f, fg #141110 / #f4f1ee, muted #5c534d / #b0a69e, primary #a3440f / #ec7a3a, danger #b42318 / #f0866a; focus ring is var(--fg) with a var(--bg) halo",
+      "Motion dial is Expressive (Motion for React only): panels slide in, cards reveal, numbers count up, cards lift, completion bursts, reorders glide, dialogs and toasts spring; all of it with the reduced-motion guarantee below",
+      "Reuse the shared primitives before adding new ones: ui.ts class strings and panels, motion/presets.ts, Reveal, CountUp, AnimatedList/AnimatedItem, EmptyState, Dialog, Toast",
+      "Use the Sill panel palette tokens (panel-orange/mustard/maroon/rust/violet/sage/taupe/mauve) with their paired on-panel text tokens; every pairing meets 4.5:1 (3:1 for large display text) in both themes",
+      "Anything that carries meaning by colour (stats, priority, status) uses a panel from ui.ts, never a raw hue",
+      "User-picked project and tag colours show as a tint, dot and ring with body-coloured text, never as text colour",
+      "Headings and big numbers in Gabarito (font-display, extra-bold); body text in Inter; both self-hosted via fontsource, no CDN",
+      "Corner radius from --panel-radius (soft-square cards)",
+      "All timing comes from motion/presets.ts (CSS durations mirror it with a keep-in-sync comment); animate transform and opacity only (colour for the theme fade); cap stagger",
+      "Respect prefers-reduced-motion: MotionConfig reducedMotion=\"user\", the CSS override, and motion-safe: for endless animations; content renders in its final state",
+      "Keyboard focus always visible: the unlayered :focus-visible outline in index.css stays; selection uses an outline, not colour alone",
+      "Keep accessible roles and names used by the e2e fixture; native <dialog> stays the dialog base"
+    ],
+    "avoid": [
+      "Hairline borders and heavy drop shadows as separators",
+      "GSAP, ScrollTrigger, Lenis or any scroll hijacking",
+      "Ad-hoc durations, easings, colours or radii outside the tokens and presets",
+      "transition-all and animating layout properties (width, height, top, left)",
+      "Sill's photography, handwriting font and illustrated hero scenes"
+    ]
+  },
+  "decisions": [],
+  "evidence": [
+    {
+      "fact": "design.colorMode:light-and-dark",
+      "source": "src/index.css"
+    },
+    {
+      "fact": "design.tokens",
+      "source": "src/index.css"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:shadcn",
+      "source": "components.json"
+    },
+    {
+      "fact": "project.stack:tailwind-v4",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:vite",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-11-08T14:57:30.792Z"
+}

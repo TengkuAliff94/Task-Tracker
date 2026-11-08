@@ -20,7 +20,7 @@ interface Props {
 
 /** A flat well like the form fields: no outline at rest, a border on hover and focus. */
 const select =
-  'h-9 rounded-lg border border-transparent bg-subtle px-2.5 text-sm text-fg transition-[border-color,box-shadow] duration-200 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none'
+  'h-9 rounded-lg border border-transparent bg-subtle px-2.5 text-sm text-fg transition-[border-color,box-shadow] duration-200 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)]'
 
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]

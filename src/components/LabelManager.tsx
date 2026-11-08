@@ -53,7 +53,7 @@ function LabelRow({ label, repo, kind }: { label: Label; repo: Repo; kind: Kind 
           onChange={(e) => setName(e.target.value)}
           onBlur={() => name !== label.name && save({ name })}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-sm hover:border-line focus:border-ring focus:outline-none"
+          className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-sm hover:border-line focus:border-ring"
         />
         <button type="button" onClick={remove} aria-label={`Delete ${label.name}`} className={btn.icon}>
           <Trash2 className="size-4" />

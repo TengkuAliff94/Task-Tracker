@@ -70,7 +70,7 @@ export function QuickAdd() {
           onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
           placeholder="Quick add: Pay rent #finance @home !high ~30m tomorrow 5pm"
           aria-label="Quick add task"
-          className="w-full rounded-xl bg-transparent py-3.5 pr-12 pl-13 text-base placeholder:text-muted/70 focus:outline-none sm:py-4"
+          className="w-full rounded-xl bg-transparent py-3.5 pr-12 pl-13 text-base placeholder:text-muted/70 sm:py-4"
         />
         <kbd className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 transition-opacity group-focus-within:opacity-0 max-sm:hidden" aria-hidden>
           N

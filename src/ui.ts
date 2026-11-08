@@ -2,7 +2,7 @@
 import type { Priority, Status } from './types'
 
 const btnBase =
-  'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-[background-color,color,opacity,translate] duration-200 disabled:cursor-not-allowed disabled:opacity-50'
 
 export const btn = {
   primary: `${btnBase} bg-primary px-3.5 py-2 text-on-primary hover:bg-primary-hover active:translate-y-px`,
@@ -19,7 +19,7 @@ export const btn = {
 
 /** Flat input: a filled well with no outline at rest; the border appears on hover and focus. */
 export const field =
-  'w-full rounded-lg border border-transparent bg-subtle px-3 py-2 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none disabled:opacity-50'
+  'w-full rounded-lg border border-transparent bg-subtle px-3 py-2 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] disabled:opacity-50'
 
 /** A neutral panel: flat, no border, separated from its neighbours by the gap around it. */
 export const card = 'rounded-panel bg-surface shadow-card'

@@ -109,7 +109,7 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
         </div>
       </button>
       <ChevronRight
-        className="mt-0.5 size-4 shrink-0 text-muted opacity-0 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100 max-sm:hidden"
+        className="mt-0.5 size-4 shrink-0 text-muted opacity-0 transition-[opacity,translate] duration-200 group-hover:translate-x-0.5 group-hover:opacity-100 max-sm:hidden"
         aria-hidden
       />
     </AnimatedItem>
