@@ -19,7 +19,13 @@ export default defineConfig({
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] }, testIgnore: /screenshots\.spec\.ts/ },
     // Only runs when asked for (`npm run screenshots`); regenerates the README images.
-    { name: 'screenshots', testMatch: /screenshots\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
+    // Reduced motion so every shot shows final states: the screenshot option `animations: 'disabled'`
+    // only stops CSS animations, not the JavaScript-driven ones from Motion.
+    {
+      name: 'screenshots',
+      testMatch: /screenshots\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], reducedMotion: 'reduce' },
+    },
   ],
   webServer: {
     command: `npm run dev -- --port ${PORT} --strictPort`,

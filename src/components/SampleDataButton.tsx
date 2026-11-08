@@ -7,8 +7,9 @@ import { btn } from '../ui'
 /**
  * Adds the demo projects, tags and tasks. When tasks already exist it asks first,
  * since the sample set is added alongside them and never replaces anything.
+ * `prominent` makes it the brand button, for the first-run empty state where it's the main action.
  */
-export function SampleDataButton({ onLoaded }: { onLoaded?: (count: number) => void }) {
+export function SampleDataButton({ onLoaded, prominent = false }: { onLoaded?: (count: number) => void; prominent?: boolean }) {
   const [busy, setBusy] = useState(false)
 
   async function load() {
@@ -31,7 +32,7 @@ export function SampleDataButton({ onLoaded }: { onLoaded?: (count: number) => v
   }
 
   return (
-    <button onClick={load} disabled={busy} className={btn.secondary}>
+    <button onClick={load} disabled={busy} className={prominent ? btn.brand : btn.secondary}>
       <Sparkles className="size-4" /> Load sample data
     </button>
   )

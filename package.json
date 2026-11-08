@@ -13,17 +13,22 @@
     "screenshots": "playwright test --project=screenshots"
   },
   "dependencies": {
+    "@fontsource-variable/gabarito": "^5.3.0",
     "@fontsource-variable/inter": "^5.3.0",
     "chrono-node": "^2.10.3",
+    "clsx": "^2.1.1",
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
     "lucide-react": "^1.70.0",
+    "motion": "^14.10.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-markdown": "^10.1.0",
+    "tailwind-merge": "^3.7.0",
     "ui-ux-pro-max-cli": "^2.15.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.0",
     "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^26.6.6",

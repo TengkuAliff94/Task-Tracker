@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { tagRepo } from '../db/labels'
+import { cn } from '../lib/utils'
 import type { Label } from '../types'
+import { field } from '../ui'
 import { LabelChip } from './LabelChip'
 
 interface Props {
@@ -24,7 +26,7 @@ export function TagPicker({ tags, value, onChange }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-line-strong bg-surface px-2 py-1.5 focus-within:border-ring">
+    <div className={cn(field, 'flex flex-wrap items-center gap-1.5 px-2.5 py-1.5 focus-within:border-ring focus-within:shadow-[0_0_0_3px_var(--primary-soft)]')}>
       {value.map((id) => {
         const t = byId.get(id)
         return t ? (
@@ -50,7 +52,7 @@ export function TagPicker({ tags, value, onChange }: Props) {
         }}
         placeholder={value.length ? '' : 'Add tags…'}
         aria-label="Add tag"
-        className="min-w-24 flex-1 bg-transparent text-sm placeholder:text-muted/70 focus:outline-none"
+        className="min-w-24 flex-1 bg-transparent text-sm placeholder:text-muted/70"
       />
       <datalist id="tag-suggestions">
         {available.map((t) => (

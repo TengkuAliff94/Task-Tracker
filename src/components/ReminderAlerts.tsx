@@ -1,4 +1,6 @@
 import { Bell, X } from 'lucide-react'
+import { ToastPanel } from './Toast'
+import { attentionAction, INVERTED_PANEL, panel, toastDismiss } from '../ui'
 import type { Alert } from '../hooks/useReminders'
 import type { Task } from '../types'
 
@@ -17,23 +19,23 @@ export function MissedRemindersBanner({ alerts, onDismissAll, onOpen }: Omit<Pro
   const missed = alerts.filter((a) => a.missed)
   if (!missed.length) return null
   return (
-    <div role="status" className="mb-4 animate-fade-up rounded-xl border border-accent/30 bg-accent/8 p-3.5 text-sm shadow-xs">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <strong className="inline-flex items-center gap-1.5">
-          <Bell className="size-4 text-accent" aria-hidden />
+    <div role="status" className={`mb-4 animate-fade-up rounded-panel p-5 text-sm ${panel.warning}`}>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <strong className="inline-flex items-center gap-2 font-display text-base font-bold">
+          <Bell className="size-5" aria-hidden />
           {missed.length} reminder{missed.length === 1 ? '' : 's'} went off while you were away
         </strong>
-        <button onClick={onDismissAll} className="rounded-md px-2 py-0.5 text-xs font-medium text-accent transition-colors hover:bg-accent/10">
+        <button onClick={onDismissAll} className={`${attentionAction} ${INVERTED_PANEL.warning}`}>
           Dismiss all
         </button>
       </div>
-      <ul className="space-y-0.5 pl-5.5">
+      <ul className="space-y-0.5 pl-7">
         {missed.map((a) => (
           <li key={keyOf(a)}>
             <button onClick={() => onOpen(a.task)} className="hover:underline">
               {a.task.title}
             </button>
-            <span className="text-muted"> · {time(a.at)}</span>
+            <span className="opacity-80"> · {time(a.at)}</span>
           </li>
         ))}
       </ul>
@@ -43,20 +45,20 @@ export function MissedRemindersBanner({ alerts, onDismissAll, onOpen }: Omit<Pro
 
 export function ReminderToast({ alert, onDismiss, onOpen }: { alert: Alert; onDismiss: () => void; onOpen: () => void }) {
   return (
-    <div role="alert" className="animate-slide-in rounded-xl border border-line bg-raised p-3.5 shadow-pop">
+    <ToastPanel role="alert" className={`p-3.5 ${panel.warning}`}>
       <div className="flex items-start gap-2">
-        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-accent/12 text-accent">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-black/10">
           <Bell className="size-4" aria-hidden />
         </span>
         <button onClick={onOpen} className="min-w-0 flex-1 text-left">
           <div className="truncate text-sm font-medium">{alert.task.title}</div>
-          <div className="text-xs text-muted">Reminder · {time(alert.at)}</div>
+          <div className="text-xs opacity-80">Reminder · {time(alert.at)}</div>
         </button>
-        <button onClick={onDismiss} aria-label="Dismiss" className="rounded-md p-1 text-muted transition-colors hover:bg-subtle hover:text-fg">
+        <button onClick={onDismiss} aria-label="Dismiss" className={toastDismiss}>
           <X className="size-4" />
         </button>
       </div>
-    </div>
+    </ToastPanel>
   )
 }
 

@@ -41,6 +41,9 @@ New here? Open the app and click **Load sample data** to see a filled-in list. I
 | **Vite** | Fast dev server and build, plus a plugin for the PWA. |
 | **Tailwind CSS v4** | Design tokens live as CSS variables in `src/index.css`, so the light and dark themes only swap values. |
 | **Dexie (IndexedDB)** | IndexedDB holds structured data and file attachments in the browser. Dexie adds transactions and live queries (`useLiveQuery`), so the list updates whenever data changes. |
+| **Motion for React** | Entrance, count-up, layout and exit animations, through a few shared primitives in `src/components/motion/` that render final states under reduced motion. |
+| **Inter + Gabarito (Fontsource)** | Body and display faces, self-hosted so the app still works offline. |
+| **21st.dev / RareUI registries** | Source of animated UI components, added as editable code via `components.json` (shadcn-style, with `@/` mapped to `src/` and a `cn()` helper in `src/lib/utils.ts`). Pulled components are rewritten to the project's tokens and to `motion/react`. RareUI item names are PascalCase, e.g. `npx shadcn add @rareui/AnimatedTab`. |
 | **vite-plugin-pwa** | Generates the service worker and manifest for install and offline use. |
 | **chrono-node** | Parses plain-language dates in the quick-add bar ("tomorrow 5pm"). |
 | **Vitest + fake-indexeddb** | Unit tests for the pure logic, and for the repositories against an in-memory IndexedDB. |
@@ -87,6 +90,8 @@ npm run test:e2e
 ```
 
 `npm run test:e2e` starts the dev server on port 4173 (or reuses one that is already running) and gives each test a fresh browser with empty storage. If a test fails, open the report with `npx playwright show-report`. Test results go to `test-results/` and the report to `playwright-report/`, and git ignores both. New tests should import `test` and `expect` from `e2e/fixtures.ts`. Its `app` fixture opens the app and finds elements by role and label. Vitest only runs `src/**/*.test.ts`, so it skips the e2e files.
+
+Beyond the user flows, a few suites guard the design: `contrast.spec.ts` runs axe's colour-contrast check on the main screens in both themes; `reduced-motion.spec.ts` checks that with reduced motion on, everything shows in its final state at once; and `layout.spec.ts` and `task-cards.spec.ts` check the responsive layout, the card grid's reading order (J/K), the selection outline and that scroll-revealed cards never stay hidden.
 
 ## Keyboard shortcuts
 

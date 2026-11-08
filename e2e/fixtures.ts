@@ -33,6 +33,23 @@ export class App {
     await expect(this.quickAddInput).toHaveValue('')
   }
 
+  /** Loads the demo tasks from the empty state and waits until they show. */
+  async loadSampleData() {
+    await this.page.getByRole('button', { name: 'Load sample data' }).click()
+    // The load is one transaction, so the first row to appear means the full set is in.
+    await expect(this.taskRow('Renew car insurance')).toBeVisible()
+  }
+
+  /** The task cards in a list, in reading order. Lists are named "Tasks", or "<group> tasks" when grouped. */
+  taskCards(list = 'Tasks'): Locator {
+    return this.page.getByRole('list', { name: list }).getByRole('listitem')
+  }
+
+  /** True when the page can scroll sideways, i.e. something is wider than the screen. */
+  scrollsSideways(): Promise<boolean> {
+    return this.page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+  }
+
   /** The task list row whose title is exactly `title`. */
   taskRow(title: string): Locator {
     const checkbox = this.page.getByRole('checkbox', {
@@ -57,5 +74,16 @@ export const test = base.extend<{ app: App }>({
     await use(app)
   },
 })
+
+/** Whether anything inside `el` is running a CSS or Web Animation right now. */
+export const isAnimating = (el: Locator) =>
+  el.evaluate((node) => node.getAnimations({ subtree: true }).some((a) => a.playState === 'running'))
+
+/** Where something is drawn on screen; fails the test if it isn't rendered. */
+export async function box(locator: Locator) {
+  const b = await locator.boundingBox()
+  if (!b) throw new Error('not rendered')
+  return b
+}
 
 export { expect }

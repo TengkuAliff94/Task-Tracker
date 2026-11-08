@@ -8,9 +8,7 @@ import { expect, FIXED_NOW, test, type App } from './fixtures'
 async function loadSample(app: App) {
   // The fixture's clock keeps running from FIXED_NOW; stop it so "Added …" timestamps don't drift by seconds.
   await app.page.clock.setFixedTime(FIXED_NOW)
-  await app.page.getByRole('button', { name: 'Load sample data' }).click()
-  // The load is one transaction, so the first row to appear means the full set is in.
-  await expect(app.taskRow('Prepare quarterly review slides')).toBeVisible()
+  await app.loadSampleData()
   await app.page.getByRole('button', { name: 'Remind me later' }).click()
 }
 

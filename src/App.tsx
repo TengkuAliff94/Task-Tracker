@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowLeft, CheckCheck, ClipboardList, DatabaseBackup, Keyboard, PartyPopper, Plus, SearchX, Tags, Trash2 } from 'lucide-react'
+import { AnimatePresence } from 'motion/react'
+import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
@@ -9,23 +10,26 @@ import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { useNow } from './hooks/useNow'
 import { useReminders } from './hooks/useReminders'
 import { useShortcuts } from './hooks/useShortcuts'
-import { TaskRow } from './components/TaskRow'
+import { TaskCard } from './components/TaskCard'
+import { GroupHeading } from './components/GroupHeading'
+import { AnimatedList } from './components/motion/AnimatedList'
+import { BurstLayer, celebrate } from './components/motion/Burst'
 import { TaskForm } from './components/TaskForm'
 import { QuickAdd } from './components/QuickAdd'
 import { FilterBar } from './components/FilterBar'
 import { LabelManager } from './components/LabelManager'
 import { alertKey, MissedRemindersBanner, ReminderToast } from './components/ReminderAlerts'
-import { NotificationButton } from './components/NotificationButton'
+import { Header, type View } from './components/Header'
 import { TrashView } from './components/TrashView'
 import { BackupDialog, BackupNudge } from './components/Backup'
-import { ThemeToggle } from './components/ThemeToggle'
 import { SampleDataButton } from './components/SampleDataButton'
-import { Overview } from './components/Overview'
+import { Overview, OVERVIEW_TILE_COUNT } from './components/Overview'
+import { HeadingPanel } from './components/HeadingPanel'
+import { Reveal } from './components/motion/Reveal'
 import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
-import { btn, card } from './ui'
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
 type Modal = 'labels' | 'backup' | 'shortcuts' | null
@@ -44,7 +48,7 @@ export default function App() {
   const trashCount = useLiveQuery(() => taskRepo.countTrash(), []) ?? 0
   const now = useNow()
 
-  const [view, setView] = useState<'tasks' | 'trash'>('tasks')
+  const [view, setView] = useState<View>('tasks')
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [sort, setSort] = useState<SortKey>('smart')
   const [group, setGroup] = useState<GroupKey>('none')
@@ -87,6 +91,12 @@ export default function App() {
     showToast({ message: `“${task.title}” moved to Trash`, action: { label: 'Undo', run: () => taskRepo.restore(task.id) } })
   }
 
+  /** The X shortcut: same as ticking the card's checkbox, celebration included. */
+  function toggleDone(task: Task) {
+    if (task.status !== 'done') celebrate(document.querySelector(`[data-task-id="${task.id}"] input[type="checkbox"]`))
+    taskRepo.setStatus(task.id, task.status === 'done' ? 'todo' : 'done')
+  }
+
   function moveSelection(delta: number) {
     if (!ordered.length) return
     const i = ordered.findIndex((t) => t.id === selectedId)
@@ -104,7 +114,7 @@ export default function App() {
           j: () => moveSelection(1),
           k: () => moveSelection(-1),
           e: () => selected && openTask(selected),
-          x: () => selected && taskRepo.setStatus(selected.id, selected.status === 'done' ? 'todo' : 'done'),
+          x: () => selected && toggleDone(selected),
           '?': () => setModal('shortcuts'),
           Escape: () => setSelectedId(null),
         }
@@ -115,62 +125,17 @@ export default function App() {
   const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-16">
-      <header className="sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 border-b border-transparent bg-bg/75 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60 sm:py-5">
-        {view === 'trash' ? (
-          <div className="flex items-center gap-2">
-            <button onClick={() => setView('tasks')} aria-label="Back to tasks" className={btn.icon}>
-              <ArrowLeft className="size-5" />
-            </button>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Trash</h1>
-              <p className="text-xs text-muted">Restore or permanently delete</p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl max-sm:hidden bg-gradient-to-br from-teal-500 to-teal-700 text-white shadow-primary">
-              <CheckCheck className="size-5" strokeWidth={2.5} aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <h1 className="text-xl leading-tight font-semibold tracking-tight sm:text-2xl">Tasks</h1>
-              <p className="truncate text-xs text-muted">{todayLabel}</p>
-            </div>
-          </div>
-        )}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-xl border border-line bg-surface/80 p-0.5 shadow-xs max-sm:[&>*]:size-8">
-          <NotificationButton />
-          <button onClick={() => setModal('labels')} aria-label="Projects & tags" title="Projects & tags" className={btn.icon}>
-            <Tags className="size-5" />
-          </button>
-          <button onClick={() => setModal('backup')} aria-label="Backup & restore" title="Backup & restore" className={btn.icon}>
-            <DatabaseBackup className="size-5" />
-          </button>
-          <button
-            onClick={() => setView(view === 'trash' ? 'tasks' : 'trash')}
-            aria-label={`Trash (${trashCount})`}
-            title="Trash"
-            aria-pressed={view === 'trash'}
-            className={`${btn.icon} relative ${view === 'trash' ? 'bg-subtle text-fg' : ''}`}
-          >
-            <Trash2 className="size-5" />
-            {trashCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 font-semibold text-white ring-2 ring-surface dark:text-black">
-                {trashCount}
-              </span>
-            )}
-          </button>
-          <ThemeToggle />
-          <button onClick={() => setModal('shortcuts')} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.icon} max-sm:hidden`}>
-            <Keyboard className="size-5" />
-          </button>
-          </div>
-          <button onClick={() => setEditing({ mode: 'create' })} aria-label="New task" className={`${btn.primary} max-sm:size-9 max-sm:px-0`}>
-            <Plus className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">New task</span>
-          </button>
-        </div>
-      </header>
+    <div className="mx-auto max-w-6xl px-4 pb-16">
+      <Header
+        view={view}
+        trashCount={trashCount}
+        onToggleTrash={() => setView(view === 'trash' ? 'tasks' : 'trash')}
+        onBack={() => setView('tasks')}
+        onNewTask={() => setEditing({ mode: 'create' })}
+        onLabels={() => setModal('labels')}
+        onBackup={() => setModal('backup')}
+        onShortcuts={() => setModal('shortcuts')}
+      />
 
       {view === 'trash' ? (
         <TrashView />
@@ -178,8 +143,20 @@ export default function App() {
         <>
           <MissedRemindersBanner alerts={alerts} onDismissAll={dismissAll} onOpen={openTask} />
           <BackupNudge oldestTaskAt={oldestTaskAt} onOpen={() => setModal('backup')} />
-          {tasks && tasks.length > 0 && <Overview tasks={tasks} now={now} />}
-          <QuickAdd />
+          {/* The bento: heading and Overview share a row on wide screens, quick add spans below. */}
+          <div className="mb-3 grid gap-3 md:grid-cols-12">
+            <Reveal index={0} className={tasks?.length ? 'md:col-span-5' : 'md:col-span-12'}>
+              <HeadingPanel dateLabel={todayLabel} />
+            </Reveal>
+            {tasks && tasks.length > 0 && (
+              <div className="md:col-span-7">
+                <Overview tasks={tasks} now={now} firstIndex={1} />
+              </div>
+            )}
+            <Reveal index={tasks?.length ? 1 + OVERVIEW_TILE_COUNT : 1} className="md:col-span-12">
+              <QuickAdd />
+            </Reveal>
+          </div>
           <FilterBar
             filters={filters}
             onFilters={setFilters}
@@ -205,37 +182,23 @@ export default function App() {
             <EmptyState
               icon={tasks.length === 0 ? ClipboardList : hasActiveFilters(filters) ? SearchX : PartyPopper}
               title={tasks.length === 0 ? 'No tasks yet' : hasActiveFilters(filters) ? 'No matches' : 'All clear'}
+              action={tasks.length === 0 && <SampleDataButton prominent />}
             >
-              {tasks.length === 0 ? (
-                <>
-                  Type one in the quick-add bar above, or try the app with example tasks.
-                  <span className="mt-5 block">
-                    <SampleDataButton />
-                  </span>
-                </>
-              ) : hasActiveFilters(filters)
+              {tasks.length === 0
+                ? 'Type one in the quick-add bar above, or try the app with example tasks.'
+                : hasActiveFilters(filters)
                   ? 'No tasks match these filters.'
                   : 'Nothing left to do.'}
             </EmptyState>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {groups.map((g) => (
                 <section key={g.key}>
-                  {g.label && (
-                    <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold tracking-wide text-muted uppercase">
-                      {g.color && <span className="size-2 rounded-full" style={{ backgroundColor: g.color }} />}
-                      {g.label}
-                      <span className="rounded-full bg-subtle px-1.5 py-px text-[11px] font-medium tracking-normal tabular-nums">
-                        {g.tasks.length}
-                      </span>
-                    </h2>
-                  )}
-                  <ul
-                    aria-label={g.label ? `${g.label} tasks` : 'Tasks'}
-                    className={`${card} divide-y divide-line overflow-hidden`}
-                  >
+                  {g.label && <GroupHeading by={group} group={g} />}
+                  {/* Cards fill rows left to right, the same order J/K walk them in. */}
+                  <AnimatedList aria-label={g.label ? `${g.label} tasks` : 'Tasks'} className="grid gap-3 md:grid-cols-2">
                     {g.tasks.map((task, i) => (
-                      <TaskRow
+                      <TaskCard
                         key={task.id}
                         index={i}
                         task={task}
@@ -250,7 +213,7 @@ export default function App() {
                         }}
                       />
                     ))}
-                  </ul>
+                  </AnimatedList>
                 </section>
               ))}
             </div>
@@ -258,13 +221,17 @@ export default function App() {
         </>
       )}
 
+      <BurstLayer />
       <div className="fixed right-4 bottom-4 z-50 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-2">
-        {liveAlerts.map((a) => (
-          <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />
-        ))}
-        {toasts.map((t) => (
-          <Toast key={t.id} toast={t} onDismiss={closeToast} />
-        ))}
+        {/* Lets a dismissed toast slide out; the rest of the stack then glides into its place. */}
+        <AnimatePresence>
+          {liveAlerts.map((a) => (
+            <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />
+          ))}
+          {toasts.map((t) => (
+            <Toast key={t.id} toast={t} onDismiss={closeToast} />
+          ))}
+        </AnimatePresence>
       </div>
 
       {editing && (
