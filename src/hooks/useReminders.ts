@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { meta } from '../db/db'
+import { reminderLog } from '../db/reminders'
 import { dueReminders, notificationBody, type DueReminder } from '../lib/reminders'
 import type { Task } from '../types'
 
-const WATERMARK_KEY = 'remindersCheckedAt'
 const CHECK_EVERY_MS = 30_000
 
 export interface Alert extends DueReminder {
@@ -54,11 +53,11 @@ export function useReminders(tasks: Task[] | undefined) {
       const current = tasksRef.current
       if (!current) return
       const now = Date.now()
-      const since = await meta.get<number>(WATERMARK_KEY)
+      const since = await reminderLog.checkedUpTo()
       // Bail before moving the watermark, so a cancelled run (e.g. React StrictMode's
       // double mount) leaves the missed reminders for the next run to report.
       if (cancelled) return
-      await meta.set(WATERMARK_KEY, now)
+      await reminderLog.markChecked(now)
       if (since === undefined) return // first run ever: nothing to catch up on
 
       const due = dueReminders(current, since, now)

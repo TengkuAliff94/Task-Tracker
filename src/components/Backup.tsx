@@ -1,15 +1,14 @@
 import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { DatabaseBackup, Download, Upload } from 'lucide-react'
-import { db, meta } from '../db/db'
-import { backup, BACKUP_NUDGE_DAYS, LAST_BACKUP_KEY } from '../db/backup'
+import { taskRepo } from '../db/tasks'
+import { backup, BACKUP_NUDGE_DAYS } from '../db/backup'
 import { toDateInput } from '../lib/deadline'
 import { btn } from '../ui'
 import { Dialog } from './Dialog'
 import { SampleDataButton } from './SampleDataButton'
 
 const DAY = 86_400_000
-const SNOOZE_KEY = 'backupNudgeSnoozedUntil'
 const SNOOZE_DAYS = 3
 
 async function downloadBackup() {
@@ -24,7 +23,7 @@ async function downloadBackup() {
 }
 
 function useLastBackup() {
-  return useLiveQuery(async () => ({ at: await meta.get<number>(LAST_BACKUP_KEY) }), [])
+  return useLiveQuery(async () => ({ at: await backup.lastBackupAt() }), [])
 }
 
 export function BackupDialog({ onClose }: { onClose: () => void }) {
@@ -56,7 +55,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
         throw new Error('That file isn’t valid JSON.')
       }
       const incoming = Array.isArray((parsed as { tasks?: unknown[] })?.tasks) ? (parsed as { tasks: unknown[] }).tasks.length : 0
-      const current = await db.tasks.count()
+      const current = await taskRepo.countAll()
       const ok = confirm(
         `Replace everything in the app with this backup?\n\n` +
           `Now: ${current} task(s), including any in Trash.\nBackup: ${incoming} task(s).\n\n` +
@@ -106,7 +105,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
 /** Suggests a backup when there's never been one (after a few days of use) or the last is old. */
 export function BackupNudge({ oldestTaskAt, onOpen }: { oldestTaskAt?: number; onOpen: () => void }) {
   const state = useLiveQuery(
-    async () => ({ last: await meta.get<number>(LAST_BACKUP_KEY), snoozedUntil: await meta.get<number>(SNOOZE_KEY) }),
+    async () => ({ last: await backup.lastBackupAt(), snoozedUntil: await backup.nudgeSnoozedUntil() }),
     [],
   )
   if (!state || oldestTaskAt === undefined) return null
@@ -130,7 +129,7 @@ export function BackupNudge({ oldestTaskAt, onOpen }: { oldestTaskAt?: number; o
       <button onClick={onOpen} className={btn.small}>
         Back up now
       </button>
-      <button onClick={() => meta.set(SNOOZE_KEY, now + SNOOZE_DAYS * DAY)} className={`${btn.small} text-muted`}>
+      <button onClick={() => backup.snoozeNudge(now + SNOOZE_DAYS * DAY)} className={`${btn.small} text-muted`}>
         Remind me later
       </button>
     </div>

@@ -50,9 +50,8 @@ describe('sample data', () => {
     for (const p of PRIORITIES) expect(tasks.some((t) => t.priority === p), p).toBe(true)
     for (const s of STATUSES) expect(tasks.some((t) => t.status === s), s).toBe(true)
 
-    // Sunday 8 Nov 2026: today, and later this week (Mon 9 - Sat 14).
+    // "Later this week" is covered across weekdays below.
     expect(tasks.some((t) => t.deadline?.date === '2026-11-08')).toBe(true)
-    expect(tasks.some((t) => t.deadline && t.deadline.date > '2026-11-08' && t.deadline.date <= '2026-11-14')).toBe(true)
     expect(tasks.some((t) => isOverdue(t, NOW))).toBe(true)
     expect(tasks.some((t) => !t.deadline)).toBe(true)
 
@@ -99,6 +98,28 @@ describe('sample data', () => {
     const finance = await tags.create('FINANCE', '#000000')
     await sample.load(NOW)
     expect((await tags.list()).filter((t) => t.name.toLowerCase() === 'finance')).toEqual([finance])
+  })
+
+  // Weeks run Monday to Sunday (en-GB). "Later this week" means after tomorrow, up to Sunday;
+  // on a Saturday only Sunday is left, so it's tomorrow.
+  it.each([
+    ['Mon', '2026-11-09', '2026-11-10'],
+    ['Tue', '2026-11-10', '2026-11-11'],
+    ['Wed', '2026-11-11', '2026-11-12'],
+    ['Thu', '2026-11-12', '2026-11-13'],
+    ['Fri', '2026-11-13', '2026-11-14'],
+    ['Sat', '2026-11-14', '2026-11-14'],
+  ])('on a %s (%s), has a task due later the same week', async (_day, today, after) => {
+    const [y, m, d] = today.split('-').map(Number)
+    await sample.load(new Date(y, m - 1, d, 10, 0))
+    const tasks = await createTaskRepo(db).list()
+    expect(tasks.some((t) => t.deadline && t.deadline.date > after && t.deadline.date <= '2026-11-15')).toBe(true)
+  })
+
+  it('on a Sunday, when the week has no days left, still has a task due in the next few days', async () => {
+    await sample.load(NOW) // Sunday 8 Nov 2026
+    const tasks = await createTaskRepo(db).list()
+    expect(tasks.some((t) => t.deadline && t.deadline.date >= '2026-11-10' && t.deadline.date <= '2026-11-12')).toBe(true)
   })
 
   it('places deadlines relative to now', async () => {
