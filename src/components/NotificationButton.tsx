@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Bell, BellOff } from 'lucide-react'
+import { btn } from '../ui'
 
 /** Asks for notification permission. Hidden once granted or when the browser has no support. */
 export function NotificationButton() {
@@ -9,18 +11,15 @@ export function NotificationButton() {
 
   if (permission === 'denied') {
     return (
-      <span className="self-center text-xs text-slate-500" title="Allow notifications for this site in your browser settings">
-        Notifications blocked
+      <span className={`${btn.icon} cursor-help`} title="Notifications are blocked. Allow them for this site in your browser settings.">
+        <BellOff className="size-5" aria-label="Notifications blocked" />
       </span>
     )
   }
 
   return (
-    <button
-      onClick={async () => setPermission(await Notification.requestPermission())}
-      className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
-    >
-      🔔 Enable notifications
+    <button onClick={async () => setPermission(await Notification.requestPermission())} className={btn.secondary}>
+      <Bell className="size-4" /> <span className="hidden sm:inline">Enable notifications</span>
     </button>
   )
 }

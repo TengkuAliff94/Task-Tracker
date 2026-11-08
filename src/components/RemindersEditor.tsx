@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Bell, X } from 'lucide-react'
 import { describeReminder, MAX_REMINDERS, RELATIVE_PRESETS } from '../lib/reminders'
 import type { Reminder } from '../types'
 
@@ -24,18 +25,18 @@ export function RemindersEditor({ value, onChange, hasDeadline, className }: Pro
   return (
     <div className="space-y-1.5">
       {value.map((r) => (
-        <div key={r.id} className="flex items-center justify-between rounded-md bg-slate-100 px-2 py-1 text-sm dark:bg-slate-800">
-          <span>
-            🔔 {describeReminder(r)}
-            {r.kind === 'relative' && !hasDeadline && <span className="text-xs text-amber-600"> (needs a deadline)</span>}
+        <div key={r.id} className="flex items-center justify-between rounded-md bg-subtle px-2 py-1 text-sm">
+          <span className="inline-flex items-center gap-1.5">
+            <Bell className="size-3.5 text-muted" aria-hidden /> {describeReminder(r)}
+            {r.kind === 'relative' && !hasDeadline && <span className="text-xs text-accent"> (needs a deadline)</span>}
           </span>
           <button
             type="button"
             aria-label="Remove reminder"
             onClick={() => onChange(value.filter((x) => x.id !== r.id))}
-            className="text-slate-400 hover:text-slate-700"
+            className="rounded p-0.5 text-muted hover:text-fg"
           >
-            ×
+            <X className="size-3.5" />
           </button>
         </div>
       ))}
@@ -73,7 +74,7 @@ export function RemindersEditor({ value, onChange, hasDeadline, className }: Pro
                 type="button"
                 disabled={!at}
                 onClick={() => add({ id: crypto.randomUUID(), kind: 'absolute', at: new Date(at).getTime() })}
-                className="rounded-md bg-slate-200 px-3 text-sm disabled:opacity-50 dark:bg-slate-700"
+                className="rounded-md border border-line-strong px-3 text-sm hover:bg-subtle disabled:opacity-50"
               >
                 Add
               </button>

@@ -56,6 +56,12 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Missed reminders** are tracked with a "checked up to" time stored in IndexedDB. On launch, anything due since then shows in a banner instead of firing as a burst of notifications. On the very first launch nothing counts as missed.
 - **Relative reminders** need a deadline. Absolute ones work on any task.
 - **Status filter "Done"** shows completed tasks even when "Show completed" is off.
+- **Restore replaces everything.** Importing a backup clears all tasks, projects, tags and attachments first, after a confirmation that shows both counts. There is no merge.
+- **Backup nudge** appears when there has never been a backup and the oldest task is 3+ days old, or when the last backup is 14+ days old. "Remind me later" snoozes it for 3 days.
+- **Trash purge** runs once per launch and removes items trashed more than 30 days ago, along with their attachments.
+- **Attachments are staged in the form.** They're only saved or removed when you click Save, so Cancel discards changes. Only http(s) links are allowed, and imported links are checked again before rendering.
+- **Theme preference** (system/light/dark) is stored in localStorage, because it's a per-browser convenience. Everything else is in IndexedDB.
+- **Design system**: see `design-system/task-tracker/MASTER.md`. Tokens live in `src/index.css`, and the light palette uses darker shades of the generated dark palette so text keeps 4.5:1 contrast.
 
 ## Deferred
 Kanban board, calendar view, CSV export, multi-device sync, custom repeat rules, full subtasks.

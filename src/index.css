@@ -1,10 +1,100 @@
 @import 'tailwindcss';
 
-/* Placeholder look until the design system is generated in milestone 4. */
+/* Dark mode follows the `dark` class on <html>, which src/lib/theme.ts manages. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens, from design-system/task-tracker/MASTER.md (Minimalism & Swiss style,
+ * teal primary, orange accent, Inter). The generator's palette is dark-only; the light
+ * values use darker shades of the same hues so text and buttons keep 4.5:1 contrast.
+ */
 :root {
-  color-scheme: light dark;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --subtle: #f1f5f9;
+  --fg: #0f172a;
+  --muted: #475569;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --on-primary: #ffffff;
+  --accent: #c2410c;
+  --danger: #dc2626;
+  --ring: #0d9488;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0f172a;
+  --surface: #111827;
+  --subtle: #1e293b;
+  --fg: #f8fafc;
+  --muted: #cbd5e1;
+  --line: #334155;
+  --line-strong: #475569;
+  --primary: #14b8a6;
+  --primary-hover: #2dd4bf;
+  --on-primary: #042f2e;
+  --accent: #fb923c;
+  --danger: #f87171;
+  --ring: #14b8a6;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased;
+  @apply bg-bg font-sans text-fg antialiased;
 }
+
+/* One visible focus style everywhere, for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+button:not(:disabled),
+[role='button'],
+label:has(input[type='checkbox']) {
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+/* Rendered Markdown in task descriptions. */
+.markdown {
+  @apply space-y-2 text-sm leading-relaxed;
+}
+.markdown h1 { @apply text-lg font-semibold; }
+.markdown h2 { @apply text-base font-semibold; }
+.markdown h3 { @apply text-sm font-semibold; }
+.markdown ul { @apply list-disc pl-5; }
+.markdown ol { @apply list-decimal pl-5; }
+.markdown a { @apply text-primary underline; }
+.markdown code { @apply rounded bg-subtle px-1 py-0.5 text-[0.85em]; }
+.markdown pre { @apply overflow-x-auto rounded-md bg-subtle p-3; }
+.markdown pre code { @apply bg-transparent p-0; }
+.markdown blockquote { @apply border-l-2 border-line-strong pl-3 text-muted; }

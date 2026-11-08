@@ -50,11 +50,11 @@ export function ProjectPicker({ projects, value, onChange, className }: Props) {
             aria-label="New project name"
             className={className}
           />
-          <button type="button" onClick={create} className="rounded-md bg-slate-200 px-2 text-sm dark:bg-slate-700">
+          <button type="button" onClick={create} className="rounded-md border border-line-strong px-3 text-sm hover:bg-subtle">
             Add
           </button>
         </div>
-        {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+        {error && <p className="mt-1 text-xs text-danger">{error}</p>}
       </div>
     )
   }

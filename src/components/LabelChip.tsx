@@ -1,3 +1,5 @@
+import { X } from 'lucide-react'
+
 interface Props {
   name: string
   color: string
@@ -16,7 +18,7 @@ export function LabelChip({ name, color, prefix, onRemove }: Props) {
       {name}
       {onRemove && (
         <button type="button" onClick={onRemove} aria-label={`Remove ${name}`} className="ml-0.5 opacity-70 hover:opacity-100">
-          ×
+          <X className="size-3" />
         </button>
       )}
     </span>

@@ -1,5 +1,5 @@
 // The only module that touches task storage. Swap it for an API client to add a backend later.
-import type { Deadline, Priority, Recurrence, Reminder, Status, Task } from '../types'
+import type { ChecklistItem, Deadline, Priority, Recurrence, Reminder, Status, Task } from '../types'
 import { nextInstance } from '../lib/recurrence'
 import { db as defaultDb, type TaskTrackerDB } from './db'
 
@@ -14,6 +14,7 @@ export interface TaskInput {
   effortMinutes?: number
   reminders?: Reminder[]
   recurrence?: Recurrence
+  checklist?: ChecklistItem[]
 }
 
 export type TaskPatch = Partial<Omit<Task, 'id' | 'createdAt'>>
@@ -79,7 +80,7 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
         projectId: input.projectId,
         tagIds: input.tagIds ?? [],
         effortMinutes: input.effortMinutes,
-        checklist: [],
+        checklist: input.checklist ?? [],
         reminders: input.reminders ?? [],
         recurrence: input.deadline ? input.recurrence : undefined,
         createdAt: now,
@@ -94,7 +95,44 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
     setStatus(id: string, status: Status, now = Date.now()): Promise<void> {
       return update(id, { status }, now)
     },
+
+    /** Moves a task to Trash. It can be restored until it's purged. */
+    async trash(id: string, now = Date.now()): Promise<void> {
+      await db.tasks.update(id, { deletedAt: now })
+    },
+
+    async restore(id: string): Promise<void> {
+      await db.tasks.where('id').equals(id).modify((t) => {
+        delete t.deletedAt
+      })
+    },
+
+    /** Trashed tasks, most recently deleted first. */
+    async listTrash(): Promise<Task[]> {
+      const trashed = await db.tasks.filter((t) => t.deletedAt !== undefined).toArray()
+      return trashed.sort((a, b) => b.deletedAt! - a.deletedAt!)
+    },
+
+    /** Deletes tasks and their attachments for good. */
+    purge(ids: string[]): Promise<void> {
+      return db.transaction('rw', db.tasks, db.attachments, async () => {
+        await db.attachments.where('taskId').anyOf(ids).delete()
+        await db.tasks.bulkDelete(ids)
+      })
+    },
+
+    /** Purges everything in Trash, or only items trashed more than `olderThanDays` ago. Returns the count. */
+    async emptyTrash(olderThanDays = 0, now = Date.now()): Promise<number> {
+      const cutoff = now - olderThanDays * 86_400_000
+      const ids = (await db.tasks.filter((t) => t.deletedAt !== undefined && t.deletedAt <= cutoff).toArray()).map(
+        (t) => t.id,
+      )
+      if (ids.length) await this.purge(ids)
+      return ids.length
+    },
   }
 }
+
+export const TRASH_RETENTION_DAYS = 30
 
 export const taskRepo = createTaskRepo()

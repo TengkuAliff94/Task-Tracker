@@ -36,7 +36,7 @@ export function RecurrenceEditor({ value, onChange, hasDeadline, className }: Pr
         ))}
         <option value="custom">Every N days or weeks…</option>
       </select>
-      {!hasDeadline && <p className="text-xs text-slate-500">Set a deadline to make this repeat.</p>}
+      {!hasDeadline && <p className="text-xs text-muted">Set a deadline to make this repeat.</p>}
       {isCustom && value && (
         <div className="flex items-center gap-2 text-sm">
           Every

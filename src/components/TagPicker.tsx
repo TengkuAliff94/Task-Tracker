@@ -24,7 +24,7 @@ export function TagPicker({ tags, value, onChange }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-md border border-line-strong bg-surface px-2 py-1.5 focus-within:border-ring">
       {value.map((id) => {
         const t = byId.get(id)
         return t ? (
@@ -50,7 +50,7 @@ export function TagPicker({ tags, value, onChange }: Props) {
         }}
         placeholder={value.length ? '' : 'Add tags…'}
         aria-label="Add tag"
-        className="min-w-24 flex-1 bg-transparent text-sm focus:outline-none"
+        className="min-w-24 flex-1 bg-transparent text-sm placeholder:text-muted/70 focus:outline-none"
       />
       <datalist id="tag-suggestions">
         {available.map((t) => (

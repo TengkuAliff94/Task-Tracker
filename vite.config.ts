@@ -10,12 +10,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: { globPatterns: ['**/*.{js,css,html,woff2,png,svg,ico}'] },
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'icon.svg'],
       manifest: {
         name: 'Task Tracker',
         short_name: 'Tasks',
         description: 'A personal task tracker that works offline.',
-        theme_color: '#4f46e5',
+        theme_color: '#0f766e',
         background_color: '#f8fafc',
         display: 'standalone',
         start_url: '/',
