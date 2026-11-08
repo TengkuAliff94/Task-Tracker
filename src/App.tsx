@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowLeft, DatabaseBackup, Keyboard, Plus, Tags, Trash2 } from 'lucide-react'
+import { ArrowLeft, CheckCheck, ClipboardList, DatabaseBackup, Keyboard, PartyPopper, Plus, SearchX, Tags, Trash2 } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
@@ -20,6 +20,8 @@ import { TrashView } from './components/TrashView'
 import { BackupDialog, BackupNudge } from './components/Backup'
 import { ThemeToggle } from './components/ThemeToggle'
 import { SampleDataButton } from './components/SampleDataButton'
+import { Overview } from './components/Overview'
+import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
@@ -110,21 +112,34 @@ export default function App() {
   )
 
   const liveAlerts = alerts.filter((a) => !a.missed)
+  const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
-      <header className="mb-6 flex items-center justify-between gap-2">
+    <div className="mx-auto max-w-3xl px-4 pb-16">
+      <header className="sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 border-b border-transparent bg-bg/75 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60 sm:py-5">
         {view === 'trash' ? (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button onClick={() => setView('tasks')} aria-label="Back to tasks" className={btn.icon}>
               <ArrowLeft className="size-5" />
             </button>
-            <h1 className="text-2xl font-semibold tracking-tight">Trash</h1>
+            <div>
+              <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Trash</h1>
+              <p className="text-xs text-muted">Restore or permanently delete</p>
+            </div>
           </div>
         ) : (
-          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl max-sm:hidden bg-gradient-to-br from-teal-500 to-teal-700 text-white shadow-primary">
+              <CheckCheck className="size-5" strokeWidth={2.5} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <h1 className="text-xl leading-tight font-semibold tracking-tight sm:text-2xl">Tasks</h1>
+              <p className="truncate text-xs text-muted">{todayLabel}</p>
+            </div>
+          </div>
         )}
-        <div className="flex items-center gap-0.5 sm:gap-1">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-xl border border-line bg-surface/80 p-0.5 shadow-xs max-sm:[&>*]:size-8">
           <NotificationButton />
           <button onClick={() => setModal('labels')} aria-label="Projects & tags" title="Projects & tags" className={btn.icon}>
             <Tags className="size-5" />
@@ -141,7 +156,7 @@ export default function App() {
           >
             <Trash2 className="size-5" />
             {trashCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-muted px-1 text-[10px] leading-4 font-semibold text-bg">
+              <span className="absolute top-0.5 right-0.5 min-w-4 rounded-full bg-accent px-1 text-[10px] leading-4 font-semibold text-white ring-2 ring-surface dark:text-black">
                 {trashCount}
               </span>
             )}
@@ -150,8 +165,9 @@ export default function App() {
           <button onClick={() => setModal('shortcuts')} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.icon} max-sm:hidden`}>
             <Keyboard className="size-5" />
           </button>
-          <button onClick={() => setEditing({ mode: 'create' })} className={`${btn.primary} ml-1`}>
-            <Plus className="size-4" /> <span className="hidden sm:inline">New task</span>
+          </div>
+          <button onClick={() => setEditing({ mode: 'create' })} aria-label="New task" className={`${btn.primary} max-sm:size-9 max-sm:px-0`}>
+            <Plus className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">New task</span>
           </button>
         </div>
       </header>
@@ -162,6 +178,7 @@ export default function App() {
         <>
           <MissedRemindersBanner alerts={alerts} onDismissAll={dismissAll} onOpen={openTask} />
           <BackupNudge oldestTaskAt={oldestTaskAt} onOpen={() => setModal('backup')} />
+          {tasks && tasks.length > 0 && <Overview tasks={tasks} now={now} />}
           <QuickAdd />
           <FilterBar
             filters={filters}
@@ -175,42 +192,52 @@ export default function App() {
             doneCount={doneCount}
           />
 
-          <p className="mb-2 text-sm text-muted">
-            {visible.length} task{visible.length === 1 ? '' : 's'}
-            <span className="hidden sm:inline"> · press <kbd className="font-mono">?</kbd> for shortcuts</span>
-          </p>
+          <div className="mb-2.5 flex items-center justify-between px-1 text-sm">
+            <p className="font-medium text-muted">
+              {visible.length} task{visible.length === 1 ? '' : 's'}
+            </p>
+            <p className="hidden items-center gap-1.5 text-xs text-muted sm:flex">
+              Press <kbd>?</kbd> for shortcuts
+            </p>
+          </div>
 
           {tasks === undefined ? null : visible.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-line-strong p-8 text-center text-muted">
+            <EmptyState
+              icon={tasks.length === 0 ? ClipboardList : hasActiveFilters(filters) ? SearchX : PartyPopper}
+              title={tasks.length === 0 ? 'No tasks yet' : hasActiveFilters(filters) ? 'No matches' : 'All clear'}
+            >
               {tasks.length === 0 ? (
                 <>
-                  No tasks yet. Type one in the quick-add bar above, or try the app with example tasks.
-                  <span className="mt-4 block">
+                  Type one in the quick-add bar above, or try the app with example tasks.
+                  <span className="mt-5 block">
                     <SampleDataButton />
                   </span>
                 </>
               ) : hasActiveFilters(filters)
                   ? 'No tasks match these filters.'
                   : 'Nothing left to do.'}
-            </p>
+            </EmptyState>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-6">
               {groups.map((g) => (
                 <section key={g.key}>
                   {g.label && (
-                    <h2 className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-muted">
-                      {g.color && <span className="size-2.5 rounded-full" style={{ backgroundColor: g.color }} />}
+                    <h2 className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold tracking-wide text-muted uppercase">
+                      {g.color && <span className="size-2 rounded-full" style={{ backgroundColor: g.color }} />}
                       {g.label}
-                      <span className="font-normal">{g.tasks.length}</span>
+                      <span className="rounded-full bg-subtle px-1.5 py-px text-[11px] font-medium tracking-normal tabular-nums">
+                        {g.tasks.length}
+                      </span>
                     </h2>
                   )}
                   <ul
                     aria-label={g.label ? `${g.label} tasks` : 'Tasks'}
                     className={`${card} divide-y divide-line overflow-hidden`}
                   >
-                    {g.tasks.map((task) => (
+                    {g.tasks.map((task, i) => (
                       <TaskRow
                         key={task.id}
+                        index={i}
                         task={task}
                         now={now}
                         projectsById={projectsById}

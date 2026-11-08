@@ -1,23 +1,23 @@
 // Shared class strings so every component uses the same tokens.
 
 const btnBase =
-  'inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50'
 
 export const btn = {
-  primary: `${btnBase} bg-primary px-4 py-2 text-on-primary hover:bg-primary-hover`,
-  secondary: `${btnBase} border border-line-strong px-3 py-2 hover:bg-subtle`,
-  ghost: `${btnBase} px-3 py-2 hover:bg-subtle`,
+  primary: `${btnBase} bg-primary px-3.5 py-2 text-on-primary shadow-primary hover:bg-primary-hover active:translate-y-px`,
+  secondary: `${btnBase} border border-line-strong bg-surface px-3 py-2 shadow-xs hover:border-muted/40 hover:bg-hover`,
+  ghost: `${btnBase} px-3 py-2 text-muted hover:bg-subtle hover:text-fg`,
   danger: `${btnBase} px-3 py-2 text-danger hover:bg-danger/10`,
-  small: `${btnBase} rounded px-2 py-1 text-xs hover:bg-subtle`,
+  small: `${btnBase} rounded-md px-2 py-1 text-xs hover:bg-surface hover:shadow-xs`,
   icon: `${btnBase} size-9 shrink-0 text-muted hover:bg-subtle hover:text-fg`,
 }
 
 export const field =
-  'w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted/70 focus:border-ring focus:outline-none disabled:opacity-50'
+  'w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-fg shadow-xs transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-muted/40 focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] focus:outline-none disabled:opacity-50'
 
-export const card = 'rounded-lg border border-line bg-surface'
+export const card = 'rounded-xl border border-line bg-surface shadow-card'
 
 export const dialog =
-  'm-auto max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto rounded-xl border border-line bg-surface p-0 text-fg shadow-xl backdrop:bg-black/50'
+  'm-auto max-h-[90vh] w-[calc(100%-2rem)] overflow-y-auto rounded-2xl border border-line bg-raised p-0 text-fg shadow-modal'
 
-export const labelText = 'text-sm font-medium'
+export const labelText = 'text-[13px] font-medium text-fg/90'

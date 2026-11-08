@@ -7,38 +7,62 @@
  * Design tokens, from design-system/task-tracker/MASTER.md (Minimalism & Swiss style,
  * teal primary, orange accent, Inter). The generator's palette is dark-only; the light
  * values use darker shades of the same hues so text and buttons keep 4.5:1 contrast.
+ * Surfaces are layered: bg (canvas) < surface (cards) < raised (popovers), with soft
+ * multi-layer shadows in light mode and hairline highlights in dark mode.
  */
 :root {
-  --bg: #f8fafc;
+  --bg: #f5f7fa;
   --surface: #ffffff;
-  --subtle: #f1f5f9;
-  --fg: #0f172a;
-  --muted: #475569;
-  --line: #e2e8f0;
-  --line-strong: #cbd5e1;
+  --raised: #ffffff;
+  --subtle: #f1f4f8;
+  --hover: #f6f8fb;
+  --fg: #0b1220;
+  --muted: #566173;
+  --line: #e6eaf0;
+  --line-strong: #d2d9e3;
   --primary: #0f766e;
   --primary-hover: #115e59;
+  --primary-soft: #0f766e14;
   --on-primary: #ffffff;
   --accent: #c2410c;
   --danger: #dc2626;
   --ring: #0d9488;
+  --glow: #14b8a61f;
+
+  --shadow-xs: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-pop: 0 4px 6px -2px rgb(16 24 40 / 0.05), 0 12px 24px -4px rgb(16 24 40 / 0.1);
+  --shadow-modal: 0 24px 48px -12px rgb(16 24 40 / 0.25);
+  --shadow-primary: 0 1px 2px rgb(15 118 110 / 0.3), 0 4px 12px -2px rgb(15 118 110 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.15);
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0f172a;
-  --surface: #111827;
-  --subtle: #1e293b;
-  --fg: #f8fafc;
-  --muted: #cbd5e1;
-  --line: #334155;
-  --line-strong: #475569;
+  --bg: #090e17;
+  --surface: #0f1622;
+  --raised: #151d2b;
+  --subtle: #19222f;
+  --hover: #141c29;
+  --fg: #eef2f7;
+  --muted: #9aa6b8;
+  --line: #1e2837;
+  --line-strong: #2b3749;
   --primary: #14b8a6;
   --primary-hover: #2dd4bf;
+  --primary-soft: #14b8a61f;
   --on-primary: #042f2e;
   --accent: #fb923c;
   --danger: #f87171;
   --ring: #14b8a6;
+  --glow: #14b8a614;
+
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --shadow-modal: 0 32px 64px -16px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --shadow-primary: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px -4px rgb(20 184 166 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.2);
   color-scheme: dark;
 }
 
@@ -46,21 +70,64 @@
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --color-bg: var(--bg);
   --color-surface: var(--surface);
+  --color-raised: var(--raised);
   --color-subtle: var(--subtle);
+  --color-hover: var(--hover);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
   --color-on-primary: var(--on-primary);
   --color-accent: var(--accent);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-primary: var(--shadow-primary);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-up: fade-up 320ms var(--ease-out-soft) both;
+  --animate-pop-in: pop-in 220ms var(--ease-out-soft) both;
+  --animate-slide-in: slide-in 280ms var(--ease-out-soft) both;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+html {
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  @apply bg-bg font-sans text-fg antialiased;
+  @apply min-h-dvh bg-bg font-sans text-fg antialiased;
+  /* A soft brand glow behind the header; fixed so it doesn't scroll with long lists. */
+  background-image:
+    radial-gradient(60rem 28rem at 50% -12rem, var(--glow), transparent 70%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 25%, transparent);
 }
 
 /* One visible focus style everywhere, for keyboard users. */
@@ -71,8 +138,87 @@ body {
 
 button:not(:disabled),
 [role='button'],
-label:has(input[type='checkbox']) {
+select:not(:disabled),
+label:has(input[type='checkbox']),
+input[type='checkbox']:not(:disabled) {
   cursor: pointer;
+}
+
+/* Native selects get a consistent chevron instead of each browser's own arrow. */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 1rem;
+  padding-right: 2rem !important;
+}
+select option {
+  background: var(--raised);
+  color: var(--fg);
+}
+
+/* Small checkboxes (filters, checklist) take the brand color. */
+input[type='checkbox'] {
+  accent-color: var(--primary);
+}
+
+/* The round "complete" control on each task row. Still a native checkbox for a11y. */
+.task-check {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  transition: background-color 200ms, border-color 200ms, box-shadow 200ms;
+}
+.task-check::after {
+  content: '';
+  width: 0.7rem;
+  height: 0.7rem;
+  background: var(--on-primary);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  transform: scale(0);
+  transition: transform 200ms var(--ease-out-soft);
+}
+.task-check:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.task-check:checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.task-check:checked::after {
+  transform: scale(1);
+}
+
+/* Modal dialogs: fade the backdrop and lift the panel in. */
+dialog[open] {
+  animation: var(--animate-pop-in);
+}
+dialog::backdrop {
+  background: rgb(9 14 23 / 0.45);
+  backdrop-filter: blur(6px);
+  animation: backdrop-in 200ms ease-out both;
+}
+
+/* In the base layer so utilities like `max-sm:hidden` on a <kbd> still win. */
+@layer base {
+  kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-line-strong bg-surface px-1 font-sans text-[11px] font-medium text-muted shadow-xs;
+  }
+}
+
+/* Thin, quiet scrollbars inside dialogs and lists. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -81,6 +227,7 @@ label:has(input[type='checkbox']) {
   *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+    animation-delay: 0ms !important;
   }
 }
 
