@@ -3,10 +3,20 @@
 import type { ChecklistItem, Deadline, Priority, Recurrence, Reminder, Status } from '../types'
 import { toDateInput } from '../lib/deadline'
 import { db as defaultDb, type TaskTrackerDB } from './db'
+import { createAttachmentRepo } from './attachments'
 import { createLabelRepo } from './labels'
 import { createTaskRepo } from './tasks'
 
 const DAY = 86_400_000
+
+/** A day relative to today: a number of days from it, or "later this week" (see `daysFromToday`). */
+type DayOffset = number | 'later-this-week'
+
+/** A day relative to today, with an optional HH:mm time (midnight if left out). */
+interface When {
+  days: DayOffset
+  time?: string
+}
 
 interface SampleTask {
   title: string
@@ -15,11 +25,14 @@ interface SampleTask {
   priority?: Priority
   project?: string
   tags?: string[]
-  /** Days from today, with an optional HH:mm time. */
-  due?: { days: number; time?: string }
+  due?: When
   effortMinutes?: number
   checklist?: [string, boolean][]
   remindersBefore?: number[]
+  /** A reminder at a fixed time. */
+  remindAt?: When & { time: string }
+  /** Link attachments as [name, url]. */
+  links?: [string, string][]
   recurrence?: Recurrence
   /** How many days ago the task was added. */
   addedDaysAgo: number
@@ -61,11 +74,12 @@ const TASKS: SampleTask[] = [
   },
   {
     title: 'Prepare quarterly review slides',
-    description: '- Revenue vs target\n- Hiring update\n- Risks for next quarter',
+    description:
+      '## Agenda\n\n- Revenue vs target\n- Hiring update\n- Risks for next quarter\n\nStart from the [team slide template](https://example.com/slides-template).',
     status: 'in_progress',
     priority: 'high',
     project: 'Work',
-    due: { days: 3, time: '09:30' },
+    due: { days: 'later-this-week', time: '09:30' },
     effortMinutes: 180,
     checklist: [
       ['Pull numbers from dashboard', true],
@@ -73,6 +87,7 @@ const TASKS: SampleTask[] = [
       ['Design slides', false],
       ['Dry run with team', false],
     ],
+    links: [['Sales dashboard', 'https://example.com/dashboard']],
     addedDaysAgo: 6,
   },
   {
@@ -86,6 +101,7 @@ const TASKS: SampleTask[] = [
   },
   {
     title: 'Morning run',
+    priority: 'medium',
     project: 'Health',
     due: { days: 0, time: '07:00' },
     effortMinutes: 30,
@@ -96,7 +112,7 @@ const TASKS: SampleTask[] = [
     title: 'Book dentist appointment',
     project: 'Health',
     tags: ['errand', 'quick'],
-    due: { days: 7 },
+    remindAt: { days: 1, time: '09:00' },
     addedDaysAgo: 4,
   },
   {
@@ -137,17 +153,36 @@ const TASKS: SampleTask[] = [
   },
 ]
 
+/**
+ * Weeks run Monday to Sunday, as in the app's en-GB locale. "Later this week" aims three days
+ * out but stops at Sunday, so it never spills into next week (on a Saturday that's tomorrow).
+ * On a Sunday the week has no days left, so it falls three days out, early next week.
+ */
+function daysFromToday(days: DayOffset, today: Date): number {
+  if (days !== 'later-this-week') return days
+  const daysLeftInWeek = (7 - today.getDay()) % 7 // getDay(): Sunday is 0
+  return daysLeftInWeek === 0 ? 3 : Math.min(3, daysLeftInWeek)
+}
+
+/** The local date and time `when` points at, counted from `today` (local midnight). */
+function resolve(when: When, today: Date): Date {
+  const [h, m] = (when.time ?? '00:00').split(':').map(Number)
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysFromToday(when.days, today), h, m)
+}
+
 export function createSampleData(db: TaskTrackerDB = defaultDb) {
   const labels = createLabelRepo(db)
   const tasks = createTaskRepo(db)
+  const attachments = createAttachmentRepo(db)
 
   return {
     /**
      * Adds the sample projects, tags and tasks in one transaction, so the list never shows a half-loaded set.
-     * Existing labels with the same name are reused. Returns the task count.
+     * Adds to existing data, never replaces it. Labels with the same name (ignoring case) are reused.
+     * Returns the task count.
      */
     load(now: Date = new Date()): Promise<number> {
-      return db.transaction('rw', db.projects, db.tags, db.tasks, () => addAll(now))
+      return db.transaction('rw', [db.projects, db.tags, db.tasks, db.attachments], () => addAll(now))
     },
   }
 
@@ -166,7 +201,7 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     for (const s of TASKS) {
       const deadline: Deadline | undefined = s.due && {
-        date: toDateInput(new Date(today.getFullYear(), today.getMonth(), today.getDate() + s.due.days)),
+        date: toDateInput(resolve(s.due, today)),
         ...(s.due.time ? { time: s.due.time } : {}),
       }
       const checklist: ChecklistItem[] = (s.checklist ?? []).map(([text, done]) => ({ id: crypto.randomUUID(), text, done }))
@@ -175,8 +210,9 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
         kind: 'relative',
         minutesBefore,
       }))
+      if (s.remindAt) reminders.push({ id: crypto.randomUUID(), kind: 'absolute', at: resolve(s.remindAt, today).getTime() })
       const addedAt = now.getTime() - s.addedDaysAgo * DAY
-      await tasks.create(
+      const task = await tasks.create(
         {
           title: s.title,
           description: s.description,
@@ -192,6 +228,7 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
         },
         addedAt,
       )
+      for (const [name, url] of s.links ?? []) await attachments.addLink(task.id, url, name, addedAt)
     }
     return TASKS.length
   }

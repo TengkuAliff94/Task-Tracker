@@ -4,6 +4,7 @@ import { createTaskRepo } from './tasks'
 import { createLabelRepo } from './labels'
 import { createAttachmentRepo, MAX_FILE_BYTES, normaliseUrl } from './attachments'
 import { createBackup } from './backup'
+import { createReminderLog } from './reminders'
 
 let db: TaskTrackerDB
 let tasks: ReturnType<typeof createTaskRepo>
@@ -18,6 +19,17 @@ beforeEach(() => {
 const DAY = 86_400_000
 
 describe('trash', () => {
+  it('counts stored tasks including Trash, and Trash on its own', async () => {
+    const a = await tasks.create({ title: 'A' })
+    await tasks.create({ title: 'B' })
+    expect(await tasks.countAll()).toBe(2)
+    expect(await tasks.countTrash()).toBe(0)
+
+    await tasks.trash(a.id)
+    expect(await tasks.countAll()).toBe(2)
+    expect(await tasks.countTrash()).toBe(1)
+  })
+
   it('trash hides, restore brings back', async () => {
     const t = await tasks.create({ title: 'A' })
     await tasks.trash(t.id, 1000)
@@ -95,11 +107,29 @@ describe('backup', () => {
     expect(a.blob!.type).toBe('application/octet-stream')
   })
 
+  it('remembers when the backup nudge was snoozed until', async () => {
+    const b = createBackup(db)
+    expect(await b.nudgeSnoozedUntil()).toBeUndefined()
+    await b.snoozeNudge(9000)
+    expect(await b.nudgeSnoozedUntil()).toBe(9000)
+    expect(await createBackup(db).nudgeSnoozedUntil()).toBe(9000)
+  })
+
   it('rejects files that are not backups, leaving data untouched', async () => {
     await tasks.create({ title: 'keep me' })
     const b = createBackup(db)
     await expect(b.importData({ hello: 'world' })).rejects.toThrow('valid Task Tracker backup')
     await expect(b.importData({ app: 'task-tracker', version: 99 })).rejects.toThrow('unsupported version')
     expect(await tasks.list()).toHaveLength(1)
+  })
+})
+
+describe('reminder log', () => {
+  it('has no checked-up-to time until one is stored, then keeps the latest', async () => {
+    const log = createReminderLog(db)
+    expect(await log.checkedUpTo()).toBeUndefined()
+    await log.markChecked(1000)
+    await log.markChecked(2000)
+    expect(await createReminderLog(db).checkedUpTo()).toBe(2000)
   })
 })

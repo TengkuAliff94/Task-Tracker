@@ -54,7 +54,7 @@ export function QuickAdd() {
         />
       </div>
       {parsed && (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+        <div role="group" aria-label="Quick add preview" className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted">
           <span className="font-medium text-fg">{parsed.title || '(no title)'}</span>
           {parsed.projectName && <span className={hint}>@{parsed.projectName}</span>}
           {parsed.tagNames.map((t) => (
