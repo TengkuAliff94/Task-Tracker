@@ -1,7 +1,10 @@
 # Task Tracker
 
 [![CI](https://github.com/TengkuAliff94/Task-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/TengkuAliff94/Task-Tracker/actions/workflows/ci.yml)
-[![Live demo](https://img.shields.io/website?url=https%3A%2F%2Ftask-tracker-eta-blush.vercel.app&label=demo&up_message=online&down_message=offline&logo=vercel)](https://task-tracker-eta-blush.vercel.app)
+[![Vercel deploy](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2FTengkuAliff94%2FTask-Tracker%2Fcommits%2Fmain%2Fstatus&query=%24.statuses%5B0%5D.state&label=vercel%20deploy&logo=vercel)](https://task-tracker-eta-blush.vercel.app)
+<!-- The deploy badge reads the "Vercel" commit status that Vercel's Git integration posts on main
+     (success / pending / failure / error). It takes the first status, which is Vercel's as long as
+     nothing else posts commit statuses; GitHub Actions uses check runs, which don't appear there. -->
 
 **Live demo: [task-tracker-eta-blush.vercel.app](https://task-tracker-eta-blush.vercel.app)**
 
@@ -52,7 +55,7 @@ UI (src/App.tsx, src/components/)  ->  storage module (src/db/)  ->  IndexedDB (
    pure logic (src/lib/): quick-add parser, recurrence, overdue rules, reminders, filters, sorting
 ```
 
-- **`src/db/`** is the only code that defines and opens the database. Tasks, projects and tags, attachments, backup and sample data each have a repository there (`tasks.ts`, `labels.ts`, `attachments.ts`, `backup.ts`, `sample.ts`). Components call these, so a backend could replace IndexedDB by swapping this module. A few small reads still use the Dexie handle that `src/db/db.ts` exports, such as task counts and the backup and reminder timestamps. The UI also uses Dexie's `useLiveQuery` for live updates, so a backend swap would need to replace those too.
+- **`src/db/`** is the only code that touches the database. Tasks, projects and tags, attachments, backup, reminder bookkeeping and sample data each have a repository there (`tasks.ts`, `labels.ts`, `attachments.ts`, `backup.ts`, `reminders.ts`, `sample.ts`). Components and hooks call these and never import the Dexie handle, so a backend could replace IndexedDB by swapping this module. One catch: the UI wraps repository calls in Dexie's `useLiveQuery` to re-render when data changes, so a backend swap would also need another way to push updates.
 - **`src/lib/`** is plain TypeScript with no storage or React, so it's easy to unit test.
 
 ## Design decisions
@@ -101,7 +104,10 @@ Shortcuts are off while you type in a field or a window is open. Press `?` in th
 
 ## Deploying
 
-The app is a static site. `vercel.json` sets the build and stops the service worker and manifest from being cached, so updates reach installed copies.
+The app is a static site, and `vercel.json` configures it for Vercel:
+
+- **SPA rewrite**: page paths (anything outside `/assets/` without a file extension) are rewritten to `index.html`, so deep links and reloads never 404.
+- **Caching**: hashed files under `/assets/` are cached for a year as immutable. Everything else, including `index.html`, `sw.js` and the manifest, must revalidate on every load, so a new service worker and app shell are picked up after each deploy. The service worker then skips waiting, takes over open tabs and deletes outdated caches.
 
 The repo is connected to Vercel, so every push to `main` deploys to production and pull requests get preview URLs. To deploy by hand, run `npx vercel --prod`.
 

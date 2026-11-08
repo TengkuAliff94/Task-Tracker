@@ -1,20 +1,20 @@
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
-import { db } from '../db/db'
 import { sampleData } from '../db/sample'
+import { taskRepo } from '../db/tasks'
 import { btn } from '../ui'
 
 /**
  * Adds the demo projects, tags and tasks. When tasks already exist it asks first,
  * since the sample set is added alongside them and never replaces anything.
  */
-export function SampleDataButton({ onLoaded, className = btn.secondary }: { onLoaded?: (count: number) => void; className?: string }) {
+export function SampleDataButton({ onLoaded }: { onLoaded?: (count: number) => void }) {
   const [busy, setBusy] = useState(false)
 
   async function load() {
     setBusy(true)
     try {
-      const existing = await db.tasks.count()
+      const existing = await taskRepo.countAll()
       if (
         existing > 0 &&
         !confirm(
@@ -31,7 +31,7 @@ export function SampleDataButton({ onLoaded, className = btn.secondary }: { onLo
   }
 
   return (
-    <button onClick={load} disabled={busy} className={className}>
+    <button onClick={load} disabled={busy} className={btn.secondary}>
       <Sparkles className="size-4" /> Load sample data
     </button>
   )

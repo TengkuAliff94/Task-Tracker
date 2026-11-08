@@ -9,6 +9,15 @@ import { createTaskRepo } from './tasks'
 
 const DAY = 86_400_000
 
+/** A day relative to today: a number of days from it, or "later this week" (see `daysFromToday`). */
+type DayOffset = number | 'later-this-week'
+
+/** A day relative to today, with an optional HH:mm time (midnight if left out). */
+interface When {
+  days: DayOffset
+  time?: string
+}
+
 interface SampleTask {
   title: string
   description?: string
@@ -16,13 +25,12 @@ interface SampleTask {
   priority?: Priority
   project?: string
   tags?: string[]
-  /** Days from today, with an optional HH:mm time. */
-  due?: { days: number; time?: string }
+  due?: When
   effortMinutes?: number
   checklist?: [string, boolean][]
   remindersBefore?: number[]
-  /** A reminder at a fixed time: days from today and HH:mm. */
-  remindAt?: { days: number; time: string }
+  /** A reminder at a fixed time. */
+  remindAt?: When & { time: string }
   /** Link attachments as [name, url]. */
   links?: [string, string][]
   recurrence?: Recurrence
@@ -71,7 +79,7 @@ const TASKS: SampleTask[] = [
     status: 'in_progress',
     priority: 'high',
     project: 'Work',
-    due: { days: 3, time: '09:30' },
+    due: { days: 'later-this-week', time: '09:30' },
     effortMinutes: 180,
     checklist: [
       ['Pull numbers from dashboard', true],
@@ -145,6 +153,23 @@ const TASKS: SampleTask[] = [
   },
 ]
 
+/**
+ * Weeks run Monday to Sunday, as in the app's en-GB locale. "Later this week" aims three days
+ * out but stops at Sunday, so it never spills into next week (on a Saturday that's tomorrow).
+ * On a Sunday the week has no days left, so it falls three days out, early next week.
+ */
+function daysFromToday(days: DayOffset, today: Date): number {
+  if (days !== 'later-this-week') return days
+  const daysLeftInWeek = (7 - today.getDay()) % 7 // getDay(): Sunday is 0
+  return daysLeftInWeek === 0 ? 3 : Math.min(3, daysLeftInWeek)
+}
+
+/** The local date and time `when` points at, counted from `today` (local midnight). */
+function resolve(when: When, today: Date): Date {
+  const [h, m] = (when.time ?? '00:00').split(':').map(Number)
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysFromToday(when.days, today), h, m)
+}
+
 export function createSampleData(db: TaskTrackerDB = defaultDb) {
   const labels = createLabelRepo(db)
   const tasks = createTaskRepo(db)
@@ -176,7 +201,7 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
     for (const s of TASKS) {
       const deadline: Deadline | undefined = s.due && {
-        date: toDateInput(new Date(today.getFullYear(), today.getMonth(), today.getDate() + s.due.days)),
+        date: toDateInput(resolve(s.due, today)),
         ...(s.due.time ? { time: s.due.time } : {}),
       }
       const checklist: ChecklistItem[] = (s.checklist ?? []).map(([text, done]) => ({ id: crypto.randomUUID(), text, done }))
@@ -185,11 +210,7 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
         kind: 'relative',
         minutesBefore,
       }))
-      if (s.remindAt) {
-        const [h, m] = s.remindAt.time.split(':').map(Number)
-        const at = new Date(today.getFullYear(), today.getMonth(), today.getDate() + s.remindAt.days, h, m).getTime()
-        reminders.push({ id: crypto.randomUUID(), kind: 'absolute', at })
-      }
+      if (s.remindAt) reminders.push({ id: crypto.randomUUID(), kind: 'absolute', at: resolve(s.remindAt, today).getTime() })
       const addedAt = now.getTime() - s.addedDaysAgo * DAY
       const task = await tasks.create(
         {

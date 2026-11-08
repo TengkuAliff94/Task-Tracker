@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ArrowLeft, DatabaseBackup, Keyboard, Plus, Tags, Trash2 } from 'lucide-react'
-import { db } from './db/db'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
@@ -40,7 +39,7 @@ export default function App() {
   const projects = useLiveQuery(() => projectRepo.list(), []) ?? []
   const tags = useLiveQuery(() => tagRepo.list(), []) ?? []
   const attachmentCounts = useLiveQuery(() => attachmentRepo.countsByTask(), [])
-  const trashCount = useLiveQuery(() => db.tasks.filter((t) => t.deletedAt !== undefined).count(), []) ?? 0
+  const trashCount = useLiveQuery(() => taskRepo.countTrash(), []) ?? 0
   const now = useNow()
 
   const [view, setView] = useState<'tasks' | 'trash'>('tasks')

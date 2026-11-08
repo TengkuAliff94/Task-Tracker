@@ -107,6 +107,15 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
       })
     },
 
+    /** Every stored task, including any in Trash. */
+    countAll(): Promise<number> {
+      return db.tasks.count()
+    },
+
+    countTrash(): Promise<number> {
+      return db.tasks.filter((t) => t.deletedAt !== undefined).count()
+    },
+
     /** Trashed tasks, most recently deleted first. */
     async listTrash(): Promise<Task[]> {
       const trashed = await db.tasks.filter((t) => t.deletedAt !== undefined).toArray()

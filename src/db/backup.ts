@@ -6,6 +6,7 @@ export const BACKUP_APP = 'task-tracker'
 export const BACKUP_VERSION = 1
 export const LAST_BACKUP_KEY = 'lastBackupAt'
 export const BACKUP_NUDGE_DAYS = 14
+const NUDGE_SNOOZED_KEY = 'backupNudgeSnoozedUntil'
 
 type StoredAttachment = Omit<Attachment, 'blob'> & { blobBase64?: string; blobType?: string }
 
@@ -71,6 +72,10 @@ export function createBackup(db: TaskTrackerDB = defaultDb) {
     },
 
     lastBackupAt: () => meta.get<number>(LAST_BACKUP_KEY),
+
+    /** The backup nudge stays hidden until this time. */
+    nudgeSnoozedUntil: () => meta.get<number>(NUDGE_SNOOZED_KEY),
+    snoozeNudge: (until: number) => meta.set(NUDGE_SNOOZED_KEY, until),
   }
 }
 
