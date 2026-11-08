@@ -1,5 +1,7 @@
 # Task Tracker
 
+**Live demo: [task-tracker-eta-blush.vercel.app](https://task-tracker-eta-blush.vercel.app)**
+
 A personal task tracker that runs entirely in the browser. There's no server and no login: your tasks stay on your device in IndexedDB. It installs as a PWA, works offline and can send reminder notifications.
 
 ![Task list, light theme](docs/screenshots/list-light.png)
@@ -47,8 +49,7 @@ npm run dev          # http://localhost:5173
 
 The app is a static site. `vercel.json` sets the build and stops the service worker and manifest from being cached, so updates reach installed copies.
 
-1. Import the GitHub repo at [vercel.com/new](https://vercel.com/new). Vercel picks up the settings from `vercel.json`.
-2. Every push to `main` deploys to production, and pull requests get preview URLs.
+The repo is connected to Vercel, so every push to `main` deploys to production and pull requests get preview URLs. To deploy by hand, run `npx vercel --prod`.
 
 ## Privacy
 
