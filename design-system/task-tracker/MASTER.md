@@ -1,5 +1,9 @@
 # Design System Master File
 
+> **Canonical visual spec:** [`DESIGN.md`](../../DESIGN.md) at the project root (North Star, palette roles,
+> type, shapes, components, do's and don'ts). This file stays as the engineering companion: presets,
+> test guards and the pre-delivery checklist.
+
 > **LOGIC:** When building a specific page, first check `design-system/pages/[page-name].md`.
 > If that file exists, its rules **override** this Master file.
 > If not, strictly follow the rules below.
