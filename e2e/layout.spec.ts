@@ -33,6 +33,50 @@ test.describe('wide screen', () => {
   })
 })
 
+// Short visits are for checking what's overdue and ticking it off, so the first task must be on
+// the first screen, even with the backup reminder showing (sample tasks are old enough to trigger it).
+for (const viewport of [
+  { width: 1280, height: 900 },
+  { width: 1024, height: 768 },
+]) {
+  test.describe(`${viewport.width}×${viewport.height}`, () => {
+    test.use({ viewport })
+
+    test('the first task card is fully on the first screen', async ({ app, page }) => {
+      await app.loadSampleData()
+      await expect(page.getByRole('button', { name: 'Remind me later' })).toBeVisible()
+      const first = await box(app.taskCards().first())
+      expect(first.y + first.height).toBeLessThanOrEqual(viewport.height)
+      expect(await app.scrollsSideways()).toBe(false)
+    })
+  })
+}
+
+// 320px is also a 1280px screen at 400% zoom (WCAG reflow): every tile keeps its whole label.
+test.describe('narrowest phone', () => {
+  test.use({ viewport: { width: 320, height: 640 } })
+
+  test('the Overview tile labels are never cut off', async ({ app, page }) => {
+    await app.loadSampleData()
+    const labels = page.getByRole('region', { name: 'Overview' }).locator('button span.truncate')
+    await expect(labels).toHaveCount(4)
+    const cut = await labels.evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth).map((e) => e.textContent))
+    expect(cut).toEqual([])
+    expect(await app.scrollsSideways()).toBe(false)
+  })
+})
+
+test.describe('phone, first run', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
+
+  test('the way out of the empty list is on the first screen, with no filters for an empty list', async ({ app, page }) => {
+    void app
+    const load = await box(page.getByRole('button', { name: 'Load sample data' }))
+    expect(load.y + load.height).toBeLessThanOrEqual(844)
+    await expect(page.getByLabel('Search tasks')).toHaveCount(0)
+  })
+})
+
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 

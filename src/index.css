@@ -171,6 +171,18 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/*
+ * What the shortcuts scroll to (a task card for J/K, the quick-add and search fields for N and /)
+ * stops below the sticky header (72px, 84px from sm), which slides back in as the page scrolls up.
+ * Set on those targets rather than as the page's scroll-padding: scroll-padding would also make the
+ * browser scroll the page when focus enters the header itself, which sits inside that top strip.
+ */
+[data-task-id],
+#quick-add,
+#search {
+  scroll-margin-top: 6rem;
+}
+
 body {
   @apply min-h-dvh bg-bg font-sans text-fg antialiased;
 }

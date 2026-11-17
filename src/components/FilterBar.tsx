@@ -64,7 +64,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
   const set = (patch: Partial<Filters>) => onFilters({ ...f, ...patch })
 
   return (
-    <div className={`${card} mb-6 space-y-3 p-3 sm:p-4`}>
+    <div className={`${card} space-y-3 p-3 sm:p-4`}>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1fr)_9rem_9rem_9rem]">
         <div className="relative col-span-2 min-w-0 sm:col-span-1">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" aria-hidden />

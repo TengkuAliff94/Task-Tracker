@@ -5,7 +5,7 @@ import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
-import { applyFilters, EMPTY_FILTERS, hasActiveFilters, type Filters } from './lib/filter'
+import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, type Filters, type Scope } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { useNow } from './hooks/useNow'
 import { useReminders } from './hooks/useReminders'
@@ -30,6 +30,65 @@ import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
 import type { Task } from './types'
+import { btn } from './ui'
+
+/** "8 tasks", or with an Overview tile picked: "2 overdue tasks", "1 task due today", "2 completed tasks". */
+function countLabel(n: number, scope: Scope | undefined): string {
+  const tasks = n === 1 ? 'task' : 'tasks'
+  if (scope === 'today') return `${n} ${tasks} due today`
+  return scope ? `${n} ${SCOPE_ADJECTIVE[scope]} ${tasks}` : `${n} ${tasks}`
+}
+const SCOPE_ADJECTIVE: Record<Exclude<Scope, 'today'>, string> = { overdue: 'overdue', open: 'open', done: 'completed' }
+
+/** What a picked Overview tile says when it has nothing to show. */
+const EMPTY_SCOPE: Record<Scope, { title: string; body: string }> = {
+  overdue: { title: 'Nothing overdue', body: 'Everything is on time.' },
+  today: { title: 'Nothing due today', body: 'No task has a deadline today.' },
+  open: { title: 'All clear', body: 'Nothing left to do.' },
+  done: { title: 'Nothing completed yet', body: 'Tasks you finish will show here.' },
+}
+
+/**
+ * The empty list: before any tasks, a way in (sample data); with only a tile picked, that tile's
+ * own answer ("Nothing overdue") and a way back to everything; with other filters, "No matches".
+ */
+function ListEmpty({ tasks, filters, onShowAll }: { tasks: Task[]; filters: Filters; onShowAll: () => void }) {
+  if (tasks.length === 0) {
+    return (
+      <EmptyState icon={ClipboardList} title="No tasks yet" action={<SampleDataButton prominent />}>
+        Type one in the quick-add bar above, or try the app with example tasks.
+      </EmptyState>
+    )
+  }
+  const { scope } = filters
+  if (scope && !hasActiveFilters({ ...filters, scope: undefined })) {
+    return (
+      <EmptyState
+        icon={scope === 'done' ? ClipboardList : PartyPopper}
+        title={EMPTY_SCOPE[scope].title}
+        action={
+          <button type="button" onClick={onShowAll} className={btn.secondary}>
+            Show all tasks
+          </button>
+        }
+      >
+        {EMPTY_SCOPE[scope].body}
+      </EmptyState>
+    )
+  }
+  if (hasActiveFilters(filters)) {
+    return (
+      <EmptyState icon={SearchX} title="No matches">
+        No tasks match these filters.
+      </EmptyState>
+    )
+  }
+  return (
+    <EmptyState icon={PartyPopper} title="All clear">
+      Nothing left to do.
+    </EmptyState>
+  )
+}
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
 type Modal = 'labels' | 'backup' | 'shortcuts' | null
@@ -63,11 +122,18 @@ export default function App() {
     taskRepo.emptyTrash(TRASH_RETENTION_DAYS)
   }, [])
 
+  // The filter bar and tiles are hidden while the list is empty, so drop any filter left on then:
+  // otherwise the next task added could be filtered out by a control nobody can see.
+  const taskCount = tasks?.length
+  useEffect(() => {
+    if (taskCount === 0) setFilters((f) => (hasActiveFilters(f) ? { ...EMPTY_FILTERS, showCompleted: f.showCompleted } : f))
+  }, [taskCount])
+
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects])
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
 
   const visible = useMemo(
-    () => (tasks ? sortTasks(applyFilters(tasks, filters, tagsById), sort, now) : []),
+    () => (tasks ? sortTasks(applyFilters(tasks, filters, tagsById, now), sort, now) : []),
     [tasks, filters, tagsById, sort, now],
   )
   const groups = useMemo(() => groupTasks(visible, group, projects), [visible, group, projects])
@@ -75,6 +141,19 @@ export default function App() {
   const doneCount = tasks?.filter((t) => t.status === 'done').length ?? 0
   const oldestTaskAt = tasks?.length ? Math.min(...tasks.map((t) => t.createdAt)) : undefined
   const selected = ordered.find((t) => t.id === selectedId)
+  const hasTasks = Boolean(tasks?.length)
+  const urgency = useMemo(
+    () =>
+      tasks?.length
+        ? {
+            overdue: tasks.filter((t) => matchesScope(t, 'overdue', now)).length,
+            dueToday: tasks.filter((t) => matchesScope(t, 'today', now)).length,
+            open: tasks.filter((t) => matchesScope(t, 'open', now)).length,
+          }
+        : undefined,
+    [tasks, now],
+  )
+  const setScope = (scope: Scope | undefined) => setFilters((f) => ({ ...f, scope }))
 
   const showToast = useCallback((t: Omit<ToastData, 'id'>) => setToasts((prev) => [...prev, { ...t, id: crypto.randomUUID() }]), [])
   const closeToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), [])
@@ -140,85 +219,91 @@ export default function App() {
       {view === 'trash' ? (
         <TrashView />
       ) : (
-        <>
-          <MissedRemindersBanner alerts={alerts} onDismissAll={dismissAll} onOpen={openTask} />
-          <BackupNudge oldestTaskAt={oldestTaskAt} onOpen={() => setModal('backup')} />
-          {/* The bento: heading and Overview share a row on wide screens, quick add spans below. */}
-          <div className="mb-3 grid gap-3 md:grid-cols-12">
-            <Reveal index={0} className={tasks?.length ? 'md:col-span-5' : 'md:col-span-12'}>
-              <HeadingPanel dateLabel={todayLabel} />
+        // Urgency first, then capture, then refine, then the list. Groups sit 24px apart; things
+        // inside a group, 12px (the panel gutter).
+        <div className="flex flex-col gap-6">
+          {/* What needs attention: the heading says what's urgent and the Overview tiles filter to it.
+              Side by side from `lg`; below that the tiles run under the heading. */}
+          <div className="grid gap-3 lg:grid-cols-12">
+            <Reveal index={0} className={hasTasks ? 'lg:col-span-5' : 'lg:col-span-12'}>
+              <HeadingPanel dateLabel={todayLabel} urgency={urgency} />
             </Reveal>
-            {tasks && tasks.length > 0 && (
-              <div className="md:col-span-7">
-                <Overview tasks={tasks} now={now} firstIndex={1} />
+            {tasks && hasTasks && (
+              <div className="lg:col-span-7">
+                <Overview tasks={tasks} now={now} scope={filters.scope} onScope={setScope} firstIndex={1} />
               </div>
             )}
-            <Reveal index={tasks?.length ? 1 + OVERVIEW_TILE_COUNT : 1} className="md:col-span-12">
+          </div>
+
+          {/* Notices come after the heading, so the page title is always the first thing read. */}
+          <div className="flex flex-col gap-3 empty:hidden">
+            <MissedRemindersBanner alerts={alerts} onDismissAll={dismissAll} onOpen={openTask} />
+            <BackupNudge oldestTaskAt={oldestTaskAt} onOpen={() => setModal('backup')} />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Reveal index={hasTasks ? 1 + OVERVIEW_TILE_COUNT : 1}>
               <QuickAdd />
             </Reveal>
-          </div>
-          <FilterBar
-            filters={filters}
-            onFilters={setFilters}
-            sort={sort}
-            onSort={setSort}
-            group={group}
-            onGroup={setGroup}
-            projects={projects}
-            tags={tags}
-            doneCount={doneCount}
-          />
-
-          <div className="mb-2.5 flex items-center justify-between px-1 text-sm">
-            <p className="font-medium text-muted">
-              {visible.length} task{visible.length === 1 ? '' : 's'}
-            </p>
-            <p className="hidden items-center gap-1.5 text-xs text-muted sm:flex">
-              Press <kbd>?</kbd> for shortcuts
-            </p>
+            {/* Nothing to filter yet on an empty list, so the empty state's way out stays in view. */}
+            {hasTasks && (
+              <FilterBar
+                filters={filters}
+                onFilters={setFilters}
+                sort={sort}
+                onSort={setSort}
+                group={group}
+                onGroup={setGroup}
+                projects={projects}
+                tags={tags}
+                doneCount={doneCount}
+              />
+            )}
           </div>
 
-          {tasks === undefined ? null : visible.length === 0 ? (
-            <EmptyState
-              icon={tasks.length === 0 ? ClipboardList : hasActiveFilters(filters) ? SearchX : PartyPopper}
-              title={tasks.length === 0 ? 'No tasks yet' : hasActiveFilters(filters) ? 'No matches' : 'All clear'}
-              action={tasks.length === 0 && <SampleDataButton prominent />}
-            >
-              {tasks.length === 0
-                ? 'Type one in the quick-add bar above, or try the app with example tasks.'
-                : hasActiveFilters(filters)
-                  ? 'No tasks match these filters.'
-                  : 'Nothing left to do.'}
-            </EmptyState>
-          ) : (
-            <div className="space-y-8">
-              {groups.map((g) => (
-                <section key={g.key}>
-                  {g.label && <GroupHeading by={group} group={g} />}
-                  {/* Cards fill rows left to right, the same order J/K walk them in. */}
-                  <AnimatedList aria-label={g.label ? `${g.label} tasks` : 'Tasks'} className="grid gap-3 md:grid-cols-2">
-                    {g.tasks.map((task, i) => (
-                      <TaskCard
-                        key={task.id}
-                        index={i}
-                        task={task}
-                        now={now}
-                        projectsById={projectsById}
-                        tagsById={tagsById}
-                        attachmentCount={attachmentCounts?.get(task.id) ?? 0}
-                        selected={task.id === selectedId}
-                        onEdit={() => {
-                          setSelectedId(task.id)
-                          setEditing({ mode: 'edit', task })
-                        }}
-                      />
-                    ))}
-                  </AnimatedList>
-                </section>
-              ))}
-            </div>
-          )}
-        </>
+          <div>
+            {hasTasks && (
+              <div className="mb-3 flex items-center justify-between px-1 text-sm">
+                {/* A status region, so a screen reader hears the new count after a filter changes. */}
+                <p role="status" className="font-medium text-muted">{countLabel(visible.length, filters.scope)}</p>
+                <p className="hidden items-center gap-1.5 text-xs text-muted sm:flex">
+                  Press <kbd>?</kbd> for shortcuts
+                </p>
+              </div>
+            )}
+
+            {tasks === undefined ? null : visible.length === 0 ? (
+              <ListEmpty tasks={tasks} filters={filters} onShowAll={() => setScope(undefined)} />
+            ) : (
+              <div className="space-y-8">
+                {groups.map((g) => (
+                  <section key={g.key}>
+                    {g.label && <GroupHeading by={group} group={g} />}
+                    {/* Cards fill rows left to right, the same order J/K walk them in. */}
+                    <AnimatedList aria-label={g.label ? `${g.label} tasks` : 'Tasks'} className="grid gap-3 md:grid-cols-2">
+                      {g.tasks.map((task, i) => (
+                        <TaskCard
+                          key={task.id}
+                          index={i}
+                          task={task}
+                          now={now}
+                          projectsById={projectsById}
+                          tagsById={tagsById}
+                          attachmentCount={attachmentCounts?.get(task.id) ?? 0}
+                          selected={task.id === selectedId}
+                          onEdit={() => {
+                            setSelectedId(task.id)
+                            setEditing({ mode: 'edit', task })
+                          }}
+                        />
+                      ))}
+                    </AnimatedList>
+                  </section>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <BurstLayer />

@@ -42,9 +42,9 @@ export const panel = {
   info: 'bg-panel-violet text-on-panel-violet',
   /** Needs attention soon: due today, high priority (mustard). */
   warning: 'bg-panel-mustard text-on-panel-mustard',
-  /** Past due, urgent (rust). */
+  /** Urgent priority, the Trash count (rust). */
   danger: 'bg-panel-rust text-on-panel-rust',
-  /** The strongest alarm: overdue (maroon). */
+  /** The strongest alarm: overdue, wherever it shows (the badge, the card outline, the Overview tile) (maroon). */
   critical: 'bg-panel-maroon text-on-panel-maroon',
   /** Calm, on track: completed, medium priority (sage). */
   calm: 'bg-panel-sage text-on-panel-sage',

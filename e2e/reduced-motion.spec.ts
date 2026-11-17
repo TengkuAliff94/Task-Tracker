@@ -16,14 +16,14 @@ test('sample data shows in its final state, and completing a task hides it at on
 
   // Expected counts at FIXED_NOW (Tue 10 Mar, 09:00), worked out from the sample set:
   // 10 tasks, 2 done. Due today: "Reply to recruiter email" (18:00) and "Morning run" (07:00).
-  // Past due: "Renew car insurance" (2 days ago) and "Morning run".
+  // Overdue: "Renew car insurance" (2 days ago) and "Morning run".
   // The Overview and the list render from the same data in one go, so the moment a row shows, the
   // numbers must already be final. Read them once, without retrying, so a count-up can't catch up first.
   const overview = page.getByRole('region', { name: 'Overview' })
   const shown = await overview.innerText()
   expect(shown).toMatch(/Open\s*8/)
   expect(shown).toMatch(/Due today\s*2/)
-  expect(shown).toMatch(/Past due\s*2/)
+  expect(shown).toMatch(/Overdue\s*2/)
   expect(shown).toMatch(/Completed\s*2/)
   await expect(overview.getByRole('progressbar', { name: 'Tasks completed' })).toHaveAttribute('aria-valuenow', '20', AT_ONCE)
   await expect(app.taskRow('Book dentist appointment')).toBeVisible(AT_ONCE)

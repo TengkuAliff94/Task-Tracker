@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyFilters, EMPTY_FILTERS, NO_PROJECT, type Filters } from './filter'
+import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, NO_PROJECT, type Filters } from './filter'
 import type { Label, Task } from '../types'
 
 const tags: Label[] = [
@@ -56,5 +56,43 @@ describe('applyFilters', () => {
     expect(run({ query: 'eggs' })).toEqual(['groceries'])
     expect(run({ query: 'home' })).toEqual(['rent'])
     expect(run({ query: 'finance rent' })).toEqual(['rent'])
+  })
+})
+
+describe('scope (the Overview tiles as filters)', () => {
+  // Tue 10 Mar 2026, 09:00 local.
+  const now = new Date(2026, 2, 10, 9, 0)
+  const scoped = [
+    task('late', { deadline: { date: '2026-03-08' } }),
+    task('this-morning', { deadline: { date: '2026-03-10', time: '07:00' } }),
+    task('tonight', { deadline: { date: '2026-03-10', time: '18:00' } }),
+    task('next-week', { deadline: { date: '2026-03-17' } }),
+    task('someday'),
+    task('finished', { status: 'done', deadline: { date: '2026-03-01' } }),
+  ]
+  const ids = (scope: Filters['scope'], extra: Partial<Filters> = {}) =>
+    applyFilters(scoped, { ...EMPTY_FILTERS, ...extra, scope }, tagsById, now).map((t) => t.id)
+
+  it('overdue: open tasks whose deadline has passed, never completed ones', () => {
+    expect(ids('overdue')).toEqual(['late', 'this-morning'])
+    expect(scoped.filter((t) => matchesScope(t, 'overdue', now)).map((t) => t.id)).toEqual(['late', 'this-morning'])
+  })
+
+  it('today: open tasks due today, including one already overdue this morning', () => {
+    expect(ids('today')).toEqual(['this-morning', 'tonight'])
+  })
+
+  it('open: everything not done, even with "Show completed" on', () => {
+    expect(ids('open', { showCompleted: true })).toEqual(['late', 'this-morning', 'tonight', 'next-week', 'someday'])
+  })
+
+  it('done: completed tasks, even with "Show completed" off', () => {
+    expect(ids('done')).toEqual(['finished'])
+  })
+
+  it('combines with the other filters and counts as an active filter', () => {
+    expect(ids('overdue', { query: 'late' })).toEqual(['late'])
+    expect(hasActiveFilters({ ...EMPTY_FILTERS, scope: 'today' })).toBe(true)
+    expect(hasActiveFilters(EMPTY_FILTERS)).toBe(false)
   })
 })

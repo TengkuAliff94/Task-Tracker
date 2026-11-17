@@ -19,7 +19,7 @@ export function MissedRemindersBanner({ alerts, onDismissAll, onOpen }: Omit<Pro
   const missed = alerts.filter((a) => a.missed)
   if (!missed.length) return null
   return (
-    <div role="status" className={`mb-4 animate-fade-up rounded-panel p-5 text-sm ${panel.warning}`}>
+    <div role="status" className={`animate-fade-up rounded-panel p-5 text-sm ${panel.warning}`}>
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <strong className="inline-flex items-center gap-2 font-display text-base font-bold">
           <Bell className="size-5" aria-hidden />

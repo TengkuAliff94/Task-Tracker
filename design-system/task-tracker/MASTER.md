@@ -45,7 +45,7 @@ WCAG AA (4.5:1). Where Sill's own pairing failed, the text colour was changed.
 | Orange | `#cf6224` | `#141110` | 4.9:1 | `brand`: primary emphasis, heading panel, New task |
 | Mustard | `#e3b867` | `#141110` | 10.1:1 | `warning`: due today, high priority, Sill hover |
 | Maroon | `#6e1116` | `#f4f1ee` | 10.6:1 | `critical`: Overdue |
-| Rust | `#9b3418` | `#f4f1ee` | 6.4:1 | `danger`: past due, urgent |
+| Rust | `#9b3418` | `#f4f1ee` | 6.4:1 | `danger`: urgent priority, Trash count |
 | Violet | `#5a3cd4` | `#f4f1ee` | 6.2:1 | `info`: open, in progress, toasts, backup reminder |
 | Sage | `#80a89b` | `#141110` | 7.2:1 | `calm`: completed, medium priority |
 | Taupe | `#bca59d` | `#141110` | 8.1:1 | `neutral`: low priority, to do, Trash stripe |
@@ -56,7 +56,7 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 
 **Semantic mappings** (`src/ui.ts`):
 
-- Overview tiles: Open → violet, Due today → mustard, Past due → rust (taupe at zero), Completed → sage.
+- Overview tiles, most urgent first, each a filter: Overdue → maroon (taupe at zero), Due today → mustard, Open → violet, Completed → sage.
 - `PRIORITY_PANEL`: low → taupe, medium → sage, high → mustard, urgent → rust.
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
 - Overdue: maroon badge plus a maroon outline (`ALERT_OUTLINE`).
@@ -126,8 +126,12 @@ Reuse these before building anything new.
 ## Layout
 
 - The main container is `max-w-6xl`, with a 16px side gutter.
-- **Bento top section:** from `md` up, the heading panel and the four Overview tiles share a row
-  and quick add spans below. Under `md`, everything stacks in one column.
+- **Urgency first:** the heading panel ("Tasks" over the urgency line, e.g. "2 overdue") and the
+  four Overview tiles (filters) lead. They share a row from `lg`; below that the tiles run under the
+  heading (a 2×2 grid on phones). Then notices, then quick add and filters, then the list.
+- **Rhythm:** 12px inside a group, 24px between groups. The filter bar and count line only show
+  once there are tasks. At 1024×768 and up the first task card is on the first screen
+  (`e2e/layout.spec.ts`).
 - **Task grid:** one column on phones, two from `md`. Cards fill rows left to right, the same
   order `J`/`K` walk them.
 - Groups keep their own sections, each with its own grid.

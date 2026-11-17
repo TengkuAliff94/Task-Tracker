@@ -47,7 +47,7 @@ typography:
     letterSpacing: "-0.025em"
   stat:
     fontFamily: "'Gabarito Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif"
-    fontSize: "3rem"
+    fontSize: "2.25rem"
     fontWeight: 800
     lineHeight: 1
     letterSpacing: "-0.025em"
@@ -154,7 +154,7 @@ components:
     textColor: "{colors.ink-on-light-panel}"
     typography: "{typography.display}"
     rounded: "{rounded.panel}"
-    padding: "28px"
+    padding: "24px"
   filter-chip:
     backgroundColor: "{colors.subtle}"
     textColor: "{colors.fg}"
@@ -186,9 +186,9 @@ components:
 
 **Creative North Star: "The Sunlit Workbench"**
 
-The app is a warm, physical surface where one person lays out their work. The canvas is a sun-warmed off-white by day and near-black by night. On it sit flat, saturated colour panels, like tiles set out on a bench, each one a tool or a reading ready to pick up. The signature is the heading panel: a big orange slab with "Tasks" set heavy in Gabarito and a black sun that rises into its corner on load. Everything else stays quieter than that one moment.
+The app is a warm, physical surface where one person lays out their work. The canvas is a sun-warmed off-white by day and near-black by night. On it sit flat, saturated colour panels, like tiles set out on a bench, each one a tool or a reading ready to pick up. The signature is the heading panel: a big orange slab with "Tasks" set heavy in Gabarito and a black sun that rises into its corner on load. Once there are tasks, the slab speaks for urgency: a second display line under "Tasks" says what needs attention ("2 overdue"). Everything else stays quieter than that one moment.
 
-The panels carry meaning, not decoration. Colour says how urgent something is (maroon overdue, rust past due, mustard due today, sage on track), so the bench reads at a glance before any text does. Separation comes from colour and the gutters between tiles, never from hairline borders or heavy drop shadows. Density is standard rather than compact: a phone-sized glance and a desk-sized planning session should both feel unhurried.
+The panels carry meaning, not decoration. Colour says how urgent something is (maroon overdue, mustard due today, violet open, sage on track), so the bench reads at a glance before any text does. Separation comes from colour and the gutters between tiles, never from hairline borders or heavy drop shadows. Density is standard rather than compact: a phone-sized glance and a desk-sized planning session should both feel unhurried.
 
 Controls are **calm and confident**. They stay flat and quiet at rest and answer clearly on hover and focus: a mustard light-up, a soft lift, a strong two-tone focus ring. Motion is expressive (panels rise in, the completion burst, count-ups), but always on top of a guaranteed reduced-motion state where everything appears finished at once. Sill's photography, handwriting font, illustrated scenes and pinned horizontal scroll are deliberately not part of this world.
 
@@ -213,10 +213,10 @@ A warm, earthy palette of eight saturated panels over a neutral canvas that inve
 - **Twilight Violet** (panel-violet): open and in-progress work, and general notices: toasts and the backup reminder.
 
 ### Tertiary
-- **Dusk Maroon** (panel-maroon): the strongest alarm, overdue. A maroon badge plus a maroon outline round the card.
-- **Clay Rust** (panel-rust): past due and urgent priority, and the Trash count badge.
+- **Dusk Maroon** (panel-maroon): the strongest alarm, overdue, wherever it appears: the card badge, the outline round the card and the Overdue tile. One word (Overdue) and one colour.
+- **Clay Rust** (panel-rust): urgent priority and the Trash count badge.
 - **Lichen Sage** (panel-sage): calm and on track. Completed work and medium priority.
-- **Sandstone Taupe** (panel-taupe): low emphasis. Low priority, to do, and Past due when the count is zero.
+- **Sandstone Taupe** (panel-taupe): low emphasis. Low priority, to do, and the Overdue tile when nothing is overdue.
 - **Heather Mauve** (panel-mauve): spare. Defined and AA-paired, with no role yet.
 
 ### Neutral
@@ -244,8 +244,8 @@ A warm, earthy palette of eight saturated panels over a neutral canvas that inve
 **Character:** Gabarito is the hand-set sign on the bench: round, heavy and friendly at extra-bold, used for few words at large sizes. Inter is the working text: neutral, compact and legible at 12–15px, with the `cv11`, `ss01` and `ss03` alternates for a straighter, calmer letterform. Both are self-hosted through Fontsource and precached, so the app looks the same offline.
 
 ### Hierarchy
-- **Display** (800, 3rem on phones / 3.75rem from `sm`, line-height 0.9, tight tracking): the "Tasks" heading on the orange panel. One per screen.
-- **Stat** (800, 2.25rem / 3rem, line-height 1, tabular figures): the Overview counts, which count up on first show and on change.
+- **Display** (800, line-height 0.9, tight tracking): the heading panel only. Before there are tasks, "Tasks" alone at 3rem on phones / 3.75rem from `sm`. Once there are tasks, two lines of equal size, "Tasks" over the urgency line, at 1.875rem / 2.25rem from `sm`. Never a small label above a big one.
+- **Stat** (800, 1.5rem on phones / 2.25rem from `sm`, line-height 1, tabular figures): the Overview counts, which count up on first show and on change.
 - **Headline** (700, 1.25rem, tight tracking): dialog titles and the Trash page title. All `h1`–`h3` use Gabarito. The wordmark "Task Tracker" is Gabarito 700 at 1.125rem, and group tabs are 1rem bold.
 - **Title** (Inter 500, 15px, 20px line): task titles, clamped to two lines.
 - **Body** (Inter 400, 14px): descriptions, dialog text and rendered Markdown (relaxed leading). The quick-add input steps up to 16px so phones don't zoom on focus.
@@ -258,15 +258,18 @@ A warm, earthy palette of eight saturated panels over a neutral canvas that inve
 
 ## Layout
 
-A single centred column, `max-w-6xl` (72rem), with a 16px side gutter at every width. Tiles sit 12px apart. The page reads top to bottom:
+A single centred column, `max-w-6xl` (72rem), with a 16px side gutter at every width. The page reads in task order, urgency first: what needs attention, then any notices, then capture, then refine, then the list. Things inside a group sit 12px apart (the panel gutter); groups sit 24px apart. The header sits 24px above the first group.
 
 1. **Header**: sticky and translucent over the canvas with a backdrop blur. It hides while you scroll down and returns on scroll up or when focus enters it. Wordmark on the left; on the right, a tray of icon buttons on a neutral panel and the brand **New task** button. Under `sm`, the wordmark text and the button label drop to icons only.
-2. **Bento**: from `md` up, the heading panel and a 2×2 grid of Overview tiles share a row. Under `md` they stack.
-3. **Quick add**: a full-width neutral panel with a 16px input.
-4. **Filter bar**: a neutral panel. Search plus three selects (a 2-column grid on phones, `1fr + 3 × 9rem` from `sm`), then wrapping rows of filter chips.
-5. **Task grid**: one column on phones, two from `md`. Cards fill rows left to right, the same order J/K walk them. When grouped, each group gets its own tab heading and its own grid.
+2. **What needs attention**: the heading panel and the Overview tiles. From `lg` they share a row (5/7 columns, tiles in a row of four). Below `lg` the tiles run under the heading: a row of four from `sm`, a 2×2 grid of slim tiles on phones.
+3. **Notices**: the missed-reminders banner and the backup reminder, when showing. They always come after the heading, so the page title is the first thing read.
+4. **Capture and refine**: quick add (a full-width neutral panel with a 16px input), then the filter bar (search plus three selects, then wrapping rows of filter chips). The filter bar and the count line only appear once there are tasks.
+5. **The list**: the count line ("8 tasks", or "2 overdue tasks" with a tile picked), then the task grid: one column on phones, two from `md`. Cards fill rows left to right, the same order J/K walk them. When grouped, each group gets its own tab heading and its own grid.
 
-Breakpoints are Tailwind's defaults; only `sm` (640px) and `md` (768px) change the layout. No horizontal scroll at 375–390px.
+Breakpoints are Tailwind's defaults: `sm` (640px), `md` (768px) and `lg` (1024px) change the layout. No horizontal scroll at 375–390px. Scrolling something into view (J/K, N, /) stops 6rem below the top, clear of the sticky header.
+
+### Named Rules
+**The Urgency-First Rule.** The first screen answers "what needs me now?" before anything else. At 1024×768 and up, the first task card is on the first screen even with the backup reminder showing; `e2e/layout.spec.ts` guards this.
 
 ## Elevation & Depth
 
@@ -328,10 +331,18 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 The header is the only navigation. On the left, the brand mark: a 36px Late-Sun Orange tile with 12px corners and a double-check icon, plus the Gabarito wordmark. On the right, a neutral tray of header icon buttons (notifications, projects & tags, backup, Trash with a rust count badge, theme, shortcuts) and the brand New task button. In Trash view, the wordmark gives way to a back button and a "Trash" headline.
 
 ### Heading Panel (signature)
-The orange bento tile: "Tasks" in Display type at the bottom left, today's date under it in 14px medium, and the black sun clipped in the top-right corner. The sun rises 60px into place on load, the one large decorative movement in the app, and it sits clear of the text.
+The orange tile that leads the page, with the black sun clipped in its top-right corner and today's date in 14px medium at the bottom. It has two states:
+- **Before there are tasks:** the full-width brand moment. "Tasks" alone in Display type, with a 160px sun (192px from `sm`).
+- **Once there are tasks:** compact, and it says what's urgent. Two Display lines of equal size, "Tasks" over the urgency line: "2 overdue", else "1 due today", else "On track" while anything is open, else "All done". The sun shrinks to 112px, and the text keeps an 80px right margin so it never runs into it.
+
+The sun rises 60px into place on load, the one large decorative movement in the app.
 
 ### Overview Tiles (signature)
-Four read-only panels in a 2×2 grid: Open (violet), Due today (mustard), Past due (rust, or taupe at zero), Completed (sage). Each has a 14px semibold label, a 20px icon at the top right, and a Stat number at the bottom that counts up. Completed adds a percentage and a 6px meter that fills by `scaleX`. When Past due is non-zero, its icon pulses (motion-safe only).
+Four panels, most urgent first: Overdue (maroon, or taupe at zero), Due today (mustard), Open (violet), Completed (sage). Each tile is a filter, a toggle button with `aria-pressed`. The numbers always count all tasks, so they keep answering "what needs me now?" whatever else is filtered. Picking a tile narrows the list to those tasks, together with any other filters (both use `matchesScope` in `src/lib/filter.ts`). Picking it again clears it, and only one is picked at a time. The Completed tile shows completed tasks even with "Show completed" off. A picked tile with nothing to show gets its own empty state ("Nothing overdue") with a **Show all tasks** button.
+- **Feedback:** the count line under the filters names the pick ("2 overdue tasks") and is a status region, so screen readers hear the new count.
+- **Content:** a 14px semibold label, a 20px icon at the top right, and a Stat number that counts up. Completed adds a percentage and a 6px meter that fills by `scaleX`. When something is overdue, its icon pulses (motion-safe only).
+- **Layout:** from `sm`, label over a large number. On phones, a slim 2×2 grid with label and number on one line, and Completed drops its percentage text (the meter still shows it). Icons are left out where tiles are slimmest: on phones, and beside the heading from `lg` to `xl`.
+- **States:** hover adds the pop shadow (no lift, so the meter stays aligned). Picked takes the selection outline (`SELECTED_OUTLINE`). The meter sits outside the button, so it stays a progress bar to assistive tech.
 
 ### Dialogs and Toasts
 - **Dialog:** native `<dialog>` on Lifted White with the panel radius and the modal shadow. It springs up 24px from 94% scale over 480ms, over a blurred backdrop. The sticky title bar is translucent Lifted White with a blur, a Headline title and a header-icon close button.

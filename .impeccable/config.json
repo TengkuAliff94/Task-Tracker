@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/index.css"
+        ],
+        "createdAt": "2026-11-17T12:47:13.424Z",
+        "reason": "Claude triage: index.css:350 is the 2px neutral line-strong rule on rendered Markdown blockquotes, a seam DESIGN.md documents, not a coloured accent bar on a card (also classified a false positive in the 2026-11-17 critique)"
+      }
+    ]
+  }
+}
