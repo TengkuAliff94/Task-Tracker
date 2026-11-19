@@ -16,6 +16,7 @@ test('completing a weekly task creates next week’s copy, and unticking removes
 
   // Ticking it done hides the original and puts an open copy, due a week later, in its place.
   await page.getByRole('checkbox', { name: 'Mark "Water plants" as done' }).click()
+  await app.openFilters()
   await expect(page.getByText('Show completed (1)')).toBeVisible()
   await expect(row).toHaveCount(1)
   await expect(row).toContainText('In 7 days')

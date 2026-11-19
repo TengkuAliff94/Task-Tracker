@@ -5,7 +5,7 @@ import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
-import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, type Filters, type Scope } from './lib/filter'
+import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, withoutMissingLabels, type Filters, type Scope } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { useNow } from './hooks/useNow'
 import { useReminders } from './hooks/useReminders'
@@ -101,8 +101,10 @@ const focusById = (id: string) => {
 
 export default function App() {
   const tasks = useLiveQuery(() => taskRepo.list(), [])
-  const projects = useLiveQuery(() => projectRepo.list(), []) ?? []
-  const tags = useLiveQuery(() => tagRepo.list(), []) ?? []
+  const loadedProjects = useLiveQuery(() => projectRepo.list(), [])
+  const loadedTags = useLiveQuery(() => tagRepo.list(), [])
+  const projects = useMemo(() => loadedProjects ?? [], [loadedProjects])
+  const tags = useMemo(() => loadedTags ?? [], [loadedTags])
   const attachmentCounts = useLiveQuery(() => attachmentRepo.countsByTask(), [])
   const trashCount = useLiveQuery(() => taskRepo.countTrash(), []) ?? 0
   const now = useNow()
@@ -128,6 +130,12 @@ export default function App() {
   useEffect(() => {
     if (taskCount === 0) setFilters((f) => (hasActiveFilters(f) ? { ...EMPTY_FILTERS, showCompleted: f.showCompleted } : f))
   }, [taskCount])
+
+  // Deleting a project or tag that's picked as a filter takes the filter off too. Only once both
+  // lists have loaded, so a filter isn't dropped for a label that just hasn't arrived yet.
+  useEffect(() => {
+    if (loadedProjects && loadedTags) setFilters((f) => withoutMissingLabels(f, loadedProjects, loadedTags))
+  }, [loadedProjects, loadedTags])
 
   const projectsById = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects])
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])

@@ -130,8 +130,11 @@ Reuse these before building anything new.
   four Overview tiles (filters) lead. They share a row from `lg`; below that the tiles run under the
   heading (a 2×2 grid on phones). Then notices, then quick add and filters, then the list.
 - **Rhythm:** 12px inside a group, 24px between groups. The filter bar and count line only show
-  once there are tasks. At 1024×768 and up the first task card is on the first screen
-  (`e2e/layout.spec.ts`).
+  once there are tasks. At 1024×768 and up the first task card is on the first screen, and on a
+  390×844 phone once the backup reminder is dismissed (`e2e/layout.spec.ts`).
+- **Filter bar:** search plus a collapsed **Filters** disclosure; active filters show as removable
+  chips while it's closed (`e2e/filter-bar.spec.ts`). Tests reach the panel's controls through
+  `app.openFilters()` in `e2e/fixtures.ts`.
 - **Task grid:** one column on phones, two from `md`. Cards fill rows left to right, the same
   order `J`/`K` walk them.
 - Groups keep their own sections, each with its own grid.

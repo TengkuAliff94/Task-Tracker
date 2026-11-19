@@ -263,13 +263,13 @@ A single centred column, `max-w-6xl` (72rem), with a 16px side gutter at every w
 1. **Header**: sticky and translucent over the canvas with a backdrop blur. It hides while you scroll down and returns on scroll up or when focus enters it. Wordmark on the left; on the right, a tray of icon buttons on a neutral panel and the brand **New task** button. Under `sm`, the wordmark text and the button label drop to icons only.
 2. **What needs attention**: the heading panel and the Overview tiles. From `lg` they share a row (5/7 columns, tiles in a row of four). Below `lg` the tiles run under the heading: a row of four from `sm`, a 2×2 grid of slim tiles on phones.
 3. **Notices**: the missed-reminders banner and the backup reminder, when showing. They always come after the heading, so the page title is the first thing read.
-4. **Capture and refine**: quick add (a full-width neutral panel with a 16px input), then the filter bar (search plus three selects, then wrapping rows of filter chips). The filter bar and the count line only appear once there are tasks.
+4. **Capture and refine**: quick add (a full-width neutral panel with a 16px input), then the filter bar. The filter bar is one row: search, always in view, and a **Filters** disclosure button. Everything else waits behind it: Project, Sort by and Group by selects with visible labels, the filter chips, and "Show completed". While it's collapsed, each active filter shows as a removable chip under the row, followed by **Clear filters**, so nothing narrows the list out of sight. The filter bar and the count line only appear once there are tasks.
 5. **The list**: the count line ("8 tasks", or "2 overdue tasks" with a tile picked), then the task grid: one column on phones, two from `md`. Cards fill rows left to right, the same order J/K walk them. When grouped, each group gets its own tab heading and its own grid.
 
 Breakpoints are Tailwind's defaults: `sm` (640px), `md` (768px) and `lg` (1024px) change the layout. No horizontal scroll at 375–390px. Scrolling something into view (J/K, N, /) stops 6rem below the top, clear of the sticky header.
 
 ### Named Rules
-**The Urgency-First Rule.** The first screen answers "what needs me now?" before anything else. At 1024×768 and up, the first task card is on the first screen even with the backup reminder showing; `e2e/layout.spec.ts` guards this.
+**The Urgency-First Rule.** The first screen answers "what needs me now?" before anything else. At 1024×768 and up, the first task card is on the first screen even with the backup reminder showing; on a 390×844 phone it is on the first screen once the reminder is dismissed. `e2e/layout.spec.ts` guards both. Controls that refine the list stay collapsed by default so they never push it down.
 
 ## Elevation & Depth
 
@@ -308,7 +308,9 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 - **On an attention panel** (`attentionAction` / `attentionQuiet`): the main action swaps the panel's colours; the quiet one is the panel's own ink at 85%, tinted on hover.
 
 ### Chips
-- **Filter chip**: a 32px pill, 12px semibold. Idle: a Well Stone fill with 80% text, lighting up mustard on hover. Active: the matching panel colour. Active label chips keep the body text and gain a 2px inset ring in the label's own colour.
+- **Filter chip**: a 32px pill, 12px semibold, inside the open filter panel. Idle: a Well Stone fill with 80% text, lighting up mustard on hover. Active: the matching panel colour. Active label chips keep the body text and gain a 2px inset ring in the label's own colour. Chips in one cluster (priority, status, tags) sit 6px apart; clusters sit 16px apart side by side and 12px apart when they wrap, with no rule between them.
+- **Active-filter chip**: what a pressed filter chip becomes while the panel is collapsed. The same pill in the same pressed colours, plus a 14px × at the end; pressing it removes that filter (its name is "Remove High filter"). Hover adds the pop shadow rather than mustard, because a mustard chip already means High. A project shows here as a chip with its dot too. Search and the Overview pick aren't chips: the search field and the pressed tile already show them. Focus moves to the next chip when one goes, then the one before it, never onto Clear filters.
+- **Filters toggle**: a 36px Well Stone button matching the search well, with 8px corners, a sliders icon, "Filters", a chevron that turns over when open, and a count of active filters in the same pill as the group-heading counts (a 15% tint of its own ink, tabular figures). It lights up mustard on hover like the idle chips.
 - **Label chip** (`LabelChip`): a 6px-corner pill, 12px medium, with a 6px dot, a 16% tint and an inset ring in the label's colour, and an optional × to remove.
 - **Badge**: 6px corners, 12px medium, filled with the priority panel (taupe, sage, mustard, rust) or maroon for Overdue.
 

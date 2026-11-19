@@ -42,6 +42,7 @@ test('a trashed task shows as a card with when it was deleted and how long it ha
 
 test('the filter pills, search and "Show completed" still narrow the list', async ({ app, page }) => {
   await app.loadSampleData()
+  await app.openFilters()
   const urgent = page.getByRole('button', { name: 'Urgent', exact: true })
   await urgent.click()
   await expect(urgent).toHaveAttribute('aria-pressed', 'true')

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, NO_PROJECT, type Filters } from './filter'
+import { applyFilters, EMPTY_FILTERS, filterChips, hasActiveFilters, matchesScope, NO_PROJECT, removeChip, withoutMissingLabels, type Filters } from './filter'
 import type { Label, Task } from '../types'
 
 const tags: Label[] = [
@@ -94,5 +94,47 @@ describe('scope (the Overview tiles as filters)', () => {
     expect(ids('overdue', { query: 'late' })).toEqual(['late'])
     expect(hasActiveFilters({ ...EMPTY_FILTERS, scope: 'today' })).toBe(true)
     expect(hasActiveFilters(EMPTY_FILTERS)).toBe(false)
+  })
+})
+
+describe('filter chips (the collapsed filter bar)', () => {
+  const projects: Label[] = [{ id: 'p-life', name: 'Life', color: '#123456' }]
+  const f: Filters = {
+    ...EMPTY_FILTERS,
+    projectId: 'p-life',
+    priorities: ['high', 'urgent'],
+    statuses: ['in_progress'],
+    tagIds: ['t-fin'],
+    query: 'rent',
+    scope: 'overdue',
+  }
+
+  it('lists every panel filter in panel order, but not search or the Overview pick', () => {
+    expect(filterChips(f, projects, tags).map((c) => c.label)).toEqual(['Life', 'High', 'Urgent', 'In Progress', '#finance'])
+    expect(filterChips(EMPTY_FILTERS, projects, tags)).toEqual([])
+  })
+
+  it('names "No project", and keeps a chip for a label that was deleted while picked', () => {
+    const chips = filterChips({ ...EMPTY_FILTERS, projectId: NO_PROJECT, tagIds: ['gone'] }, projects, tags)
+    expect(chips.map((c) => c.label)).toEqual(['No project', '#deleted tag'])
+    expect(filterChips({ ...EMPTY_FILTERS, projectId: 'gone' }, projects, tags)[0].label).toBe('Deleted project')
+  })
+
+  it('drops a project or tag that was deleted, and leaves everything else alone', () => {
+    expect(withoutMissingLabels(f, projects, tags)).toBe(f)
+    const noProject = { ...f, projectId: NO_PROJECT }
+    expect(withoutMissingLabels(noProject, projects, tags)).toBe(noProject)
+    const pruned = withoutMissingLabels(f, [], [tags[1]])
+    expect(pruned).toEqual({ ...f, projectId: undefined, tagIds: [] })
+  })
+
+  it('removing a chip takes off only that filter', () => {
+    const chips = filterChips(f, projects, tags)
+    for (const chip of chips) {
+      const after = removeChip(f, chip)
+      expect(filterChips(after, projects, tags).map((c) => c.key)).toEqual(chips.filter((c) => c !== chip).map((c) => c.key))
+      expect(after.query).toBe('rent')
+      expect(after.scope).toBe('overdue')
+    }
   })
 })

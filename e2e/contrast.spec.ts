@@ -19,6 +19,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     test(`task list, completed tasks and the backup nudge are readable (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
+      await app.openFilters()
       await page.getByText(/^Show completed/).click()
       await expect(app.taskRow('File expense claims')).toBeVisible()
       expect(await contrastProblems(page)).toEqual([])
@@ -26,11 +27,17 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     test(`pressed filter pills are readable (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
+      await app.openFilters()
       // One of each kind: every priority and status colour, and a user-coloured tag.
       for (const name of ['Low', 'Medium', 'High', 'Urgent', 'To Do', 'In Progress', 'Done', '#errand']) {
         await page.getByRole('button', { name, exact: true }).click()
       }
       await expect(page.getByRole('button', { name: '#errand', exact: true })).toHaveAttribute('aria-pressed', 'true')
+      expect(await contrastProblems(page)).toEqual([])
+
+      // Collapsed, the same filters show as chips in the same colours.
+      await app.filtersToggle.click()
+      await expect(page.getByRole('button', { name: 'Remove #errand filter' })).toBeVisible()
       expect(await contrastProblems(page)).toEqual([])
     })
 

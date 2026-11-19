@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-17, at the end of the session that ran step 1.
+Last updated 2026-11-19, at the end of the session that ran step 2.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -16,8 +16,8 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | # | Command | Issue | Status |
 |---|---|---|---|
 | 1 | `/impeccable layout src/App.tsx` | [#20](https://github.com/TengkuAliff94/Task-Tracker/issues/20) urgency-first top section, tiles as filters | **done** |
-| 2 | `/impeccable distill src/components/FilterBar.tsx` | [#21](https://github.com/TengkuAliff94/Task-Tracker/issues/21) collapse the filter bar; the list comes first on phones | **next** |
-| 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | to do |
+| 2 | `/impeccable distill src/components/FilterBar.tsx` | [#21](https://github.com/TengkuAliff94/Task-Tracker/issues/21) collapse the filter bar; the list comes first on phones | **done** |
+| 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | **next** |
 | 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | to do |
 | 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates | to do |
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | to do |
@@ -26,7 +26,7 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** start a session in this repo and run `/impeccable distill src/components/FilterBar.tsx`, then work through #21's acceptance criteria.
+**To resume:** start a session in this repo and run `/impeccable harden src/components/TaskForm.tsx`, then work through #22's acceptance criteria.
 
 ## Context files (read these, don't re-derive them)
 
@@ -52,8 +52,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 127 passing after step 1
-npm run test:e2e                # e2e (Playwright, port 4173): 72 passing after step 1
+npm test                        # unit (Vitest): 131 passing after step 2
+npm run test:e2e                # e2e (Playwright, port 4173): 81 passing after step 2
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -76,6 +76,9 @@ npm run build                   # production build + PWA
 
   `e2e/fixtures.ts` relies on them.
 - **The Overview tiles count all tasks.** Picking one narrows the list together with other filters (`matchesScope` in `src/lib/filter.ts`). The completion meter sits *outside* the tile button so it stays a progress bar to assistive tech. That's why the tiles use a shadow on hover and don't lift.
+- **The filter panel is collapsed by default.** Project, Sort by, Group by, the filter pills and "Show completed" only exist once it's open. In e2e, call `app.openFilters()` (in `e2e/fixtures.ts`) before using them. Search, the chips and Clear filters stay visible while it's collapsed.
+- **Focus under the sticky header.** On phones, Shift+Tab back up the page brings the header back on top of whatever gets focus. Anything focusable near the top needs `scroll-margin-top` (see the `[data-filter-bar]` rule in `index.css`). The backup nudge's buttons still lack it; that's for #26.
+- **Python on Windows writes CRLF.** Scripted edits through `open(..., 'w')` turned whole files into CRLF diffs. Use `newline=''`, or the Edit tool.
 - **#25 will break a layout assertion.** `e2e/layout.spec.ts` expects the backup nudge to show after sample data, to measure the worst case. When #25 stops that, bring the nudge up deliberately rather than deleting the check. There's a comment on #25 about this.
 - **README screenshots are stale.** They show the old bento. Regenerate them with `npm run screenshots` in #27, not earlier, so it's done once.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
@@ -85,3 +88,11 @@ npm run build                   # production build + PWA
 The heading reads "Tasks / 2 overdue". The tiles are filters, ordered Overdue, Due today, Open, Completed. The page order is urgency first, with 12px spacing inside groups and 24px between them. The first card is now on the first screen at 1024×768 and 1280×900. On a 390px phone it starts at about 820px, and #21 finishes the job.
 
 The files touched are `src/App.tsx`, `src/components/{HeadingPanel,Overview,Backup,ReminderAlerts,FilterBar}.tsx`, `src/lib/filter.ts`, `src/index.css` and `src/ui.ts`, plus tests and docs. See #20 for the details and measurements.
+
+## Step 2 in brief (#21)
+
+The filter bar is one row: search (still on `/`) and a **Filters** disclosure with a count of active filters. Project, Sort by and Group by (visible labels), the priority, status and tag pills, and "Show completed" sit behind it. While it's collapsed, each active filter shows as a removable chip, then Clear filters. Removing a chip moves focus to the next chip, or the one before it, never onto Clear filters. Sort's "Smart (overdue, deadline, priority)" is now "Smart". Deleting a project or tag that's picked as a filter now takes the filter off too (`withoutMissingLabels` in `src/lib/filter.ts`).
+
+On a 390×844 phone the first card now starts at 570px (was about 820px) and ends at 676px. At 1024 and up it starts at 485px. The tests are in `e2e/filter-bar.spec.ts` and the phone `describe` in `e2e/layout.spec.ts`.
+
+The files touched are `src/components/FilterBar.tsx`, `src/App.tsx`, `src/lib/{filter,sort}.ts`, `src/index.css`, the e2e specs, `DESIGN.md`, `.impeccable/design.json` and `MASTER.md`.

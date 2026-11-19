@@ -18,6 +18,7 @@ test('create, edit and complete a task', async ({ app, page }) => {
 
   await page.getByLabel('Mark "Write quarterly report" as done').click()
   await expect(app.taskRow('Write quarterly report')).toBeHidden()
+  await app.openFilters()
   await page.getByText('Show completed (1)').click()
   await expect(app.taskRow('Write quarterly report')).toBeVisible()
 })

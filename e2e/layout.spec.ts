@@ -90,4 +90,16 @@ test.describe('phone', () => {
     expect(q.y, 'quick add is below the Overview').toBeGreaterThan(o.y + o.height)
     expect(await app.scrollsSideways()).toBe(false)
   })
+
+  // The Urgency-First Rule on a phone: with the filters collapsed, the list follows quick add
+  // and the filter row directly, so the first card is on the first screen.
+  test('the first task card is fully on the first screen once the backup reminder is dismissed', async ({ app, page }) => {
+    await app.loadSampleData()
+    await page.getByRole('button', { name: 'Remind me later' }).click()
+    await expect(page.getByRole('button', { name: 'Remind me later' })).toHaveCount(0)
+    const filters = await box(app.filtersToggle)
+    const first = await box(app.taskCards().first())
+    expect(first.y, 'the list comes after the filter row').toBeGreaterThan(filters.y + filters.height)
+    expect(first.y + first.height).toBeLessThanOrEqual(844)
+  })
 })

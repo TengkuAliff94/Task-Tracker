@@ -15,7 +15,8 @@ export type SortKey = 'smart' | 'deadline' | 'priority' | 'created' | 'title'
 export type GroupKey = 'none' | 'project' | 'priority' | 'status'
 
 export const SORT_LABEL: Record<SortKey, string> = {
-  smart: 'Smart (overdue, deadline, priority)',
+  // Overdue first, then deadline, then priority (see sortTasks).
+  smart: 'Smart',
   deadline: 'Deadline',
   priority: 'Priority',
   created: 'Newest first',

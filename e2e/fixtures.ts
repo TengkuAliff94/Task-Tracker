@@ -45,6 +45,17 @@ export class App {
     return this.page.getByRole('list', { name: list }).getByRole('listitem')
   }
 
+  /** The Filters disclosure button beside search. */
+  get filtersToggle(): Locator {
+    return this.page.getByRole('button', { name: /^Filters( \d+ active)?$/ })
+  }
+
+  /** Opens the filter panel (project, sort, group, the filter pills and "Show completed"), if it's closed. */
+  async openFilters() {
+    if ((await this.filtersToggle.getAttribute('aria-expanded')) !== 'true') await this.filtersToggle.click()
+    await expect(this.filtersToggle).toHaveAttribute('aria-expanded', 'true')
+  }
+
   /** True when the page can scroll sideways, i.e. something is wider than the screen. */
   scrollsSideways(): Promise<boolean> {
     return this.page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)

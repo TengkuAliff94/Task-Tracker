@@ -81,6 +81,7 @@ test.describe('with motion', () => {
 
   test('completing a card counts at once, and unticking it again leaves it unticked', async ({ app, page }) => {
     await app.loadSampleData()
+    await app.openFilters()
     await page.getByText(/^Show completed/).click()
     const overview = page.getByRole('region', { name: 'Overview' })
     const meter = overview.getByRole('progressbar', { name: 'Tasks completed' })
@@ -101,6 +102,7 @@ test.describe('with motion', () => {
 
 test('grouping by project heads each group with its name and open-task count', async ({ app, page }) => {
   await app.loadSampleData()
+  await app.openFilters()
   await page.getByLabel('Group by').selectOption('project')
 
   // Open sample tasks by project: Home 3 (Pay rent, Renew car insurance, Grocery run),

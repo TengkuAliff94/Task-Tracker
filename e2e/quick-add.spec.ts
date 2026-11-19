@@ -27,6 +27,7 @@ test('quick-add parses tokens, shows the task and keeps it after a reload', asyn
   }
   await expectRow()
   // The new project shows up as a filter option.
+  await app.openFilters()
   await expect(page.getByLabel('Filter by project')).toContainText('home')
 
   // A reload drops all in-memory state, so the task can only come back from IndexedDB.
