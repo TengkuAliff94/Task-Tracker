@@ -17,7 +17,7 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 |---|---|---|---|
 | 1 | `/impeccable layout src/App.tsx` | [#20](https://github.com/TengkuAliff94/Task-Tracker/issues/20) urgency-first top section, tiles as filters | **done** |
 | 2 | `/impeccable distill src/components/FilterBar.tsx` | [#21](https://github.com/TengkuAliff94/Task-Tracker/issues/21) collapse the filter bar; the list comes first on phones | **done** |
-| 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | **done** (`32624b4`; #22 still open, see below) |
+| 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | **done** (`32624b4`, review fixes `c88b2e4`) |
 | 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | **next** |
 | 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates | to do |
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | to do |
@@ -26,12 +26,9 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** first clear the loose ends from step 3a (below), then start a session in this repo and run `/impeccable harden src/App.tsx` and work through #23's acceptance criteria.
+**To resume:** start a session in this repo, run `/impeccable harden src/App.tsx`, and work through #23's acceptance criteria. Step 3a has no loose ends: #22 is closed and #19's table is up to date.
 
-**Loose ends from step 3a.** The code is committed and pushed. The sidecar is refreshed (it has a "Discard Bar" component now) and `impeccable doctor` reports no drift. These parts of the routine are still to do:
-- **No adversarial review yet** (step 6 of the routine). Run it over `32624b4` before closing #22.
-- **#22 is still open** and the table in #19 still says it's next. Close #22 and update #19 once the two items above are done.
-- **Follow-up to file:** Save still drops text typed into an "add" input but not added (checklist item, link, tag). Closing now asks first, but saving doesn't. That's a silent loss too.
+**Follow-ups outside the table:** [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28). Save still drops text typed into an "add" input but not added (checklist item, link, tag, project name, reminder time). Closing asks first, but saving doesn't. #24 touches the same form (inline validation), so it's a natural fit there.
 
 ## Context files (read these, don't re-derive them)
 
@@ -58,7 +55,7 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 ```bash
 npx tsc -b                      # types
 npm test                        # unit (Vitest): 131 passing after step 3a
-npm run test:e2e                # e2e (Playwright, port 4173): 99 passing after step 3a
+npm run test:e2e                # e2e (Playwright, port 4173): 104 passing after step 3a
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -86,6 +83,8 @@ npm run build                   # production build + PWA
 - **Python on Windows writes CRLF.** Scripted edits through `open(..., 'w')` turned whole files into CRLF diffs. Use `newline=''`, or the Edit tool. It happened again in step 3a. Check with `git ls-files --eol <files>` before committing: the working copy should say `w/lf`.
 - **Swapped siblings need keys.** When a ternary swaps one block of buttons for another of the same shape, React reuses the DOM nodes. In step 3a, Keep editing became the Save button mid-click and submitted the form. Give each branch its own `key`.
 - **The task editor asks before discarding.** With unsaved changes, Esc, × and Cancel show the "Discard your changes?" bar instead of closing. In e2e, close an edited editor with Save, or press Discard on the bar (`e2e/task-editor.spec.ts` shows how). Closing an untouched editor is still instant.
+- **Give each review agent its own port.** The adversarial review runs many agents that each start Playwright. Pass `E2E_PORT=<unique port>` to each one (`playwright.config.ts` reads it), or they reuse or kill each other's dev server. Probe tests go in `e2e/zz-probe-*.spec.ts` and get deleted afterwards.
+- **Faking a storage failure.** To test what happens when IndexedDB refuses a write, patch `IDBObjectStore.prototype.add` in `page.addInitScript` to throw a `QuotaExceededError` for one store. "when attachments fail to save" in `e2e/task-editor.spec.ts` does this.
 - **#25 will break a layout assertion.** `e2e/layout.spec.ts` expects the backup nudge to show after sample data, to measure the worst case. When #25 stops that, bring the nudge up deliberately rather than deleting the check. There's a comment on #25 about this.
 - **README screenshots are stale.** They show the old bento. Regenerate them with `npm run screenshots` in #27, not earlier, so it's done once.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
@@ -113,4 +112,13 @@ The task editor no longer throws edits away silently. With anything changed, Esc
 - **Focus:** Keep editing returns focus to the field, ×, or Cancel. Going back to a field puts the bar away.
 - **Saving:** a retry after a half-finished save updates the new task instead of adding a copy. Storage-full errors get a plain message. Errors use `role="alert"` and scroll into view. Double submits are blocked.
 
-The files touched are `src/components/TaskForm.tsx`, `data-draft` in `{Checklist,Attachments}Editor`, `TagPicker` and `ProjectPicker`, plus `e2e/task-editor.spec.ts` (16 tests), a contrast test for the bar and `DESIGN.md` (Dialogs).
+**The adversarial review** (`c88b2e4`) ran three lenses over `32624b4`, with three skeptics per finding. All six findings survived; two were the same bug. The fixes:
+- a reminder time picked but not added now counts as unsaved
+- a forced close while the bar is showing puts focus back in it
+- close requests wait while a save is writing
+- after a half-finished save, the saved fields become the new baseline, so only the attachments are unsaved and the bar says "Discard your changes?"
+- on narrow phones the question stays on one line and the buttons wrap below it (`flex-auto`, not `flex-1`)
+
+Four of the five new tests fail on the old source. The guard for closing during a save has no test, because the race is too short to hit.
+
+The files touched are `src/components/TaskForm.tsx`, `data-draft` in `{Checklist,Attachments,Reminders}Editor`, `TagPicker` and `ProjectPicker`, plus `e2e/task-editor.spec.ts` (21 tests), a contrast test for the bar, `DESIGN.md` (Dialogs) and the sidecar (a "Discard Bar" component).
