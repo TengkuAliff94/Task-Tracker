@@ -98,7 +98,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
 
   // Everything the form edits, as one string, so "has anything changed?" is a single comparison.
   const snapshot = JSON.stringify([title, description, status, priority, date, time, projectId, tagIds, effort, reminders, recurrence, checklist])
-  const [initialSnapshot] = useState(snapshot)
+  const [initialSnapshot, setInitialSnapshot] = useState(snapshot)
   const isDirty = () =>
     snapshot !== initialSnapshot || pendingFiles.length > 0 || removedFiles.length > 0 || hasUnaddedText(formRef.current)
 
@@ -147,6 +147,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
 
   /** The × button and Cancel. Esc and other close requests come through handleKeyDown and handleCancel. */
   function requestClose() {
+    // Mid-save, Discard would be a lie: the write is already on its way.
+    if (savingNow.current) return
     if (confirming) keepEditingRef.current?.focus()
     else if (isDirty()) askToDiscard()
     else leave()
@@ -157,7 +159,9 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
     if (e.key !== 'Escape' || e.nativeEvent.defaultPrevented || e.nativeEvent.isComposing) return
     // Stopping Esc here, rather than only in `cancel`, also covers a second quick press, which the
     // browser may not let a page cancel.
-    if (confirming) {
+    if (savingNow.current) {
+      e.preventDefault()
+    } else if (confirming) {
       e.preventDefault()
       keepEditing()
     } else if (isDirty()) {
@@ -170,7 +174,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   function handleCancel(e: SyntheticEvent<HTMLDialogElement>) {
     if (leaving.current || !isDirty()) return
     e.preventDefault()
-    if (!confirming) askToDiscard()
+    if (!confirming && !savingNow.current) askToDiscard()
   }
 
   function handleClose() {
@@ -179,7 +183,10 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
     if (!leaving.current && isDirty()) {
       dialogRef.current?.showModal()
       returnFocus.current = null
-      setConfirming(true)
+      // showModal() focuses the first control (×). If the bar is already up, setConfirming(true)
+      // changes nothing and its effect won't run, so move focus into the bar here.
+      if (confirming) keepEditingRef.current?.focus()
+      else setConfirming(true)
       return
     }
     onClose()
@@ -219,6 +226,9 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
         setError(describeSaveError(err))
         return
       }
+      // The fields are stored now. If the attachments fail next, only they still count as unsaved,
+      // so "Discard" means exactly what it says.
+      setInitialSnapshot(snapshot)
       if (pendingFiles.length || removedFiles.length) {
         try {
           // One transaction, so nothing is half-applied and Save can simply run again.
@@ -367,8 +377,10 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
             aria-labelledby={messageId}
             className={`sticky bottom-0 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-transparent px-6 py-3.5 ${panel.warning}`}
           >
-            <p id={messageId} className="flex-1 animate-fade-up text-sm font-semibold">
-              {task ? 'Discard your changes?' : 'Discard this new task?'}
+            {/* flex-auto, not flex-1: on narrow phones the buttons wrap below instead of crushing the question. */}
+            <p id={messageId} className="flex-auto animate-fade-up text-sm font-semibold">
+              {/* After a half-finished save, a new task already exists: only its attachments are unsaved. */}
+              {task || savedId.current ? 'Discard your changes?' : 'Discard this new task?'}
             </p>
             <div className="ml-auto flex animate-fade-up gap-2">
               <button type="button" onClick={leave} className={`${attentionQuiet} min-h-9`}>

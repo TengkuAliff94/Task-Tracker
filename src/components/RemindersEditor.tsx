@@ -66,6 +66,7 @@ export function RemindersEditor({ value, onChange, hasDeadline, className }: Pro
               <input
                 type="datetime-local"
                 aria-label="Reminder time"
+                data-draft
                 value={at}
                 onChange={(e) => setAt(e.target.value)}
                 className={className}
