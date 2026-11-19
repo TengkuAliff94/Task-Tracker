@@ -28,8 +28,7 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 **To resume:** first clear the loose ends from step 3a (below), then start a session in this repo and run `/impeccable harden src/App.tsx` and work through #23's acceptance criteria.
 
-**Loose ends from step 3a.** The code is committed and pushed, but these parts of the routine weren't done:
-- **The sidecar is stale.** `impeccable doctor` reports `design-sidecar-stale`, because DESIGN.md gained the "Unsaved changes" bullet under Dialogs. Run `/impeccable document` to refresh `.impeccable/design.json`, then commit.
+**Loose ends from step 3a.** The code is committed and pushed. The sidecar is refreshed (it has a "Discard Bar" component now) and `impeccable doctor` reports no drift. These parts of the routine are still to do:
 - **No adversarial review yet** (step 6 of the routine). Run it over `32624b4` before closing #22.
 - **#22 is still open** and the table in #19 still says it's next. Close #22 and update #19 once the two items above are done.
 - **Follow-up to file:** Save still drops text typed into an "add" input but not added (checklist item, link, tag). Closing now asks first, but saving doesn't. That's a silent loss too.
