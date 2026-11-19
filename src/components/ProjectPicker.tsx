@@ -48,6 +48,7 @@ export function ProjectPicker({ projects, value, onChange, className }: Props) {
             }}
             placeholder="Project name"
             aria-label="New project name"
+            data-draft
             className={className}
           />
           <button type="button" onClick={create} className="rounded-md border border-line-strong px-3 text-sm hover:bg-subtle">

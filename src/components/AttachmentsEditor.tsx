@@ -107,6 +107,7 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
           }}
           placeholder="Paste a link and press Enter"
           aria-label="Add link"
+          data-draft
           className={field}
         />
         <button type="button" onClick={() => fileInput.current?.click()} className={btn.secondary}>

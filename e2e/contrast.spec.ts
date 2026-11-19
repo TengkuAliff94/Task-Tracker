@@ -48,6 +48,16 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(await contrastProblems(page)).toEqual([])
     })
 
+    test(`the editor's "Discard your changes?" bar is readable (${colorScheme})`, async ({ app, page }) => {
+      await app.loadSampleData()
+      await app.taskRow('Prepare quarterly review slides').getByRole('button').click()
+      const editor = page.getByRole('dialog', { name: 'Edit task' })
+      await editor.getByLabel('Title').fill('Prepare the review slides')
+      await page.keyboard.press('Escape')
+      await expect(editor.getByRole('group', { name: 'Discard your changes?' })).toBeVisible()
+      expect(await contrastProblems(page)).toEqual([])
+    })
+
     test(`the projects & tags, backup and shortcuts dialogs are readable (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
 

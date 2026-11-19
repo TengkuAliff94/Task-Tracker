@@ -348,6 +348,7 @@ Four panels, most urgent first: Overdue (maroon, or taupe at zero), Due today (m
 
 ### Dialogs and Toasts
 - **Dialog:** native `<dialog>` on Lifted White with the panel radius and the modal shadow. It springs up 24px from 94% scale over 480ms, over a blurred backdrop. The sticky title bar is translucent Lifted White with a blur, a Headline title and a header-icon close button.
+- **Unsaved changes (task editor):** with anything changed (fields, checklist, reminders, repeat, staged attachments, or text typed but not yet added), Esc, × and Cancel don't close the editor. Its sticky footer becomes a Noon Mustard bar asking "Discard your changes?" ("Discard this new task?" when creating). **Keep editing** is the inverted main action and takes focus; **Discard** is the quiet one. Esc on the bar means Keep editing, and going back to a field puts the bar away. With nothing changed, every close is instant.
 - **Toast:** a Twilight Violet panel with the pop shadow that slides in 32px from the edge. Undo is a small brand-orange button that lights up mustard; Dismiss is the panel's ink at 75%.
 
 ### Empty State

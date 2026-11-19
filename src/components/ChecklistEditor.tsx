@@ -75,6 +75,7 @@ export function ChecklistEditor({ value, onChange }: Props) {
           }}
           placeholder="Add an item and press Enter"
           aria-label="New checklist item"
+          data-draft
           className={field}
         />
         <button type="button" onClick={add} aria-label="Add checklist item" className={btn.secondary}>
