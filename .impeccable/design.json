@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-19T14:05:05.597Z",
+  "generatedAt": "2026-11-20T00:47:46.000Z",
   "title": "Design System: Task Tracker",
   "extensions": {
     "colorMeta": {
@@ -478,6 +478,14 @@
       "description": "The task editor’s sticky footer when a close would lose unsaved changes: a Noon Mustard bar with the question, a quiet Discard and the inverted Keep editing, which takes focus. Esc on it means Keep editing.",
       "html": "<div class=\"ds-discard-bar\" role=\"group\" aria-labelledby=\"ds-discard-q\"><p id=\"ds-discard-q\" class=\"ds-discard-bar__q\">Discard your changes?</p><div class=\"ds-discard-bar__actions\"><button type=\"button\" class=\"ds-discard-bar__quiet\">Discard</button><button type=\"button\" class=\"ds-discard-bar__keep\">Keep editing</button></div></div>",
       "css": ".ds-discard-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:14px 24px;border-radius:0 0 16px 16px;background:var(--panel-mustard,#e3b867);color:var(--on-panel-mustard,#141110);font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;}.ds-discard-bar__q{flex:1;margin:0;font-size:14px;line-height:20px;font-weight:600;}.ds-discard-bar__actions{display:flex;gap:8px;margin-left:auto;}.ds-discard-bar__quiet{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:0;cursor:pointer;border-radius:8px;padding:6px 12px;font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:12px;line-height:16px;font-weight:600;transition:background-color 200ms,opacity 200ms;background:transparent;color:inherit;opacity:.85;}.ds-discard-bar__quiet:hover{background:rgb(0 0 0 / .1);opacity:1;}.ds-discard-bar__keep{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:0;cursor:pointer;border-radius:8px;padding:6px 12px;font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:12px;line-height:16px;font-weight:600;transition:background-color 200ms,opacity 200ms;background:var(--on-panel-mustard,#141110);color:var(--panel-mustard,#e3b867);}.ds-discard-bar__keep:hover{opacity:.85;}.ds-discard-bar__quiet:focus-visible,.ds-discard-bar__keep:focus-visible{outline:2px solid var(--ring,#141110);outline-offset:2px;box-shadow:0 0 0 2px var(--bg,#f4f1ee);}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "A Twilight Violet notice that slides in from the screen edge with the pop shadow. A 14px medium message (task titles shortened to 60 characters so the words around them always show), an optional regular detail line (“Next due tomorrow 07:00”), a small brand-orange Undo and a quiet Dismiss. It closes after 6 seconds, waiting while the pointer is over it or focus is inside it; a failure toast (role=alert) stays until dismissed. Completion toasts share one slot; Z runs the newest Undo.",
+      "html": "<div class=\"ds-toast\" role=\"status\"><div class=\"ds-toast__text\"><p class=\"ds-toast__msg\">Done: Morning run</p><p class=\"ds-toast__detail\">Next due tomorrow 07:00</p></div><button type=\"button\" class=\"ds-toast__action\" aria-keyshortcuts=\"z\">Undo</button><button type=\"button\" class=\"ds-toast__dismiss\" aria-label=\"Dismiss\">×</button></div>",
+      "css": ".ds-toast{display:flex;align-items:center;gap:12px;width:384px;max-width:calc(100vw - 32px);padding:12px 12px 12px 16px;border-radius:16px;background:var(--panel-violet,#5a3cd4);color:var(--on-panel-violet,#f4f1ee);box-shadow:var(--shadow-pop,0 4px 6px -2px rgb(20 17 16/.06),0 12px 24px -4px rgb(20 17 16/.12));font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:14px;line-height:20px;}.ds-toast__text{flex:1;min-width:0;overflow-wrap:anywhere;}.ds-toast__msg{margin:0;font-weight:500;}.ds-toast__detail{margin:2px 0 0;}.ds-toast__action{flex-shrink:0;border:0;cursor:pointer;border-radius:6px;padding:4px 8px;font:inherit;font-weight:600;background:var(--panel-orange,#cf6224);color:var(--on-panel-orange,#141110);transition:background-color 200ms,color 200ms;}.ds-toast__action:hover{background:var(--panel-mustard,#e3b867);color:var(--on-panel-mustard,#141110);}.ds-toast__dismiss{flex-shrink:0;border:0;cursor:pointer;border-radius:6px;padding:4px;background:transparent;color:inherit;opacity:.75;}.ds-toast__dismiss:hover{background:rgb(0 0 0/.1);opacity:1;}.ds-toast__action:focus-visible,.ds-toast__dismiss:focus-visible{outline:2px solid var(--ring,#141110);outline-offset:2px;box-shadow:0 0 0 2px var(--bg,#f4f1ee);}"
     }
   ],
   "narrative": {

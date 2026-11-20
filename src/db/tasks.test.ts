@@ -57,6 +57,13 @@ describe('task repo', () => {
       expect((await repo.get(t.id))?.nextInstanceId).toBe(open[0].id)
     })
 
+    it('completing resolves to the saved task, which names its next instance', async () => {
+      const t = await repo.create(recurring, now)
+      const saved = await repo.setStatus(t.id, 'done', now)
+      expect(saved).toMatchObject({ id: t.id, status: 'done', completedAt: now })
+      expect((await repo.get(saved.nextInstanceId!))?.deadline).toEqual({ date: '2026-11-10' })
+    })
+
     it('reopening trashes an untouched next instance', async () => {
       const t = await repo.create(recurring, now)
       await repo.setStatus(t.id, 'done', now)

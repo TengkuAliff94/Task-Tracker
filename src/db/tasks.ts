@@ -23,10 +23,10 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
   /**
    * Applies a patch. Status changes keep completedAt in step, and completing a recurring task
    * creates its next instance (once). Reopening it moves that instance to Trash, as long as
-   * nobody has started it yet.
+   * nobody has started it yet. Resolves to the task as saved.
    */
-  async function update(id: string, patch: TaskPatch, now = Date.now()): Promise<void> {
-    await db.transaction('rw', db.tasks, async () => {
+  async function update(id: string, patch: TaskPatch, now = Date.now()): Promise<Task> {
+    return db.transaction('rw', db.tasks, async () => {
       const existing = await db.tasks.get(id)
       if (!existing) throw new Error(`Task ${id} not found`)
       const next: Task = { ...existing, ...patch }
@@ -54,6 +54,7 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
       }
 
       await db.tasks.put(next)
+      return next
     })
   }
 
@@ -92,7 +93,7 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
 
     update,
 
-    setStatus(id: string, status: Status, now = Date.now()): Promise<void> {
+    setStatus(id: string, status: Status, now = Date.now()): Promise<Task> {
       return update(id, { status }, now)
     },
 

@@ -1,5 +1,4 @@
 import { Bell, CalendarDays, ChevronRight, Clock, ListChecks, Paperclip, Repeat } from 'lucide-react'
-import { taskRepo } from '../db/tasks'
 import { formatDeadline, isOverdue } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
@@ -7,7 +6,6 @@ import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Task } from '../types'
 import { ALERT_OUTLINE, panel, PRIORITY_PANEL, SELECTED_OUTLINE } from '../ui'
 import { LabelChip } from './LabelChip'
 import { AnimatedItem } from './motion/AnimatedList'
-import { celebrate } from './motion/Burst'
 
 interface Props {
   task: Task
@@ -17,6 +15,8 @@ interface Props {
   attachmentCount: number
   selected: boolean
   onEdit: () => void
+  /** Ticks or unticks the task. `from` is the checkbox, where the completion celebration starts. */
+  onToggleDone: (from: HTMLInputElement) => void
   /** Position in its list, for a short staggered entrance. */
   index?: number
 }
@@ -26,10 +26,10 @@ const badge = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medi
 
 /**
  * One task as a card in an `AnimatedList`. The stripe down its left edge is the priority colour;
- * an overdue card gets a maroon outline as well as its badge. Completing it marks it done at once
- * and sets off a short celebration from its checkbox (none under reduced motion).
+ * an overdue card gets a maroon outline as well as its badge. Ticking it hands over to the app,
+ * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
-export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, index = 0 }: Props) {
+export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, onToggleDone, index = 0 }: Props) {
   const overdue = isOverdue(task, now)
   const done = task.status === 'done'
   const project = task.projectId ? projectsById.get(task.projectId) : undefined
@@ -51,10 +51,7 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
         type="checkbox"
         aria-label={done ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
         checked={done}
-        onChange={(e) => {
-          if (!done) celebrate(e.currentTarget)
-          taskRepo.setStatus(task.id, done ? 'todo' : 'done')
-        }}
+        onChange={(e) => onToggleDone(e.currentTarget)}
         className="task-check mt-px"
       />
       <button onClick={onEdit} className="min-w-0 flex-1 text-left focus-visible:outline-offset-4">

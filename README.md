@@ -26,7 +26,7 @@ The screenshots show the built-in sample data. To regenerate them after a UI cha
 - **Smart list**: overdue tasks first, then by deadline, then by priority. You can change the sort, group by project, priority or status, and filter by project, tag, priority or status. Search covers titles, descriptions, tags and checklist items.
 - **Rich tasks**: Markdown descriptions, checklists, links and file attachments (up to about 10 MB, stored in IndexedDB), and effort estimates.
 - **Time features**: up to 3 reminders per task, at a fixed time or a set time before the deadline. Reminders you missed while the app was closed are listed in a banner. Tasks can repeat daily, weekly, monthly or yearly, or every N days or weeks.
-- **Safety nets**: deleting shows an Undo toast, and deleted tasks go to a Trash that empties itself after 30 days. You can back up everything to one JSON file (attachments included), and the app reminds you when it's been a while since your last backup.
+- **Safety nets**: completing or deleting a task shows an Undo toast, and deleted tasks go to a Trash that empties itself after 30 days. You can back up everything to one JSON file (attachments included), and the app reminds you when it's been a while since your last backup.
 - **Offline PWA**: installs like an app, and a service worker caches the app so it opens without a connection.
 - **Keyboard shortcuts**: see the [table below](#keyboard-shortcuts).
 - **Themes**: light and dark, following the system setting by default. Responsive down to phone widths.
@@ -102,6 +102,7 @@ Beyond the user flows, a few suites guard the design: `contrast.spec.ts` runs ax
 | `J` / `K` | Next / previous task |
 | `E` | Edit selected task |
 | `X` | Toggle selected task done |
+| `Z` | Undo, while its message shows |
 | `Esc` | Leave a field / clear selection |
 | `?` | Show shortcuts |
 

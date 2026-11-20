@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export type ShortcutMap = Record<string, () => void>
+export type ShortcutMap = Record<string, (e: KeyboardEvent) => void>
 
 export const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: 'N', label: 'Quick add a task' },
@@ -8,13 +8,18 @@ export const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: 'J / K', label: 'Next / previous task' },
   { keys: 'E', label: 'Edit selected task' },
   { keys: 'X', label: 'Toggle selected task done' },
+  { keys: 'Z', label: 'Undo, while its message shows' },
   { keys: 'Esc', label: 'Leave a field / clear selection' },
   { keys: '?', label: 'Show shortcuts' },
 ]
 
+/** Inputs that take no typed text, so letter keys stay shortcuts while one has focus. */
+const NON_TEXT_INPUTS = ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file', 'image']
+
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
-  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+  if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.includes(target.type)
+  return target.isContentEditable || ['TEXTAREA', 'SELECT'].includes(target.tagName)
 }
 
 /**
@@ -32,7 +37,7 @@ export function useShortcuts(map: ShortcutMap) {
       const handler = ref.current[e.key.length === 1 ? e.key.toLowerCase() : e.key] ?? ref.current[e.key]
       if (!handler) return
       e.preventDefault()
-      handler()
+      handler(e)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)

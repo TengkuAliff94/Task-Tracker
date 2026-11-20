@@ -32,9 +32,10 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Quick-add bar**: `Pay rent #finance @home !high ~30m tomorrow 5pm`. Tokens: `#tag`, `@project`, `!low|!med|!high|!urgent`, `~effort`; natural-language dates via chrono-node. The full form handles editing.
 - **Recurrence**: completing a recurring task creates the next instance. It copies the description, tags, project, priority, effort, the checklist (all items reset to unchecked) and reminders (shifted to the new deadline). Attachments are not copied.
 - **Reminders**: browser notifications while the app is open or installed. On launch, a banner lists reminders that were missed.
+- **Complete**: a "Done" toast with Undo, which puts the task back to the status it had. For a recurring task it also says when the new copy is due, and Undo follows the reopen rule below.
 - **Delete**: an Undo toast, then Trash, which purges after 30 days. Deleting a project moves its tasks to "No project", after a confirmation that shows the count.
 - **Backup**: full JSON export/import (including attachments), plus a "last backup N days ago" nudge.
-- **Shortcuts**: `N` quick-add, `/` search, `J`/`K` navigate, `E` edit, `X` toggle done, `?` help.
+- **Shortcuts**: `N` quick-add, `/` search, `J`/`K` navigate, `E` edit, `X` toggle done, `Z` undo (while the toast shows), `?` help. After `X`, the selection passes to the card that takes the completed card's place, so `J`/`K` carry on from there.
 - **Dates**: `DD/MM/YYYY`, 24-hour clock, relative labels ("Tomorrow", "In 3 days").
 
 ## Quality & release

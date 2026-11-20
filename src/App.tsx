@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence } from 'motion/react'
 import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
@@ -7,6 +7,8 @@ import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
 import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, withoutMissingLabels, type Filters, type Scope } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
+import { formatDeadline } from './lib/deadline'
+import { describeSaveError } from './lib/utils'
 import { useNow } from './hooks/useNow'
 import { useReminders } from './hooks/useReminders'
 import { useShortcuts } from './hooks/useShortcuts'
@@ -29,7 +31,7 @@ import { Reveal } from './components/motion/Reveal'
 import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
 import { Toast, type ToastData } from './components/Toast'
-import type { Task } from './types'
+import type { Deadline, Status, Task } from './types'
 import { btn } from './ui'
 
 /** "8 tasks", or with an Overview tile picked: "2 overdue tasks", "1 task due today", "2 completed tasks". */
@@ -88,6 +90,33 @@ function ListEmpty({ tasks, filters, onShowAll }: { tasks: Task[]; filters: Filt
       Nothing left to do.
     </EmptyState>
   )
+}
+
+/** "Next due tomorrow 09:00". The relative label sits mid-sentence, so it starts lower case. */
+function nextDueLabel(deadline: Deadline): string {
+  const when = formatDeadline(deadline, new Date())
+  return `Next due ${when.charAt(0).toLowerCase()}${when.slice(1)}`
+}
+
+/** Completion toasts share one slot: in a quick J/X run, only the latest stays on screen. */
+const COMPLETION_SLOT = 'completion'
+
+const TITLE_IN_TOAST = 60
+/**
+ * A task title short enough for a toast, so the words around it ("moved to Trash", "couldn’t be
+ * marked as done") always show. Cuts whole characters (emoji and accents included), never halves,
+ * and at a word break when there's one near the end.
+ */
+function toastTitle(title: string): string {
+  const chars =
+    typeof Intl.Segmenter === 'function'
+      ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(title), (s) => s.segment)
+      : Array.from(title)
+  if (chars.length <= TITLE_IN_TOAST) return title
+  let cut = chars.slice(0, TITLE_IN_TOAST - 1)
+  const space = cut.lastIndexOf(' ')
+  if (space >= TITLE_IN_TOAST - 16) cut = cut.slice(0, space)
+  return `${cut.join('').trimEnd()}…`
 }
 
 type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
@@ -163,8 +192,32 @@ export default function App() {
   )
   const setScope = (scope: Scope | undefined) => setFilters((f) => ({ ...f, scope }))
 
-  const showToast = useCallback((t: Omit<ToastData, 'id'>) => setToasts((prev) => [...prev, { ...t, id: crypto.randomUUID() }]), [])
+  const showToast = useCallback(
+    (t: Omit<ToastData, 'id'>) =>
+      setToasts((prev) => [...prev.filter((p) => !t.slot || p.slot !== t.slot), { ...t, id: crypto.randomUUID() }]),
+    [],
+  )
   const closeToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), [])
+  /** Drops the toasts about a task, e.g. its "Done" toast once it's reopened some other way. */
+  const closeToastsAbout = useCallback((taskId: string) => setToasts((prev) => prev.filter((t) => t.taskId !== taskId)), [])
+  const showSaveError = useCallback(
+    (what: string, err: unknown) => showToast({ message: what, detail: describeSaveError(err), urgent: true }),
+    [showToast],
+  )
+
+  // A toast's action runs once, even if Undo is pressed again while the toast slides out, or Z as well.
+  const spentToasts = useRef(new Set<string>())
+  const runToastAction = useCallback(
+    (t: ToastData) => {
+      if (!t.action || spentToasts.current.has(t.id)) return
+      spentToasts.current.add(t.id)
+      closeToast(t.id)
+      t.action.run()
+    },
+    [closeToast],
+  )
+  /** What Z undoes: the newest toast that offers an action. */
+  const latestUndo = [...toasts].reverse().find((t) => t.action)
 
   // Alerts and selections can hold an old snapshot, so always open the latest version.
   const openTask = (t: Task) => {
@@ -173,16 +226,110 @@ export default function App() {
   }
 
   async function trashTask(task: Task) {
-    await taskRepo.trash(task.id)
+    try {
+      await taskRepo.trash(task.id)
+    } catch (err) {
+      showSaveError(`“${toastTitle(task.title)}” couldn’t be moved to Trash.`, err)
+      return
+    }
     setEditing(null)
-    showToast({ message: `“${task.title}” moved to Trash`, action: { label: 'Undo', run: () => taskRepo.restore(task.id) } })
+    closeToastsAbout(task.id)
+    showToast({
+      message: `“${toastTitle(task.title)}” moved to Trash`,
+      action: {
+        label: 'Undo',
+        run: () =>
+          void taskRepo.restore(task.id).catch((err) => showSaveError(`“${toastTitle(task.title)}” couldn’t be restored.`, err)),
+      },
+    })
   }
 
-  /** The X shortcut: same as ticking the card's checkbox, celebration included. */
-  function toggleDone(task: Task) {
-    if (task.status !== 'done') celebrate(document.querySelector(`[data-task-id="${task.id}"] input[type="checkbox"]`))
-    taskRepo.setStatus(task.id, task.status === 'done' ? 'todo' : 'done')
+  // Tasks whose tick is being saved. A second toggle meanwhile (a double click, X X) is ignored:
+  // it would act on the task as it was before the first one landed.
+  const savingDone = useRef(new Set<string>())
+
+  /**
+   * Ticks a task done or open, from its checkbox or X. Completing celebrates from `from` (nothing
+   * under reduced motion), then a toast confirms it with Undo, which puts the task back as it was.
+   * For a recurring task the toast also says when the copy it made is due, and Undo takes that
+   * copy away again unless it's been started (the reopen rule in taskRepo.update).
+   * Resolves to whether the change was saved.
+   */
+  async function setDone(task: Task, done: boolean, from?: Element | null): Promise<boolean> {
+    if (savingDone.current.has(task.id)) return false
+    savingDone.current.add(task.id)
+    if (done) celebrate(from)
+    else closeToastsAbout(task.id) // its "Done" toast would undo nothing now
+    const title = toastTitle(task.title)
+    try {
+      const saved = await taskRepo.setStatus(task.id, done ? 'done' : 'todo')
+      if (!done) return true
+      const next = saved.nextInstanceId ? await taskRepo.get(saved.nextInstanceId) : undefined
+      showToast({
+        slot: COMPLETION_SLOT,
+        taskId: task.id,
+        message: `Done: ${title}`,
+        detail: next?.deadline && nextDueLabel(next.deadline),
+        action: {
+          label: 'Undo',
+          run: () => void taskRepo.setStatus(task.id, task.status).catch((err) => showSaveError(`“${title}” couldn’t be reopened.`, err)),
+        },
+      })
+      return true
+    } catch (err) {
+      showSaveError(`“${title}” couldn’t be ${done ? 'marked as done' : 'reopened'}.`, err)
+      return false
+    } finally {
+      savingDone.current.delete(task.id)
+    }
   }
+
+  /**
+   * The X shortcut: the same as ticking the card's checkbox. If the card is about to leave the list,
+   * the selection moves on now rather than once the save lands, so a quick J or X straight after
+   * acts on the card that takes its place. It comes back if the save fails.
+   */
+  function toggleDone(task: Task) {
+    if (savingDone.current.has(task.id)) return
+    const done = task.status !== 'done'
+    const stays = applyFilters([{ ...task, status: done ? 'done' : 'todo' }], filters, tagsById, now).length > 0
+    let handedTo: string | null = null
+    if (stays) toggledByX.current = { id: task.id, status: task.status }
+    else {
+      const i = ordered.findIndex((t) => t.id === task.id)
+      handedTo = (ordered[i + 1] ?? ordered[i - 1])?.id ?? null
+      setSelectedId(handedTo)
+    }
+    const from = document.querySelector(`[data-task-id="${task.id}"] input[type="checkbox"]`)
+    void setDone(task, done, from).then((saved) => {
+      if (!saved && !stays) setSelectedId((id) => (id === handedTo ? task.id : id))
+    })
+  }
+
+  // When the selected card leaves its place (completed and hidden, filtered out, moved to Trash, or
+  // moved by X), the selection passes to the card that now holds that place: the next one, else the
+  // one before. So J and K carry on from where the person was instead of starting over at the top.
+  // It's judged against the previous order, so a recurring task's new copy landing nearby doesn't count.
+  const previousOrder = useRef<Task[]>([])
+  const toggledByX = useRef<{ id: string; status: Status } | null>(null)
+  useLayoutEffect(() => {
+    const before = previousOrder.current
+    previousOrder.current = ordered
+    if (!selectedId) return
+    const was = before.findIndex((t) => t.id === selectedId)
+    if (was === -1) return
+    const is = ordered.findIndex((t) => t.id === selectedId)
+    // X on a card that stays in view (Show completed on) still hands over if the sort moves it.
+    const toggled = toggledByX.current?.id === selectedId ? toggledByX.current : null
+    const settled = toggled !== null && (is === -1 || ordered[is].status !== toggled.status)
+    if (settled) toggledByX.current = null
+    if (is !== -1 && !(settled && is !== was)) return
+    const remaining = new Set(ordered.map((t) => t.id))
+    remaining.delete(selectedId)
+    const next =
+      before.slice(was + 1).find((t) => remaining.has(t.id)) ?? before.slice(0, was).reverse().find((t) => remaining.has(t.id))
+    setSelectedId(next?.id ?? null)
+  }, [ordered, selectedId])
 
   function moveSelection(delta: number) {
     if (!ordered.length) return
@@ -193,6 +340,9 @@ export default function App() {
     document.querySelector(`[data-task-id="${id}"]`)?.scrollIntoView({ block: 'nearest' })
   }
 
+  // X and Z ignore a held key's repeats: holding X would tick off card after card, and holding Z
+  // would undo older toasts the person never meant to.
+  const undoLatest = (e: KeyboardEvent) => !e.repeat && latestUndo && runToastAction(latestUndo)
   useShortcuts(
     view === 'tasks'
       ? {
@@ -201,11 +351,12 @@ export default function App() {
           j: () => moveSelection(1),
           k: () => moveSelection(-1),
           e: () => selected && openTask(selected),
-          x: () => selected && toggleDone(selected),
+          x: (e) => !e.repeat && selected && toggleDone(selected),
+          z: undoLatest,
           '?': () => setModal('shortcuts'),
           Escape: () => setSelectedId(null),
         }
-      : { '?': () => setModal('shortcuts'), Escape: () => setView('tasks') },
+      : { z: undoLatest, '?': () => setModal('shortcuts'), Escape: () => setView('tasks') },
   )
 
   const liveAlerts = alerts.filter((a) => !a.missed)
@@ -303,6 +454,7 @@ export default function App() {
                             setSelectedId(task.id)
                             setEditing({ mode: 'edit', task })
                           }}
+                          onToggleDone={(from) => void setDone(task, task.status !== 'done', from)}
                         />
                       ))}
                     </AnimatedList>
@@ -322,7 +474,13 @@ export default function App() {
             <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />
           ))}
           {toasts.map((t) => (
-            <Toast key={t.id} toast={t} onDismiss={closeToast} />
+            <Toast
+              key={t.id}
+              toast={t}
+              onDismiss={closeToast}
+              onAction={runToastAction}
+              shortcut={t === latestUndo ? 'z' : undefined}
+            />
           ))}
         </AnimatePresence>
       </div>
