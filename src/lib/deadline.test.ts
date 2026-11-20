@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDate, formatDeadline, isOverdue } from './deadline'
+import { describeDeadline, formatDate, formatDateTime, formatDeadline, isOverdue } from './deadline'
 
 const at = (y: number, m: number, d: number, hh = 0, mm = 0) => new Date(y, m - 1, d, hh, mm)
 
@@ -44,5 +44,24 @@ describe('formatDeadline', () => {
 
   it('formatDate uses DD/MM/YYYY', () => {
     expect(formatDate({ date: '2026-01-05' })).toBe('05/01/2026')
+  })
+})
+
+describe('describeDeadline', () => {
+  const now = at(2026, 11, 8, 10)
+
+  it('spells out the weekday, DD/MM/YYYY and the 24-hour time, then how soon', () => {
+    expect(describeDeadline({ date: '2026-11-09', time: '17:30' }, now)).toBe('Mon 09/11/2026, 17:30 · Tomorrow')
+  })
+
+  it('leaves out the time when there is none, and the relative day when it is over a week away', () => {
+    expect(describeDeadline({ date: '2026-12-25' }, now)).toBe('Fri 25/12/2026')
+  })
+})
+
+describe('formatDateTime', () => {
+  it('uses DD/MM/YYYY and a 24-hour clock', () => {
+    expect(formatDateTime(at(2026, 3, 5, 7, 5))).toBe('Thu 05/03/2026, 07:05')
+    expect(formatDateTime(at(2026, 3, 5, 19, 45))).toBe('Thu 05/03/2026, 19:45')
   })
 })

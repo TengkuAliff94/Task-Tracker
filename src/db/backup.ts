@@ -55,6 +55,12 @@ export function createBackup(db: TaskTrackerDB = defaultDb) {
       return { app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: now.toISOString(), tasks, projects, tags, attachments: stored }
     },
 
+    /** Checks a parsed file is a backup this app can restore, and says what's in it. Throws if not. */
+    inspect(raw: unknown): { tasks: number; attachments: number } {
+      const data = validate(raw)
+      return { tasks: data.tasks.length, attachments: data.attachments.length }
+    },
+
     /** Replaces all tasks, projects, tags and attachments with the backup's contents. */
     async importData(raw: unknown): Promise<{ tasks: number; attachments: number }> {
       const data = validate(raw)

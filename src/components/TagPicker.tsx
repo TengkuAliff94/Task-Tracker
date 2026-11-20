@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { tagRepo } from '../db/labels'
 import { cn } from '../lib/utils'
 import type { Label } from '../types'
@@ -9,11 +8,13 @@ interface Props {
   tags: Label[]
   value: string[]
   onChange: (ids: string[]) => void
+  /** The tag typed but not added yet. The form owns it, so Save can add it too. */
+  draft: string
+  onDraftChange: (text: string) => void
 }
 
 /** Selected tags as chips, plus an input that suggests existing tags and creates new ones on Enter. */
-export function TagPicker({ tags, value, onChange }: Props) {
-  const [text, setText] = useState('')
+export function TagPicker({ tags, value, onChange, draft, onDraftChange }: Props) {
   const byId = new Map(tags.map((t) => [t.id, t]))
   const available = tags.filter((t) => !value.includes(t.id))
 
@@ -22,7 +23,7 @@ export function TagPicker({ tags, value, onChange }: Props) {
     if (!clean) return
     const tag = await tagRepo.findOrCreate(clean)
     if (!value.includes(tag.id)) onChange([...value, tag.id])
-    setText('')
+    onDraftChange('')
   }
 
   return (
@@ -35,24 +36,23 @@ export function TagPicker({ tags, value, onChange }: Props) {
       })}
       <input
         list="tag-suggestions"
-        value={text}
+        value={draft}
         onChange={(e) => {
           const v = e.target.value
           // Picking a suggestion from the datalist adds it straight away.
           if (available.some((t) => t.name === v)) add(v)
-          else setText(v)
+          else onDraftChange(v)
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ',') {
             e.preventDefault()
-            add(text)
-          } else if (e.key === 'Backspace' && !text && value.length) {
+            add(draft)
+          } else if (e.key === 'Backspace' && !draft && value.length) {
             onChange(value.slice(0, -1))
           }
         }}
         placeholder={value.length ? '' : 'Add tags…'}
         aria-label="Add tag"
-        data-draft
         className="min-w-24 flex-1 bg-transparent text-sm placeholder:text-muted/70"
       />
       <datalist id="tag-suggestions">

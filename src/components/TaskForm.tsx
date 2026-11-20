@@ -3,9 +3,12 @@ import { Trash2 } from 'lucide-react'
 import { useModalDialog } from '../hooks/useModalDialog'
 import { DialogTitleBar } from './Dialog'
 import { taskRepo } from '../db/tasks'
-import { attachmentRepo, type PendingAttachment } from '../db/attachments'
+import { projectRepo, tagRepo } from '../db/labels'
+import { attachmentRepo, normaliseUrl, type PendingAttachment } from '../db/attachments'
+import { describeDeadline } from '../lib/deadline'
 import { formatEffort, parseEffort } from '../lib/effort'
-import { describeSaveError } from '../lib/utils'
+import { MAX_REMINDERS } from '../lib/reminders'
+import { cn, describeSaveError } from '../lib/utils'
 import {
   PRIORITIES,
   PRIORITY_LABEL,
@@ -18,7 +21,8 @@ import {
   type Status,
   type Task,
 } from '../types'
-import { attentionAction, attentionQuiet, btn, dialog, field, INVERTED_PANEL, labelText, panel } from '../ui'
+import { attentionAction, attentionQuiet, btn, dialog, field, INVALID_FIELD, INVERTED_PANEL, labelText, panel } from '../ui'
+import { FieldError } from './FieldError'
 import { ProjectPicker } from './ProjectPicker'
 import { TagPicker } from './TagPicker'
 import { RecurrenceEditor } from './RecurrenceEditor'
@@ -37,19 +41,31 @@ interface Props {
   onTrash: (task: Task) => void
 }
 
-function Field({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
+interface FieldProps {
+  label: string
+  children: ReactNode
+  className?: string
+  /** Shown under the control, which should point at `errorId` with aria-describedby. */
+  error?: string
+  errorId?: string
+}
+
+function Field({ label, children, className = '', error, errorId }: FieldProps) {
   return (
     <div className={`space-y-1 ${className}`}>
       <span className={labelText}>{label}</span>
       {children}
+      {error && errorId && <FieldError id={errorId}>{error}</FieldError>}
     </div>
   )
 }
 
-/** Inputs in the sub-editors holding text not yet added (a checklist item, a link, a tag, a project name). */
-function hasUnaddedText(form: HTMLFormElement | null): boolean {
-  return Array.from(form?.querySelectorAll<HTMLInputElement>('input[data-draft]') ?? []).some((el) => el.value.trim())
-}
+/** Fields checked on Save. Each error shows under its field, and focus goes to the first one. */
+type FieldErrors = Partial<Record<'title' | 'effort' | 'date' | 'time' | 'link', string>>
+
+/** Props that mark a control invalid and point it at its error message. */
+const invalidProps = (error: string | undefined, errorId: string) =>
+  error ? { 'aria-invalid': true as const, 'aria-describedby': errorId } : {}
 
 export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const { ref: dialogRef, close } = useModalDialog()
@@ -66,6 +82,14 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [reminders, setReminders] = useState(task?.reminders ?? [])
   const [recurrence, setRecurrence] = useState(task?.recurrence)
   const [checklist, setChecklist] = useState(task?.checklist ?? [])
+  // Text typed into an "add" field but not added yet. Save adds it rather than dropping it.
+  const [checklistDraft, setChecklistDraft] = useState('')
+  const [linkDraft, setLinkDraft] = useState('')
+  const [tagDraft, setTagDraft] = useState('')
+  /** The new project's name while one is being typed, else null. */
+  const [projectDraft, setProjectDraft] = useState<string | null>(null)
+  const [reminderDraft, setReminderDraft] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [existingFiles, setExistingFiles] = useState<Attachment[]>([])
   const [removedFiles, setRemovedFiles] = useState<string[]>([])
   const [pendingFiles, setPendingFiles] = useState<PendingAttachment[]>([])
@@ -75,6 +99,10 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [confirming, setConfirming] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
+  const dateRef = useRef<HTMLInputElement>(null)
+  const timeRef = useRef<HTMLInputElement>(null)
+  /** Set by a Save that found errors, so focus moves to the first one once they render. */
+  const focusFirstError = useRef(false)
   const errorRef = useRef<HTMLDivElement>(null)
   const keepEditingRef = useRef<HTMLButtonElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -87,12 +115,33 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   /** The task's id once it exists, so a retry after a half-finished save updates it instead of adding a copy. */
   const savedId = useRef(task?.id)
   const messageId = useId()
+  const errorIds = {
+    title: useId(),
+    effort: useId(),
+    date: useId(),
+    time: useId(),
+  }
+  const deadlineHintId = useId()
 
   // Everything the form edits, as one string, so "has anything changed?" is a single comparison.
-  const snapshot = JSON.stringify([title, description, status, priority, date, time, projectId, tagIds, effort, reminders, recurrence, checklist])
+  const values = { title, description, status, priority, date, time, projectId, tagIds, effort, reminders, recurrence, checklist }
+  const snapshotOf = (v: typeof values) => JSON.stringify(v)
+  const snapshot = snapshotOf(values)
   const [initialSnapshot, setInitialSnapshot] = useState(snapshot)
-  const isDirty = () =>
-    snapshot !== initialSnapshot || pendingFiles.length > 0 || removedFiles.length > 0 || hasUnaddedText(formRef.current)
+  const hasDrafts = Boolean(
+    checklistDraft.trim() || linkDraft.trim() || tagDraft.trim() || projectDraft?.trim() || reminderDraft,
+  )
+  const isDirty = () => snapshot !== initialSnapshot || pendingFiles.length > 0 || removedFiles.length > 0 || hasDrafts
+
+  /** Clears one field's error as soon as it's edited. */
+  function clearError(key: keyof FieldErrors) {
+    if (!fieldErrors[key]) return
+    setFieldErrors((errors) => {
+      const next = { ...errors }
+      delete next[key]
+      return next
+    })
+  }
 
   useEffect(() => {
     if (!task) return
@@ -109,6 +158,13 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   useEffect(() => {
     if (error) errorRef.current?.scrollIntoView({ block: 'nearest' })
   }, [error])
+
+  useEffect(() => {
+    if (!focusFirstError.current) return
+    focusFirstError.current = false
+    // Document order, so it's the first problem reading down the form.
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+  }, [fieldErrors])
 
   useEffect(() => {
     if (confirming) {
@@ -184,32 +240,96 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
     onClose()
   }
 
+  /** Everything Save would refuse, checked before anything is written. */
+  function validate(): FieldErrors {
+    const errors: FieldErrors = {}
+    if (!title.trim()) errors.title = 'Give the task a title.'
+    if (effort.trim() && parseEffort(effort) === undefined) errors.effort = 'Effort should look like 30m, 2h or 1h30m.'
+    // A half-typed date or time reads as empty, which would quietly save no deadline.
+    if (dateRef.current?.validity.badInput) errors.date = 'Finish the date, or clear it.'
+    // Without a date the time field is disabled and no deadline is saved, so a half-typed time there doesn't matter.
+    if (date && timeRef.current?.validity.badInput) errors.time = 'Finish the time, or clear it.'
+    if (linkDraft.trim()) {
+      try {
+        normaliseUrl(linkDraft)
+      } catch (err) {
+        errors.link = err instanceof Error ? err.message : String(err)
+      }
+    }
+    return errors
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (savingNow.current) return
-    const deadline: Deadline | undefined = date ? { date, time: time || undefined } : undefined
-    const effortMinutes = parseEffort(effort)
-    if (effort.trim() && effortMinutes === undefined) {
-      setError('Effort should look like 30m, 2h or 1h30m')
+    const errors = validate()
+    setFieldErrors(errors)
+    if (Object.keys(errors).length) {
+      focusFirstError.current = true
+      setError(null)
       return
-    }
-    const fields = {
-      title,
-      description,
-      status,
-      priority,
-      deadline,
-      projectId,
-      tagIds,
-      effortMinutes,
-      reminders,
-      checklist: checklist.filter((c) => c.text.trim()),
-      recurrence: deadline ? recurrence : undefined,
     }
     savingNow.current = true
     setSaving(true)
     setError(null)
     try {
+      // Text left in an "add" field is added, not dropped: the person typed it, then pressed Save.
+      let resolved = values
+      let pending = pendingFiles
+      try {
+        const extraTag = tagDraft.trim().replace(/^#/, '')
+        const newProject = projectDraft?.trim()
+        const [tag, project] = await Promise.all([
+          extraTag ? tagRepo.findOrCreate(extraTag) : undefined,
+          newProject ? projectRepo.findOrCreate(newProject) : undefined,
+        ])
+        const at = reminderDraft ? new Date(reminderDraft).getTime() : NaN
+        resolved = {
+          ...values,
+          checklist: checklistDraft.trim()
+            ? [...checklist, { id: crypto.randomUUID(), text: checklistDraft.trim(), done: false }]
+            : checklist,
+          tagIds: tag && !tagIds.includes(tag.id) ? [...tagIds, tag.id] : tagIds,
+          projectId: project?.id ?? projectId,
+          reminders:
+            Number.isFinite(at) && reminders.length < MAX_REMINDERS
+              ? [...reminders, { id: crypto.randomUUID(), kind: 'absolute' as const, at }]
+              : reminders,
+        }
+        if (linkDraft.trim()) {
+          const href = normaliseUrl(linkDraft)
+          pending = [...pendingFiles, { kind: 'link', url: href, name: href }]
+        }
+      } catch (err) {
+        setError(describeSaveError(err))
+        return
+      }
+      // Show them as added, so a failed save below leaves the form exactly as it will be saved.
+      setChecklist(resolved.checklist)
+      setTagIds(resolved.tagIds)
+      setProjectId(resolved.projectId)
+      setReminders(resolved.reminders)
+      setPendingFiles(pending)
+      setChecklistDraft('')
+      setTagDraft('')
+      setProjectDraft(null)
+      setReminderDraft('')
+      setLinkDraft('')
+
+      const deadline: Deadline | undefined = date ? { date, time: time || undefined } : undefined
+      const fields = {
+        title,
+        description,
+        status,
+        priority,
+        deadline,
+        projectId: resolved.projectId,
+        tagIds: resolved.tagIds,
+        effortMinutes: parseEffort(effort),
+        reminders: resolved.reminders,
+        checklist: resolved.checklist.filter((c) => c.text.trim()),
+        recurrence: deadline ? recurrence : undefined,
+      }
       let id = savedId.current
       try {
         if (id) await taskRepo.update(id, fields)
@@ -220,11 +340,11 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
       }
       // The fields are stored now. If the attachments fail next, only they still count as unsaved,
       // so "Discard" means exactly what it says.
-      setInitialSnapshot(snapshot)
-      if (pendingFiles.length || removedFiles.length) {
+      setInitialSnapshot(snapshotOf(resolved))
+      if (pending.length || removedFiles.length) {
         try {
           // One transaction, so nothing is half-applied and Save can simply run again.
-          await attachmentRepo.apply(id, pendingFiles, removedFiles)
+          await attachmentRepo.apply(id, pending, removedFiles)
         } catch (err) {
           setError(`The task is saved, but its attachment changes aren’t. ${describeSaveError(err)} Press ${task ? 'Save' : 'Add task'} to try again.`)
           return
@@ -249,13 +369,25 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
       aria-label={task ? 'Edit task' : 'New task'}
       className={`${dialog} max-w-2xl`}
     >
-      <form ref={formRef} onSubmit={handleSubmit}>
+      {/* noValidate: problems show under their fields in the app's words, never as the browser's bubble. */}
+      <form ref={formRef} onSubmit={handleSubmit} noValidate>
         <DialogTitleBar title={task ? 'Edit task' : 'New task'} onClose={requestClose} />
 
         {/* Going back to a field means carrying on, so the question goes away. */}
         <div className="space-y-4 px-6 py-5" onFocus={() => setConfirming(false)}>
-          <Field label="Title">
-            <input autoFocus required value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" className={field} />
+          <Field label="Title" error={fieldErrors.title} errorId={errorIds.title}>
+            <input
+              autoFocus
+              required
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                clearError('title')
+              }}
+              aria-label="Title"
+              {...invalidProps(fieldErrors.title, errorIds.title)}
+              className={cn(field, fieldErrors.title && INVALID_FIELD)}
+            />
           </Field>
 
           <div className="space-y-1">
@@ -307,35 +439,98 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
                 ))}
               </select>
             </Field>
-            <Field label="Effort">
-              <input value={effort} onChange={(e) => setEffort(e.target.value)} placeholder="e.g. 30m, 2h" aria-label="Effort" className={field} />
-            </Field>
-            <Field label="Deadline">
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Deadline date" className={field} />
-            </Field>
-            <Field label="Time (optional)">
-              <input type="time" value={time} disabled={!date} onChange={(e) => setTime(e.target.value)} aria-label="Deadline time" className={field} />
+            <Field label="Effort" error={fieldErrors.effort} errorId={errorIds.effort}>
+              <input
+                value={effort}
+                onChange={(e) => {
+                  setEffort(e.target.value)
+                  clearError('effort')
+                }}
+                placeholder="e.g. 30m, 2h"
+                aria-label="Effort"
+                {...invalidProps(fieldErrors.effort, errorIds.effort)}
+                className={cn(field, fieldErrors.effort && INVALID_FIELD)}
+              />
             </Field>
             <Field label="Project">
-              <ProjectPicker projects={projects} value={projectId} onChange={setProjectId} className={field} />
+              <ProjectPicker
+                projects={projects}
+                value={projectId}
+                onChange={setProjectId}
+                draft={projectDraft}
+                onDraftChange={setProjectDraft}
+                className={field}
+              />
             </Field>
+            {/* Date and time sit side by side where both fit and stack on the narrowest phones, with the
+                app's own reading of them below: the native pickers follow the browser's locale
+                (mm/dd/yyyy and 12-hour under en-US) and can clip when squeezed. */}
+            <div className="col-span-2 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
+              <Field label="Deadline" error={fieldErrors.date} errorId={errorIds.date}>
+                <input
+                  ref={dateRef}
+                  type="date"
+                  value={date}
+                  onChange={(e) => {
+                    setDate(e.target.value)
+                    clearError('date')
+                  }}
+                  // A half-typed date fires no change, so clear the error on any typing too.
+                  onInput={() => clearError('date')}
+                  aria-label="Deadline date"
+                  aria-describedby={fieldErrors.date ? errorIds.date : date ? deadlineHintId : undefined}
+                  aria-invalid={fieldErrors.date ? true : undefined}
+                  className={cn(field, fieldErrors.date && INVALID_FIELD)}
+                />
+              </Field>
+              <Field label="Time (optional)" error={fieldErrors.time} errorId={errorIds.time}>
+                <input
+                  ref={timeRef}
+                  type="time"
+                  value={time}
+                  disabled={!date}
+                  onChange={(e) => {
+                    setTime(e.target.value)
+                    clearError('time')
+                  }}
+                  onInput={() => clearError('time')}
+                  aria-label="Deadline time"
+                  aria-describedby={fieldErrors.time ? errorIds.time : date ? deadlineHintId : undefined}
+                  aria-invalid={fieldErrors.time ? true : undefined}
+                  className={cn(field, fieldErrors.time && INVALID_FIELD)}
+                />
+              </Field>
+              {date && (
+                <p id={deadlineHintId} data-testid="deadline-readout" className="col-span-full -mt-2 text-xs text-muted tabular-nums">
+                  Due {describeDeadline({ date, time: time || undefined })}
+                </p>
+              )}
+            </div>
           </div>
 
           <Field label="Tags">
-            <TagPicker tags={tags} value={tagIds} onChange={setTagIds} />
+            <TagPicker tags={tags} value={tagIds} onChange={setTagIds} draft={tagDraft} onDraftChange={setTagDraft} />
           </Field>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          {/* min-w-0: a grid cell would otherwise grow to fit the widest native picker and push the dialog sideways. */}
+          <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
             <Field label="Repeat">
               <RecurrenceEditor value={recurrence} onChange={setRecurrence} hasDeadline={Boolean(date)} className={field} />
             </Field>
             <Field label="Reminders">
-              <RemindersEditor value={reminders} onChange={setReminders} hasDeadline={Boolean(date)} className={field} />
+              <RemindersEditor
+                value={reminders}
+                onChange={setReminders}
+                hasDeadline={Boolean(date)}
+                draft={reminderDraft}
+                onDraftChange={setReminderDraft}
+                className={field}
+              />
             </Field>
           </div>
 
           <Field label="Checklist">
-            <ChecklistEditor value={checklist} onChange={setChecklist} />
+            <ChecklistEditor value={checklist} onChange={setChecklist} draft={checklistDraft} onDraftChange={setChecklistDraft} />
           </Field>
 
           <Field label="Attachments">
@@ -345,6 +540,12 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
               onRemovedChange={setRemovedFiles}
               pending={pendingFiles}
               onPendingChange={setPendingFiles}
+              draft={linkDraft}
+              onDraftChange={(url) => {
+                setLinkDraft(url)
+                clearError('link')
+              }}
+              draftError={fieldErrors.link}
             />
           </Field>
 

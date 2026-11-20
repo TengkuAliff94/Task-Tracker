@@ -68,21 +68,22 @@ test('loading sample data over existing tasks asks first, and Cancel changes not
   await page.getByRole('button', { name: 'Backup & restore' }).click()
   const dialog = page.getByRole('dialog', { name: 'Backup & restore' })
 
-  let question = ''
-  page.once('dialog', (d) => {
-    question = d.message()
-    void d.dismiss()
-  })
+  const question = page.getByRole('alertdialog', { name: 'Add sample tasks?' })
   await dialog.getByRole('button', { name: 'Load sample data' }).click()
-  await expect.poll(() => question).toContain('1 existing task')
+  await expect(question).toContainText('your 1 existing task.')
+  // Not destructive, so the go-ahead takes focus; Cancel still changes nothing.
+  await expect(question.getByRole('button', { name: 'Add sample tasks' })).toBeFocused()
+  await question.getByRole('button', { name: 'Cancel' }).click()
+  await expect(question).toBeHidden()
   await expect(dialog.getByRole('button', { name: 'Load sample data' })).toBeEnabled()
+  await expect(dialog.getByRole('button', { name: 'Load sample data' })).toBeFocused()
   await dialog.getByRole('button', { name: 'Close' }).click()
   await expect(page.getByText(/^1 task\b/)).toBeVisible()
   await expect(app.taskRow('Renew car insurance')).toHaveCount(0)
 
   await page.getByRole('button', { name: 'Backup & restore' }).click()
-  page.once('dialog', (d) => d.accept())
   await dialog.getByRole('button', { name: 'Load sample data' }).click()
+  await question.getByRole('button', { name: 'Add sample tasks' }).click()
   await expect(dialog.getByText(/Added \d+ sample tasks/)).toBeVisible()
   await dialog.getByRole('button', { name: 'Close' }).click()
   await expect(app.taskRow('My own task')).toBeVisible()

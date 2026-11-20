@@ -19,7 +19,11 @@ colors:
   on-primary: "#ffffff"
   on-primary-dark: "#0b0a0a"
   danger: "#b42318"
+  danger-hover: "#971d14"
+  on-danger: "#ffffff"
   danger-dark: "#f0866a"
+  danger-hover-dark: "#f49c84"
+  on-danger-dark: "#0b0a0a"
   canvas: "#f4f1ee"
   surface: "#fbfaf8"
   raised: "#ffffff"
@@ -115,6 +119,14 @@ components:
     padding: "8px 12px"
   button-secondary-hover:
     backgroundColor: "{colors.line}"
+  button-danger-solid:
+    backgroundColor: "{colors.danger}"
+    textColor: "{colors.on-danger}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: "8px 14px"
+  button-danger-solid-hover:
+    backgroundColor: "{colors.danger-hover}"
   button-ghost:
     textColor: "{colors.muted}"
     rounded: "{rounded.md}"
@@ -303,7 +315,8 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 - **Primary** (`btn.primary`): solid Burnt Orange with white ink (near-black in dark), 8px corners. For the main action inside dialogs (Save).
 - **Secondary** (`btn.secondary`): a Well Stone fill that darkens to the seam colour on hover.
 - **Ghost** (`btn.ghost`): muted text with no fill, gaining a Well Stone fill and full-strength text on hover.
-- **Danger** (`btn.danger`): danger-coloured text with a 10% danger tint on hover. For destructive actions, after a confirmation that shows counts.
+- **Danger** (`btn.danger`): danger-coloured text with a 10% danger tint on hover. For the button that starts a destructive action (Empty trash, Delete), which then asks first.
+- **Danger solid** (`btn.dangerSolid`): a solid danger fill with white ink (near-black in dark), 8px corners, darkening on hover. Only as the go-ahead inside a destructive confirmation, so it can't be mistaken for Cancel.
 - **Header icon** (`btn.headerIcon`): a 36px tile (32px on phones) with 12px corners that lights up mustard on hover. It also closes dialogs.
 - **On an attention panel** (`attentionAction` / `attentionQuiet`): the main action swaps the panel's colours; the quiet one is the panel's own ink at 85%, tinted on hover.
 
@@ -327,6 +340,9 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 - **Focus:** the border appears in the ring colour with a 3px soft orange glow (primary-soft), and the global focus outline sits on top.
 - **Hover:** the border fades in at the strong seam colour.
 - **Selects:** the same well, with one shared chevron instead of each browser's own arrow.
+- **Error:** the app checks its own fields (`noValidate`), so the browser's "Please fill out this field." bubble never shows. On Save, a problem shows right under its field (`FieldError`): 12px medium danger text after a 14px circle-alert icon, with `role="alert"`. The field gains a danger border that stays on hover and focus (`INVALID_FIELD`), `aria-invalid` and `aria-describedby`, and focus moves to the first problem reading down the form. Editing the field clears it. Messages say what to do: "Give the task a title.", "Finish the date, or clear it."
+- **Dates and times:** the native pickers stay (they bring the phone's own calendar), but they follow the browser's locale. Under them, a 12px muted line in tabular figures gives the app's reading: "Due Wed 11/03/2026, 17:30 · Tomorrow" for the deadline, "Reminds you Thu 12/03/2026, 19:05" for a reminder time, so DD/MM/YYYY and the 24-hour clock show in any locale. Date and time sit side by side and stack where both don't fit.
+- **"Add" fields:** text typed into a field that adds something (a checklist item, a link, a tag, a new project, a reminder time) but not added yet is added on Save, never dropped. A link that isn't valid stops Save with an error at the link field.
 - **Checkbox (task complete):** a 20px circle with a 1.5px strong-seam border. On hover the border turns orange with a 4px soft halo. Checked, it fills orange and the tick scales in.
 
 ### Navigation
@@ -347,8 +363,9 @@ Four panels, most urgent first: Overdue (maroon, or taupe at zero), Due today (m
 - **States:** hover adds the pop shadow (no lift, so the meter stays aligned). Picked takes the selection outline (`SELECTED_OUTLINE`). The meter sits outside the button, so it stays a progress bar to assistive tech.
 
 ### Dialogs and Toasts
-- **Dialog:** native `<dialog>` on Lifted White with the panel radius and the modal shadow. It springs up 24px from 94% scale over 480ms, over a blurred backdrop. The sticky title bar is translucent Lifted White with a blur, a Headline title and a header-icon close button.
+- **Dialog:** native `<dialog>` on Lifted White with the panel radius and the modal shadow. It springs up 24px from 94% scale over 480ms, over a blurred backdrop. The sticky title bar is translucent Lifted White with a blur, a Headline title and a header-icon close button. Fields inside a dialog carry a scroll margin, so one that takes focus stops clear of the sticky title bar and footer, label included.
 - **Unsaved changes (task editor):** with anything changed (fields, checklist, reminders, repeat, staged attachments, or text typed but not yet added), Esc, × and Cancel don't close the editor. Its sticky footer becomes a Noon Mustard bar asking "Discard your changes?" ("Discard this new task?" when creating). **Keep editing** is the inverted main action and takes focus; **Discard** is the quiet one. Esc on the bar means Keep editing, and going back to a field puts the bar away. With nothing changed, every close is instant.
+- **Confirmation** (`ConfirmDialog`, through `useConfirm`): every "are you sure?" in the app, never the browser's own confirm box. A small Lifted White dialog (`max-w-md`) with the dialog spring, an `alertdialog` with a Headline question ("Empty Trash?", "Delete this project?"), a body that says what will happen with the counts involved, and a button row: Cancel (secondary) and the go-ahead, named for the action ("Delete forever", "Replace everything"). Destructive ones use Danger solid and give Cancel the first focus; the rest use Primary and focus it. Esc cancels. Counts that compare two states sit in a Well Stone list (`CountList`): "Now 3 tasks", "Backup 1 task". A confirmation opened from another dialog stacks on top of it and closes alone. When the thing asked about disappears (a deleted Trash card or label), focus moves to its neighbour's same button.
 - **Toast:** a Twilight Violet panel with the pop shadow that slides in 32px from the edge. The message is 14px medium and wraps anywhere; task titles in it are cut to 60 characters, so the words around them ("moved to Trash") always show. An optional second line in regular weight carries detail ("Next due tomorrow 07:00", or why a save failed), in full ink. Undo is a small brand-orange button that lights up mustard; Dismiss is the panel's ink at 75%. Toasts close after 6 seconds, but the countdown waits while the pointer is over one or focus is inside it. A failure toast stays until dismissed. Completion toasts share one slot, so a quick J/X run shows only the latest "Done", and `Z` runs the newest Undo (a held key doesn't repeat it). A failure toast uses `role="alert"`; the others are `role="status"`.
 
 ### Empty State
@@ -366,6 +383,7 @@ Timing comes only from `src/components/motion/presets.ts`: 180ms for exits and s
 - **Do** use `rounded-panel` (16px) on every panel, and the inner steps (12 / 8 / 6 / 4px) only inside them.
 - **Do** show selection with an outline ring, not colour alone, and keep the two-tone focus ring visible on every control.
 - **Do** keep exactly one brand-orange button per screen.
+- **Do** ask through `useConfirm`, never the browser's `confirm()`, and check fields in the app (`FieldError`), never with the browser's validation bubble.
 - **Do** light up coloured controls Noon Mustard on hover (`hoverHighlight`).
 - **Do** animate movement with `transform` and `opacity` only, and guarantee a final-state render under reduced motion.
 - **Do** use Lucide icons at 16–20px.

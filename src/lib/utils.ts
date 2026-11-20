@@ -14,3 +14,8 @@ export function describeSaveError(err: unknown): string {
   }
   return err instanceof Error ? err.message : String(err)
 }
+
+/** "1 task", "3 tasks". */
+export function plural(count: number, one: string, many = `${one}s`): string {
+  return `${count} ${count === 1 ? one : many}`
+}

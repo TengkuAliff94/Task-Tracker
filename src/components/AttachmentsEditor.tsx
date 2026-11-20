@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { FileText, Link2, Paperclip, X } from 'lucide-react'
 import { checkFileSize, formatBytes, normaliseUrl, type PendingAttachment } from '../db/attachments'
 import type { Attachment } from '../types'
-import { btn, field } from '../ui'
+import { cn } from '../lib/utils'
+import { btn, field, INVALID_FIELD } from '../ui'
+import { FieldError } from './FieldError'
 
 interface Props {
   existing: Attachment[]
@@ -10,6 +12,11 @@ interface Props {
   onRemovedChange: (ids: string[]) => void
   pending: PendingAttachment[]
   onPendingChange: (p: PendingAttachment[]) => void
+  /** The link typed but not added yet. The form owns it, so Save can add it too. */
+  draft: string
+  onDraftChange: (url: string) => void
+  /** Why the typed link couldn't be added on Save. */
+  draftError?: string | null
 }
 
 /** Opens a stored file. Object URLs are revoked when the editor closes. */
@@ -22,21 +29,23 @@ function useObjectUrls(items: Attachment[]) {
   return urls
 }
 
-export function AttachmentsEditor({ existing, removed, onRemovedChange, pending, onPendingChange }: Props) {
-  const [url, setUrl] = useState('')
-  const [error, setError] = useState<string | null>(null)
+export function AttachmentsEditor({ existing, removed, onRemovedChange, pending, onPendingChange, draft, onDraftChange, draftError }: Props) {
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const [fileError, setFileError] = useState<string | null>(null)
+  const linkErrorId = useId()
+  const shownLinkError = draftError ?? linkError
   const fileInput = useRef<HTMLInputElement>(null)
   const kept = existing.filter((a) => !removed.includes(a.id))
   const fileUrls = useObjectUrls(existing)
 
   function addLink() {
     try {
-      const href = normaliseUrl(url)
+      const href = normaliseUrl(draft)
       onPendingChange([...pending, { kind: 'link', url: href, name: href }])
-      setUrl('')
-      setError(null)
+      onDraftChange('')
+      setLinkError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setLinkError(err instanceof Error ? err.message : String(err))
     }
   }
 
@@ -53,7 +62,7 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
       }
     }
     onPendingChange([...pending, ...ok])
-    setError(tooBig.length ? `Too large (max 10 MB): ${tooBig.join(', ')}` : null)
+    setFileError(tooBig.length ? `Too large (max 10 MB): ${tooBig.join(', ')}` : null)
     if (fileInput.current) fileInput.current.value = ''
   }
 
@@ -97,8 +106,11 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
 
       <div className="flex gap-2">
         <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
+          value={draft}
+          onChange={(e) => {
+            onDraftChange(e.target.value)
+            setLinkError(null)
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
@@ -107,15 +119,17 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
           }}
           placeholder="Paste a link and press Enter"
           aria-label="Add link"
-          data-draft
-          className={field}
+          aria-invalid={shownLinkError ? true : undefined}
+          aria-describedby={shownLinkError ? linkErrorId : undefined}
+          className={cn(field, shownLinkError && INVALID_FIELD)}
         />
         <button type="button" onClick={() => fileInput.current?.click()} className={btn.secondary}>
           <Paperclip className="size-4" /> File
         </button>
         <input ref={fileInput} type="file" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       </div>
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {shownLinkError && <FieldError id={linkErrorId}>{shownLinkError}</FieldError>}
+      {fileError && <p className="text-xs text-danger">{fileError}</p>}
     </div>
   )
 }

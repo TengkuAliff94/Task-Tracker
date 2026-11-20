@@ -1,6 +1,9 @@
+import { useEffect, useRef } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from '../db/tasks'
+import { useConfirm } from '../hooks/useConfirm'
+import { plural } from '../lib/utils'
 import { btn, card, panel } from '../ui'
 import { EmptyState } from './EmptyState'
 import { AnimatedItem, AnimatedList } from './motion/AnimatedList'
@@ -11,22 +14,59 @@ const DAY = 86_400_000
 export function TrashView() {
   const trashed = useLiveQuery(() => taskRepo.listTrash(), [])
   const now = Date.now()
+  const [confirmDialog, ask] = useConfirm()
+  const listRef = useRef<HTMLUListElement>(null)
+  /** After a card goes for good, the card whose Delete forever button should take focus next. */
+  const focusNext = useRef<string | null>(null)
+
+  useEffect(() => {
+    const id = focusNext.current
+    if (!id || !trashed?.some((t) => t.id === id)) return
+    focusNext.current = null
+    listRef.current?.querySelector<HTMLElement>(`[data-trash-id="${CSS.escape(id)}"] [data-delete-forever]`)?.focus()
+  }, [trashed])
 
   async function emptyAll() {
     if (!trashed?.length) return
-    const s = trashed.length === 1 ? '' : 's'
-    if (confirm(`Permanently delete ${trashed.length} task${s} and their attachments? This can't be undone.`)) {
-      await taskRepo.emptyTrash()
-    }
+    const ok = await ask({
+      title: 'Empty Trash?',
+      body: <p>This permanently deletes {plural(trashed.length, 'task')} and their attachments. It can’t be undone.</p>,
+      confirmLabel: 'Delete forever',
+      danger: true,
+    })
+    if (ok) await taskRepo.emptyTrash()
+  }
+
+  async function deleteForever(index: number) {
+    if (!trashed) return
+    const task = trashed[index]
+    const ok = await ask({
+      title: 'Delete this task forever?',
+      body: (
+        <p>
+          <strong className="font-semibold">“{task.title}”</strong> and its attachments will be deleted for good. This can’t be
+          undone.
+        </p>
+      ),
+      confirmLabel: 'Delete forever',
+      danger: true,
+    })
+    if (!ok) return
+    // The button that asked is about to disappear with its card, so move focus to its neighbour.
+    focusNext.current = (trashed[index + 1] ?? trashed[index - 1])?.id ?? null
+    await taskRepo.purge([task.id])
   }
 
   if (!trashed) return null
 
   if (trashed.length === 0) {
     return (
-      <EmptyState icon={Trash2} title="Nothing in Trash">
-        Trash is empty. Deleted tasks wait here for {TRASH_RETENTION_DAYS} days before they go for good.
-      </EmptyState>
+      <>
+        <EmptyState icon={Trash2} title="Nothing in Trash">
+          Trash is empty. Deleted tasks wait here for {TRASH_RETENTION_DAYS} days before they go for good.
+        </EmptyState>
+        {confirmDialog}
+      </>
     )
   }
 
@@ -38,13 +78,14 @@ export function TrashView() {
           <Trash2 className="size-4" /> Empty trash
         </button>
       </div>
-      <AnimatedList aria-label="Trashed tasks" className="grid gap-3 md:grid-cols-2">
+      <AnimatedList ref={listRef} aria-label="Trashed tasks" className="grid gap-3 md:grid-cols-2">
         {trashed.map((t, i) => {
           const daysLeft = Math.max(0, Math.ceil((t.deletedAt! + TRASH_RETENTION_DAYS * DAY - now) / DAY))
           return (
             <AnimatedItem
               key={t.id}
               index={i}
+              data-trash-id={t.id}
               className={`${card} relative flex items-center gap-3 overflow-hidden py-4 pr-3 pl-5`}
             >
               {/* A taupe stripe: the low-emphasis colour, as these tasks are set aside. */}
@@ -59,9 +100,10 @@ export function TrashView() {
                 <RotateCcw className="size-4" /> Restore
               </button>
               <button
-                onClick={() => confirm(`Permanently delete "${t.title}"?`) && taskRepo.purge([t.id])}
+                onClick={() => deleteForever(i)}
                 aria-label={`Delete "${t.title}" forever`}
                 title="Delete forever"
+                data-delete-forever
                 className={btn.icon}
               >
                 <Trash2 className="size-4" />
@@ -70,6 +112,7 @@ export function TrashView() {
           )
         })}
       </AnimatedList>
+      {confirmDialog}
     </section>
   )
 }

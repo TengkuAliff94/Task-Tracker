@@ -9,6 +9,8 @@ export const btn = {
   secondary: `${btnBase} bg-subtle px-3 py-2 hover:bg-line`,
   ghost: `${btnBase} px-3 py-2 text-muted hover:bg-subtle hover:text-fg`,
   danger: `${btnBase} px-3 py-2 text-danger hover:bg-danger/10`,
+  /** The go-ahead in a destructive confirmation (Replace everything, Delete forever): solid, so it can't be mistaken for Cancel. */
+  dangerSolid: `${btnBase} bg-danger px-3.5 py-2 text-on-danger hover:bg-danger-hover active:translate-y-px`,
   small: `${btnBase} rounded-md px-2 py-1 text-xs hover:bg-subtle`,
   icon: `${btnBase} size-9 shrink-0 text-muted hover:bg-subtle hover:text-fg`,
   /** The most prominent action (New task): the orange brand panel, lighting up mustard on hover as in Sill. */
@@ -20,6 +22,9 @@ export const btn = {
 /** Flat input: a filled well with no outline at rest; the border appears on hover and focus. */
 export const field =
   'w-full rounded-lg border border-transparent bg-subtle px-3 py-2 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] disabled:opacity-50'
+
+/** Added to `field` (through `cn`) while a field has an error: a danger border that stays on hover and focus. */
+export const INVALID_FIELD = 'border-danger hover:border-danger focus:border-danger'
 
 /** A neutral panel: flat, no border, separated from its neighbours by the gap around it. */
 export const card = 'rounded-panel bg-surface shadow-card'

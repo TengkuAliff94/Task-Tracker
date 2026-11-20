@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-20, at the end of the session that ran step 3b.
+Last updated 2026-11-21, at the end of the session that ran step 3c.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -19,16 +19,16 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 2 | `/impeccable distill src/components/FilterBar.tsx` | [#21](https://github.com/TengkuAliff94/Task-Tracker/issues/21) collapse the filter bar; the list comes first on phones | **done** |
 | 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | **done** (`32624b4`, review fixes `c88b2e4`) |
 | 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | **done** (`c45be56`) |
-| 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates | **next** |
-| 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | to do |
+| 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates (+ [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28)) | **done** |
+| 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **next** |
 | 4 | `/impeccable audit src` | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps. Do this **after #23** | to do |
 | 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** start a session in this repo, run `/impeccable harden src/components`, and work through #24's acceptance criteria. Step 3b has no loose ends: #23 is closed and #19's table is up to date.
+**To resume:** start a session in this repo, run `/impeccable harden src/components/Backup.tsx src/db`, and work through #25's acceptance criteria. Step 3c has no loose ends: #24 and #28 are closed and #19's table is up to date.
 
-**Follow-ups outside the table:** [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28). Save still drops text typed into an "add" input but not added (checklist item, link, tag, project name, reminder time). Closing asks first, but saving doesn't. #24 touches the same form (inline validation), so it's a natural fit there.
+**Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
 
 ## Context files (read these, don't re-derive them)
 
@@ -54,8 +54,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 132 passing after step 3b
-npm run test:e2e                # e2e (Playwright, port 4173): 124 passing after step 3b
+npm test                        # unit (Vitest): 135 passing after step 3c
+npm run test:e2e                # e2e (Playwright, port 4173): 145 passing after step 3c
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -87,11 +87,28 @@ npm run build                   # production build + PWA
 - **Faking a storage failure.** To test what happens when IndexedDB refuses a write, patch `IDBObjectStore.prototype.add` in `page.addInitScript` to throw a `QuotaExceededError` for one store. "when attachments fail to save" in `e2e/task-editor.spec.ts` does this.
 - **#25 will break a layout assertion.** `e2e/layout.spec.ts` expects the backup nudge to show after sample data, to measure the worst case. When #25 stops that, bring the nudge up deliberately rather than deleting the check. There's a comment on #25 about this.
 - **README screenshots are stale.** They show the old bento. Regenerate them with `npm run screenshots` in #27, not earlier, so it's done once.
+- **Confirmations are in-app `alertdialog`s.** There is no `window.confirm()` left, so `page.on('dialog')` never fires. Find a question with `page.getByRole('alertdialog', { name: 'Empty Trash?' })` and press its named button ("Delete forever", "Cancel"). It's an `alertdialog`, not a `dialog`, so `getByRole('dialog')` still means the window behind it. `e2e/confirm.spec.ts` fails any test where a native dialog opens.
+- **The task editor validates itself.** The form is `noValidate`; errors are `role="alert"` under the field, and the field gets `aria-invalid` and `aria-describedby`. Assert with `toHaveAccessibleDescription(...)`. The Project select is now named "Project".
+- **Draft text lives in TaskForm state now.** The `data-draft` attributes and `hasUnaddedText` are gone: each "add" field's text is a `draft`/`onDraftChange` prop pair, and Save adds it. Typing into one still counts as an unsaved change.
+- **`git stash push -- src` fails with intent-to-add files.** After `git add -N` on new files, stash refuses ("not uptodate"). To prove a test fails without a fix, copy the file aside, undo the fix, run, and copy it back.
 - **Completing a task shows a toast.** A "Done: <title>" toast (`role="status"`) now follows every completion, so `getByRole('status')` can match more than one toast. Filter by text. A toast replaced or undone keeps its text while it slides out, so wait for it to be hidden before counting.
 - **The fake clock stalls toast exits.** After `page.clock.runFor`, Motion's slide-out doesn't finish. Run countdown tests with `reducedMotion: 'reduce'`, as `e2e/completion.spec.ts` does.
 - **Shortcuts after quick add.** Quick add keeps focus in its field, so J/K/X/Z typed afterwards go into the field. Blur it first (`addTasks` in `e2e/completion.spec.ts`). Checkboxes and buttons no longer count as typing, so shortcuts work while one has focus.
 - **Faking a failed task write.** Patch `IDBObjectStore.prototype.put` for the `tasks` store behind a window flag you turn on mid-test (see "when storage refuses the change" in `e2e/completion.spec.ts`). Patching it from the start breaks nothing else, because creating a task uses `add`.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Step 3c in brief (#24, #28)
+
+- **`ConfirmDialog`** (`src/components/ConfirmDialog.tsx`), used through **`useConfirm()`** (`src/hooks/useConfirm.tsx`): `const [confirmDialog, ask] = useConfirm()`, render `confirmDialog`, then `if (await ask({ title, body, confirmLabel, danger }))`. It resolves false on Cancel, Esc, replacement or unmount. Destructive questions use the new `btn.dangerSolid` (`--danger-hover`, `--on-danger`) and focus Cancel. All five `confirm()` calls use it: restore (with a `CountList` of Now/Backup counts), Empty trash, Delete forever, project/tag delete, sample data. `Dialog` ignores a nested dialog's `close` event, so a question closes alone. After Delete forever or a label delete, focus goes to the neighbour's same button.
+- **Restore checks the file first** (`backup.inspect` in `src/db/backup.ts`), so a non-backup never reaches "Replace everything?".
+- **Inline validation** (`FieldError`, `INVALID_FIELD`): empty title, bad effort, half-typed date or time (`validity.badInput`; time only while a date is set), invalid link. Focus goes to the first error. Fields in dialogs have `scroll-margin-block` so focus stops clear of the sticky title bar and footer.
+- **Dates:** "Due Wed 11/03/2026, 17:30 · Tomorrow" under the native pickers (`describeDeadline`), "Reminds you …" under the reminder picker (`formatDateTime`). Date and time stack where both don't fit.
+- **#28:** Save adds a typed checklist item, link, tag, project (via `findOrCreate`) or reminder time.
+- **Layout fix:** "At a specific time…" in Reminders used to push the editor sideways at every width; the picker now has its own wrapping row.
+- **Review:** three lenses, three skeptics each. Three of seven findings survived and are fixed: the disabled time field blocking Save, focus under the sticky title bar, the unnamed Project select (pre-existing). Refuted: focus after Empty trash and after restore (0/3 each), the sample-data double click and a half-typed reminder time (1/3 each). The double-click guard went in anyway (a `useRef`).
+- **Left for #26:** after Empty trash or deleting the last Trash card, focus falls to `<body>` (the review refuted it as a defect). Confirming a restore or sample-data load disables the focused button while it works, which also drops focus. A half-typed reminder time is still dropped on Save (pre-existing).
+
+The tests are in `e2e/confirm.spec.ts` (5) and `e2e/editor-validation.spec.ts` (12), plus a contrast check per theme for the confirm dialog and for the inline errors. Each new behaviour test was run against the code without its fix and failed; the contrast checks were not.
 
 ## Step 3b in brief (#23)
 

@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { sampleData } from '../db/sample'
 import { taskRepo } from '../db/tasks'
+import { useConfirm } from '../hooks/useConfirm'
+import { plural } from '../lib/utils'
 import { btn } from '../ui'
 
 /**
@@ -11,19 +13,39 @@ import { btn } from '../ui'
  */
 export function SampleDataButton({ onLoaded, prominent = false }: { onLoaded?: (count: number) => void; prominent?: boolean }) {
   const [busy, setBusy] = useState(false)
+  const [confirmDialog, ask] = useConfirm()
+  /** Set at once on click, so a quick second click can't start a second load before busy renders. */
+  const running = useRef(false)
 
   async function load() {
+    if (running.current) return
+    running.current = true
+    try {
+      await askThenLoad()
+    } finally {
+      running.current = false
+    }
+  }
+
+  async function askThenLoad() {
+    // Ask before going busy: a disabled button drops focus, and the question hands focus back to it.
+    const existing = await taskRepo.countAll()
+    if (
+      existing > 0 &&
+      !(await ask({
+        title: 'Add sample tasks?',
+        body: (
+          <p>
+            They go alongside your {plural(existing, 'existing task')}. Nothing is replaced. Projects and tags with the same names
+            are reused.
+          </p>
+        ),
+        confirmLabel: 'Add sample tasks',
+      }))
+    )
+      return
     setBusy(true)
     try {
-      const existing = await taskRepo.countAll()
-      if (
-        existing > 0 &&
-        !confirm(
-          `Add sample tasks alongside your ${existing} existing task(s)?\n\n` +
-            `Nothing is replaced. Projects and tags with the same names are reused.`,
-        )
-      )
-        return
       const count = await sampleData.load()
       onLoaded?.(count)
     } finally {
@@ -32,8 +54,11 @@ export function SampleDataButton({ onLoaded, prominent = false }: { onLoaded?: (
   }
 
   return (
-    <button onClick={load} disabled={busy} className={prominent ? btn.brand : btn.secondary}>
-      <Sparkles className="size-4" /> Load sample data
-    </button>
+    <>
+      <button onClick={load} disabled={busy} className={prominent ? btn.brand : btn.secondary}>
+        <Sparkles className="size-4" /> Load sample data
+      </button>
+      {confirmDialog}
+    </>
   )
 }

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import type { ChecklistItem } from '../types'
 import { btn, field } from '../ui'
@@ -6,20 +5,22 @@ import { btn, field } from '../ui'
 interface Props {
   value: ChecklistItem[]
   onChange: (items: ChecklistItem[]) => void
+  /** The new item typed but not added yet. The form owns it, so Save can add it too. */
+  draft: string
+  onDraftChange: (text: string) => void
 }
 
-export function ChecklistEditor({ value, onChange }: Props) {
-  const [text, setText] = useState('')
+export function ChecklistEditor({ value, onChange, draft, onDraftChange }: Props) {
   const done = value.filter((i) => i.done).length
 
   const update = (id: string, patch: Partial<ChecklistItem>) =>
     onChange(value.map((i) => (i.id === id ? { ...i, ...patch } : i)))
 
   function add() {
-    const clean = text.trim()
+    const clean = draft.trim()
     if (!clean) return
     onChange([...value, { id: crypto.randomUUID(), text: clean, done: false }])
-    setText('')
+    onDraftChange('')
   }
 
   return (
@@ -65,8 +66,8 @@ export function ChecklistEditor({ value, onChange }: Props) {
       )}
       <div className="flex gap-2">
         <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
+          value={draft}
+          onChange={(e) => onDraftChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
@@ -75,7 +76,6 @@ export function ChecklistEditor({ value, onChange }: Props) {
           }}
           placeholder="Add an item and press Enter"
           aria-label="New checklist item"
-          data-draft
           className={field}
         />
         <button type="button" onClick={add} aria-label="Add checklist item" className={btn.secondary}>

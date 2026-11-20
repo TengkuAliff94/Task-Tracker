@@ -88,5 +88,30 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expect(page.getByRole('list', { name: 'Trashed tasks' })).toBeVisible()
       expect(await contrastProblems(page)).toEqual([])
     })
+
+    test(`a destructive confirmation and its solid Delete button are readable (${colorScheme})`, async ({ app, page }) => {
+      await app.loadSampleData()
+      await page.getByRole('button', { name: 'Projects & tags' }).click()
+      await page.getByRole('dialog', { name: 'Projects & tags' }).getByRole('button', { name: /^Delete / }).first().click()
+      const ask = page.getByRole('alertdialog', { name: 'Delete this project?' })
+      await expect(ask).toBeVisible()
+      expect(await contrastProblems(page)).toEqual([])
+      // Hovered too: the go-ahead darkens (light) or lightens (dark) and must stay AA.
+      await ask.getByRole('button', { name: 'Delete project' }).hover()
+      expect(await contrastProblems(page)).toEqual([])
+    })
+
+    test(`the editor's inline errors and deadline readout are readable (${colorScheme})`, async ({ app, page }) => {
+      void app
+      await page.getByRole('banner').getByRole('button', { name: 'New task' }).click()
+      const editor = page.getByRole('dialog', { name: 'New task' })
+      await editor.getByLabel('Effort').fill('a while')
+      await editor.getByLabel('Deadline date').fill('2026-03-11')
+      await editor.getByLabel('Add link').fill('ftp://example.com')
+      await editor.getByRole('button', { name: 'Add task' }).click()
+      await expect(editor.getByText('Give the task a title.')).toBeVisible()
+      await expect(editor.getByTestId('deadline-readout')).toBeVisible()
+      expect(await contrastProblems(page)).toEqual([])
+    })
   })
 }

@@ -52,6 +52,8 @@
   --accent: var(--panel-rust);
   --on-accent: var(--on-panel-rust);
   --danger: #b42318; /* 5.3:1 on subtle */
+  --danger-hover: #971d14;
+  --on-danger: #ffffff; /* 6.6:1, the solid button in a confirmation */
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(20 17 16 / 0.06);
@@ -81,6 +83,8 @@
   --accent: var(--panel-mustard);
   --on-accent: var(--on-panel-mustard);
   --danger: #f0866a; /* 6.8:1 on raised */
+  --danger-hover: #f49c84;
+  --on-danger: #0b0a0a; /* 7.8:1 */
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -111,6 +115,8 @@
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-on-danger: var(--on-danger);
   --color-panel-orange: var(--panel-orange);
   --color-on-panel-orange: var(--on-panel-orange);
   --color-panel-mustard: var(--panel-mustard);
@@ -182,6 +188,15 @@ html {
 #search,
 [data-filter-bar] :is(button, select, input) {
   scroll-margin-top: 6rem;
+}
+
+/*
+ * Inside a dialog, a control that gets focus (Tab, or Save moving to the first field with an error)
+ * stops clear of the sticky title bar above and the sticky footer below (WCAG 2.4.11), with its label
+ * still showing above it.
+ */
+dialog :is(input, select, textarea) {
+  scroll-margin-block: 5.5rem 5rem;
 }
 
 body {

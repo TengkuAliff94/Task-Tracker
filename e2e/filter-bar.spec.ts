@@ -115,9 +115,9 @@ test('deleting a tag that is picked as a filter takes the filter off too', async
   await page.getByRole('button', { name: '#errand', exact: true }).click()
   await expect(app.taskCards()).toHaveCount(3)
 
-  page.once('dialog', (d) => d.accept())
   await page.getByRole('button', { name: 'Projects & tags' }).click()
   await page.getByRole('button', { name: 'Delete errand' }).click()
+  await page.getByRole('alertdialog', { name: 'Delete this tag?' }).getByRole('button', { name: 'Delete tag' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Close' }).click()
 
   await expect(page.getByRole('button', { name: '#errand', exact: true })).toHaveCount(0)

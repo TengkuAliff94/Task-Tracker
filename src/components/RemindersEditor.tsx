@@ -1,25 +1,30 @@
 import { useState } from 'react'
 import { Bell, X } from 'lucide-react'
+import { formatDateTime } from '../lib/deadline'
 import { describeReminder, MAX_REMINDERS, RELATIVE_PRESETS } from '../lib/reminders'
 import type { Reminder } from '../types'
+import { cn } from '../lib/utils'
+import { btn } from '../ui'
 
 interface Props {
   value: Reminder[]
   onChange: (r: Reminder[]) => void
   hasDeadline: boolean
   className: string
+  /** A specific time picked but not added yet (datetime-local value). The form owns it, so Save can add it too. */
+  draft: string
+  onDraftChange: (at: string) => void
 }
 
 const ABSOLUTE = 'absolute'
 
-export function RemindersEditor({ value, onChange, hasDeadline, className }: Props) {
+export function RemindersEditor({ value, onChange, hasDeadline, className, draft, onDraftChange }: Props) {
   const [choice, setChoice] = useState('')
-  const [at, setAt] = useState('')
 
   function add(r: Reminder) {
     onChange([...value, r])
     setChoice('')
-    setAt('')
+    onDraftChange('')
   }
 
   return (
@@ -42,14 +47,19 @@ export function RemindersEditor({ value, onChange, hasDeadline, className }: Pro
       ))}
 
       {value.length < MAX_REMINDERS && (
-        <div className="flex gap-2">
+        // The picker gets its own row under the menu: the menu, picker and Add don't fit side by side.
+        <div className="space-y-1.5">
           <select
             aria-label="Add reminder"
             value={choice}
             onChange={(e) => {
               const v = e.target.value
               if (v && v !== ABSOLUTE) add({ id: crypto.randomUUID(), kind: 'relative', minutesBefore: Number(v) })
-              else setChoice(v)
+              else {
+                setChoice(v)
+                // A time that's no longer on screen isn't waiting to be added.
+                if (v !== ABSOLUTE) onDraftChange('')
+              }
             }}
             className={className}
           >
@@ -62,26 +72,30 @@ export function RemindersEditor({ value, onChange, hasDeadline, className }: Pro
             <option value={ABSOLUTE}>At a specific time…</option>
           </select>
           {choice === ABSOLUTE && (
-            <>
+            // Add wraps under the picker rather than squeezing it on the narrowest phones.
+            <div className="flex flex-wrap gap-2">
               <input
                 type="datetime-local"
                 aria-label="Reminder time"
-                data-draft
-                value={at}
-                onChange={(e) => setAt(e.target.value)}
-                className={className}
+                value={draft}
+                onChange={(e) => onDraftChange(e.target.value)}
+                className={cn(className, 'min-w-0 flex-[1_1_12rem]')}
               />
               <button
                 type="button"
-                disabled={!at}
-                onClick={() => add({ id: crypto.randomUUID(), kind: 'absolute', at: new Date(at).getTime() })}
-                className="rounded-md border border-line-strong px-3 text-sm hover:bg-subtle disabled:opacity-50"
+                disabled={!draft}
+                onClick={() => add({ id: crypto.randomUUID(), kind: 'absolute', at: new Date(draft).getTime() })}
+                className={btn.secondary}
               >
                 Add
               </button>
-            </>
+            </div>
           )}
         </div>
+      )}
+      {/* The picker follows the browser's locale; this is the app's own reading of it. */}
+      {choice === ABSOLUTE && draft && Number.isFinite(new Date(draft).getTime()) && (
+        <p className="text-xs text-muted tabular-nums">Reminds you {formatDateTime(new Date(draft))}</p>
       )}
     </div>
   )

@@ -4,7 +4,10 @@ import { DatabaseBackup, Download, Upload } from 'lucide-react'
 import { taskRepo } from '../db/tasks'
 import { backup, BACKUP_NUDGE_DAYS } from '../db/backup'
 import { toDateInput } from '../lib/deadline'
+import { plural } from '../lib/utils'
+import { useConfirm } from '../hooks/useConfirm'
 import { attentionAction, attentionQuiet, btn, INVERTED_PANEL, panel } from '../ui'
+import { CountList } from './ConfirmDialog'
 import { Dialog } from './Dialog'
 import { SampleDataButton } from './SampleDataButton'
 
@@ -31,6 +34,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
+  const [confirmDialog, ask] = useConfirm()
 
   async function exportNow() {
     setBusy(true)
@@ -46,7 +50,6 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
 
   async function importFile(file: File | undefined) {
     if (!file) return
-    setBusy(true)
     try {
       let parsed: unknown
       try {
@@ -54,16 +57,31 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
       } catch {
         throw new Error('That file isn’t valid JSON.')
       }
-      const incoming = Array.isArray((parsed as { tasks?: unknown[] })?.tasks) ? (parsed as { tasks: unknown[] }).tasks.length : 0
+      // A file that isn't a backup is turned away here, before anyone is asked to replace their data with it.
+      const incoming = backup.inspect(parsed)
       const current = await taskRepo.countAll()
-      const ok = confirm(
-        `Replace everything in the app with this backup?\n\n` +
-          `Now: ${current} task(s), including any in Trash.\nBackup: ${incoming} task(s).\n\n` +
-          `Your current data will be lost. Export a backup first if you might need it.`,
-      )
+      setMessage(null)
+      const ok = await ask({
+        title: 'Replace everything with this backup?',
+        body: (
+          <>
+            <CountList
+              rows={[
+                ['Now', `${plural(current, 'task')}, including any in Trash`],
+                ['Backup', `${plural(incoming.tasks, 'task')}, ${plural(incoming.attachments, 'attachment')}`],
+              ]}
+            />
+            <p>Your current data will be lost. Download a backup first if you might need it.</p>
+          </>
+        ),
+        confirmLabel: 'Replace everything',
+        danger: true,
+      })
       if (!ok) return
+      // Busy only now: disabling the focused Restore button any sooner would leave the question nowhere to return focus.
+      setBusy(true)
       const result = await backup.importData(parsed)
-      setMessage({ ok: true, text: `Restored ${result.tasks} task(s) and ${result.attachments} attachment(s).` })
+      setMessage({ ok: true, text: `Restored ${plural(result.tasks, 'task')} and ${plural(result.attachments, 'attachment')}.` })
     } catch (err) {
       setMessage({ ok: false, text: err instanceof Error ? err.message : String(err) })
     } finally {
@@ -94,10 +112,11 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
         <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
         <div className="space-y-2 border-t border-line pt-4">
           <p className="text-muted">Want to explore? Add example tasks that show off every feature. Your own tasks are kept.</p>
-          <SampleDataButton onLoaded={(n) => setMessage({ ok: true, text: `Added ${n} sample tasks.` })} />
+          <SampleDataButton onLoaded={(n) => setMessage({ ok: true, text: `Added ${plural(n, 'sample task')}.` })} />
         </div>
         {message && <p className={message.ok ? 'text-primary' : 'text-danger'}>{message.text}</p>}
       </div>
+      {confirmDialog}
     </Dialog>
   )
 }

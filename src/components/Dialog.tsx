@@ -17,7 +17,14 @@ export function Dialog({ title, onClose, width = 'max-w-lg', children }: Props) 
   const { ref, close } = useModalDialog()
 
   return (
-    <dialog ref={ref} onClose={onClose} aria-label={title} className={`${dialog} ${width}`}>
+    <dialog
+      ref={ref}
+      // React passes a nested dialog's close event up the tree (a confirmation opened from this one),
+      // so only this dialog's own close unmounts it.
+      onClose={(e) => e.target === e.currentTarget && onClose()}
+      aria-label={title}
+      className={`${dialog} ${width}`}
+    >
       <DialogTitleBar title={title} onClose={close} />
       <div className="px-6 pt-2 pb-6">{children}</div>
     </dialog>

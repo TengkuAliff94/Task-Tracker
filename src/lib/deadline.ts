@@ -27,19 +27,43 @@ export function formatDate(d: Deadline): string {
   return `${day}/${m}/${y}`
 }
 
+const localDate = (d: Deadline) => {
+  const [y, m, day] = d.date.split('-').map(Number)
+  return new Date(y, m - 1, day)
+}
+
+/** "Today", "Tomorrow", "Yesterday", "In 3 days" or "2 days ago" within a week either side, else undefined. */
+export function relativeDay(d: Deadline, now: Date = new Date()): string | undefined {
+  const diffDays = Math.round((localDate(d).getTime() - startOfDay(now).getTime()) / 86_400_000)
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Tomorrow'
+  if (diffDays === -1) return 'Yesterday'
+  if (diffDays > 1 && diffDays <= 7) return `In ${diffDays} days`
+  if (diffDays < -1 && diffDays >= -7) return `${-diffDays} days ago`
+  return undefined
+}
+
 /** "Today", "Tomorrow", "Yesterday", "In 3 days", "2 days ago", otherwise DD/MM/YYYY. Time appended when set. */
 export function formatDeadline(d: Deadline, now: Date = new Date()): string {
-  const [y, m, day] = d.date.split('-').map(Number)
-  const target = new Date(y, m - 1, day)
-  const diffDays = Math.round((target.getTime() - startOfDay(now).getTime()) / 86_400_000)
-  let label: string
-  if (diffDays === 0) label = 'Today'
-  else if (diffDays === 1) label = 'Tomorrow'
-  else if (diffDays === -1) label = 'Yesterday'
-  else if (diffDays > 1 && diffDays <= 7) label = `In ${diffDays} days`
-  else if (diffDays < -1 && diffDays >= -7) label = `${-diffDays} days ago`
-  else label = formatDate(d)
+  const label = relativeDay(d, now) ?? formatDate(d)
   return d.time ? `${label} ${d.time}` : label
+}
+
+const weekday = new Intl.DateTimeFormat('en-GB', { weekday: 'short' })
+
+/**
+ * "Tue 10/03/2026, 17:00 · Tomorrow": a deadline in the app's own format (DD/MM/YYYY, 24-hour),
+ * shown beside the native pickers, which follow the browser's locale instead.
+ */
+export function describeDeadline(d: Deadline, now: Date = new Date()): string {
+  const when = `${weekday.format(localDate(d))} ${formatDate(d)}${d.time ? `, ${d.time}` : ''}`
+  const relative = relativeDay(d, now)
+  return relative ? `${when} · ${relative}` : when
+}
+
+/** "Tue 10/03/2026, 17:00" for a moment in local time, e.g. a reminder at a specific time. */
+export function formatDateTime(at: Date): string {
+  return `${weekday.format(at)} ${pad(at.getDate())}/${pad(at.getMonth() + 1)}/${at.getFullYear()}, ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
 /** Local date as YYYY-MM-DD, for <input type="date">. */
