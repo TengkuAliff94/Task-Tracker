@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-19, at the end of the session that ran step 3a.
+Last updated 2026-11-20, at the end of the session that ran step 3b.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -18,15 +18,15 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 1 | `/impeccable layout src/App.tsx` | [#20](https://github.com/TengkuAliff94/Task-Tracker/issues/20) urgency-first top section, tiles as filters | **done** |
 | 2 | `/impeccable distill src/components/FilterBar.tsx` | [#21](https://github.com/TengkuAliff94/Task-Tracker/issues/21) collapse the filter bar; the list comes first on phones | **done** |
 | 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | **done** (`32624b4`, review fixes `c88b2e4`) |
-| 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | **next** |
-| 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates | to do |
+| 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | **done** (`c45be56`) |
+| 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates | **next** |
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | to do |
 | 4 | `/impeccable audit src` | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps. Do this **after #23** | to do |
 | 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** start a session in this repo, run `/impeccable harden src/App.tsx`, and work through #23's acceptance criteria. Step 3a has no loose ends: #22 is closed and #19's table is up to date.
+**To resume:** start a session in this repo, run `/impeccable harden src/components`, and work through #24's acceptance criteria. Step 3b has no loose ends: #23 is closed and #19's table is up to date.
 
 **Follow-ups outside the table:** [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28). Save still drops text typed into an "add" input but not added (checklist item, link, tag, project name, reminder time). Closing asks first, but saving doesn't. #24 touches the same form (inline validation), so it's a natural fit there.
 
@@ -54,8 +54,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 131 passing after step 3a
-npm run test:e2e                # e2e (Playwright, port 4173): 104 passing after step 3a
+npm test                        # unit (Vitest): 132 passing after step 3b
+npm run test:e2e                # e2e (Playwright, port 4173): 124 passing after step 3b
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -87,7 +87,22 @@ npm run build                   # production build + PWA
 - **Faking a storage failure.** To test what happens when IndexedDB refuses a write, patch `IDBObjectStore.prototype.add` in `page.addInitScript` to throw a `QuotaExceededError` for one store. "when attachments fail to save" in `e2e/task-editor.spec.ts` does this.
 - **#25 will break a layout assertion.** `e2e/layout.spec.ts` expects the backup nudge to show after sample data, to measure the worst case. When #25 stops that, bring the nudge up deliberately rather than deleting the check. There's a comment on #25 about this.
 - **README screenshots are stale.** They show the old bento. Regenerate them with `npm run screenshots` in #27, not earlier, so it's done once.
+- **Completing a task shows a toast.** A "Done: <title>" toast (`role="status"`) now follows every completion, so `getByRole('status')` can match more than one toast. Filter by text. A toast replaced or undone keeps its text while it slides out, so wait for it to be hidden before counting.
+- **The fake clock stalls toast exits.** After `page.clock.runFor`, Motion's slide-out doesn't finish. Run countdown tests with `reducedMotion: 'reduce'`, as `e2e/completion.spec.ts` does.
+- **Shortcuts after quick add.** Quick add keeps focus in its field, so J/K/X/Z typed afterwards go into the field. Blur it first (`addTasks` in `e2e/completion.spec.ts`). Checkboxes and buttons no longer count as typing, so shortcuts work while one has focus.
+- **Faking a failed task write.** Patch `IDBObjectStore.prototype.put` for the `tasks` store behind a window flag you turn on mid-test (see "when storage refuses the change" in `e2e/completion.spec.ts`). Patching it from the start breaks nothing else, because creating a task uses `add`.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Step 3b in brief (#23)
+
+Completing a task by its checkbox or X shows "Done: <title>" with **Undo**, which restores the task's previous status. A recurring task adds "Next due <when>", and Undo reuses the reopen rule in `taskRepo.update` (the new copy goes to Trash unless started). Completion now runs through `setDone` in `App.tsx`; `TaskCard` hands its checkbox up via `onToggleDone`. `taskRepo.update`/`setStatus` resolve to the saved task.
+
+- **Selection:** after X, the selection passes to the card that takes the completed card's place (next, else previous). `toggleDone` moves it at once, when the card is going to leave the list (`applyFilters` on the toggled task), and puts it back if the save fails. A `useLayoutEffect` covers everything else: a selected card that leaves through Trash, a filter or an edit, or that X moves in the sort with Show completed on. It goes by the previous order, so a recurring task's new copy doesn't take the selection.
+- **Toasts:** completion toasts share a slot (latest wins). `Z` runs the newest Undo; X and Z ignore key repeats. The 6s countdown waits on hover or focus. Failure toasts (`urgent`, `role="alert"`) put the reason in `detail` and stay until dismissed. Titles go through `toastTitle` (60 characters, cut at a word break), and nothing in a toast is clamped.
+- **Review:** three lenses with three skeptics each. Six findings survived and one was refuted; all six are fixed in the same commit. They were the clamp hiding the verb and the fix, the X-then-J race, held Z, Z ignored on a focused checkbox, and an 8px sidecar corner.
+- **Left for #26:** toasts are added to the page with their text in them, which some screen readers don't announce; an always-present live region would be more reliable. When a focused toast closes, focus drops to `<body>` (the review refuted this as a defect, but #26 should decide).
+
+The tests are in `e2e/completion.spec.ts` (20 cases). The files touched are `src/App.tsx`, `src/components/{Toast,TaskCard,TaskForm}.tsx`, `src/db/tasks.ts`, `src/lib/utils.ts` (`describeSaveError` moved here) and `src/hooks/useShortcuts.ts`, plus `DESIGN.md` (Toast), the sidecar (a "Toast" component), `docs/SPEC.md` and the README.
 
 ## Step 1 in brief (#20)
 
