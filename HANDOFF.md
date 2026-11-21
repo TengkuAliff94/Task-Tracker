@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-21, at the end of the session that ran step 3d.
+Last updated 2026-11-21, at the end of the session that ran step 4.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -21,12 +21,12 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | **done** (`c45be56`) |
 | 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates (+ [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28)) | **done** |
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **done** (`e0b8ad1`) |
-| 4 | `/impeccable audit src` | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps. Do this **after #23** | **next** |
-| 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | to do |
+| 4 | `/impeccable audit src`, then harden, adapt and clarify | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps | **done** |
+| 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | **next** |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** start a session in this repo, run `/impeccable audit src`, and work through #26's acceptance criteria. Gather the items marked "Left for #26" in the step write-ups below first.
+**To resume:** start a session in this repo, run `/impeccable polish src`, and work through #27. The audit report for #26 is at `.impeccable/audit/2026-11-21T08-50-45Z__src.md` (local only); its P3 "10px Trash badge" was left for #27, to fix together with the 11px `kbd`.
 
 **Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
 
@@ -54,8 +54,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 156 passing after step 3d
-npm run test:e2e                # e2e (Playwright, port 4173): 153 passing after step 3d
+npm test                        # unit (Vitest): 162 passing after step 4
+npm run test:e2e                # e2e (Playwright, port 4173): 172 passing after step 4
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -64,6 +64,7 @@ npm run build                   # production build + PWA
 **Known detector findings.** These were there before step 1; don't chase them as regressions:
 - `bounce-easing` on the dialog spring: documented and intentional.
 - `design-system-font-size` 11px (`kbd`, `index.css`): real, and #27 fixes it.
+- `design-system-font-size` 10px (Trash badge, `Header.tsx`): real, and #27 fixes it with the `kbd`.
 - `design-system-font-size` 13px (`labelText`, `ui.ts`): documented in DESIGN.md's prose.
 - `design-system-color` `#000`: unit-test fixture data.
 
@@ -79,7 +80,7 @@ npm run build                   # production build + PWA
   `e2e/fixtures.ts` relies on them.
 - **The Overview tiles count all tasks.** Picking one narrows the list together with other filters (`matchesScope` in `src/lib/filter.ts`). The completion meter sits *outside* the tile button so it stays a progress bar to assistive tech. That's why the tiles use a shadow on hover and don't lift.
 - **The filter panel is collapsed by default.** Project, Sort by, Group by, the filter pills and "Show completed" only exist once it's open. In e2e, call `app.openFilters()` (in `e2e/fixtures.ts`) before using them. Search, the chips and Clear filters stay visible while it's collapsed.
-- **Focus under the sticky header.** On phones, Shift+Tab back up the page brings the header back on top of whatever gets focus. Anything focusable near the top needs `scroll-margin-top` (see the `[data-filter-bar]` rule in `index.css`). The backup nudge's buttons still lack it; that's for #26.
+- **Focus under the sticky header.** On phones, Shift+Tab back up the page brings the header back on top of whatever gets focus. Every control in `<main>` now has `scroll-margin-top: 6rem` (`index.css`), so this is solved for anything new inside `<main>`. Things outside it (dialogs, toasts) don't need it.
 - **Python on Windows writes CRLF.** Scripted edits through `open(..., 'w')` turned whole files into CRLF diffs. Use `newline=''`, or the Edit tool. It happened again in step 3a. Check with `git ls-files --eol <files>` before committing: the working copy should say `w/lf`.
 - **Swapped siblings need keys.** When a ternary swaps one block of buttons for another of the same shape, React reuses the DOM nodes. In step 3a, Keep editing became the Save button mid-click and submitted the form. Give each branch its own `key`.
 - **The task editor asks before discarding.** With unsaved changes, Esc, × and Cancel show the "Discard your changes?" bar instead of closing. In e2e, close an edited editor with Save, or press Discard on the bar (`e2e/task-editor.spec.ts` shows how). Closing an untouched editor is still instant.
@@ -98,7 +99,30 @@ npm run build                   # production build + PWA
 - **The fake clock stalls toast exits.** After `page.clock.runFor`, Motion's slide-out doesn't finish. Run countdown tests with `reducedMotion: 'reduce'`, as `e2e/completion.spec.ts` does.
 - **Shortcuts after quick add.** Quick add keeps focus in its field, so J/K/X/Z typed afterwards go into the field. Blur it first (`addTasks` in `e2e/completion.spec.ts`). Checkboxes and buttons no longer count as typing, so shortcuts work while one has focus.
 - **Faking a failed task write.** Patch `IDBObjectStore.prototype.put` for the `tasks` store behind a window flag you turn on mid-test (see "when storage refuses the change" in `e2e/completion.spec.ts`). Patching it from the start breaks nothing else, because creating a task uses `add`.
+- **J/K move real focus now.** After `J`, focus is on the card's title button (`[data-card-edit]`), and Tabbing to a card selects it. So a test that presses `J` and then types expects the keys to reach the shortcuts, which they do, since buttons aren't typing targets.
+- **Focus follows a card that leaves.** When the focused card goes (ticked off, deleted, X), focus moves to the same control on the next card, or the empty state (`[data-empty-state]`, `tabIndex=-1`). Ticking a checkbox with the mouse therefore leaves focus on the next card's checkbox. The logic is the `useLayoutEffect` in `App.tsx`, next to the selection handover.
+- **Toasts have a separate live region.** Status toasts carry `aria-live="off"`; their words go into `ToastAnnouncer` (`[aria-live="polite"]`, visually hidden). `getByRole('status')` still finds the toast panels. The announcer's text adds "Press Z to undo." only with a fine pointer.
+- **Toast countdowns pause under a modal.** `useModalOpen` watches for `dialog:modal`. A test that opens a dialog over a toast and runs the fake clock will find the toast still there.
+- **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
+- **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Step 4 in brief (#26)
+
+The audit (`/impeccable audit src`) scored **14/20**. Six P1s, five P2s and two P3s, all fixed in one pass except the 10px badge, which is left for #27.
+
+- **Placeholders** use full `text-muted` (6.0–7.7:1, were 3.1–3.5) in `field`, quick add, the tag picker and search, which had fallen back to the browser default. `contrast.spec` now measures placeholders, because axe skips them.
+- **J/K** move real focus with the selection; Tab to a card selects it. When a focused card leaves, focus goes to the same control on the next card or to the empty state. Delete from the editor lands on the next card. Trash does the same for Restore, Delete forever and Empty trash.
+- **Toasts:** the countdown waits while a modal is open (`src/hooks/useModalOpen.ts`). Status toasts are read out by `ToastAnnouncer`, the stack is a "Notifications" region while it holds anything, and focus returns to where it was when a focused toast goes.
+- **Errors** in quick add, Projects & tags, the new-project field and the attachment file check use `FieldError` with `aria-invalid`/`aria-describedby`.
+- **Blocked notifications** is a button with a popover explanation, which is also its description.
+- **Sticky header:** `main :is(...)` gets `scroll-margin-top`; the content is now in `<main>`.
+- **Phones:** the quick-add placeholder is "Quick add a task" below `sm`, with a syntax hint while focused (`src/hooks/useMediaQuery.ts`). The task checkbox has a 44px target, and the label-chip × and attachment/checklist removes are 24px or more.
+- **Cards:** the metadata figures have spoken labels ("2 reminders", "Checklist: 1 of 3 done", "Effort: 1 hour 30 minutes" via `describeEffort`), and the deadline gets a hidden "Due".
+- **Also:** the Ask-for-storage focus moved into a layout effect, and the raw `bg-black/10`/`bg-white/15` tints are now `bg-current/*`.
+- **Review:** a self-review of the diff instead of the three-lens agent review. It found one issue, fixed: focus moving after a mouse tick scrolled the page; now only keyboard focus scrolls. The card's double ring was checked in screenshots and the title button rounded to 8px so the rings nest.
+
+The tests are in `e2e/accessibility.spec.ts` (17) and two placeholder tests in `e2e/contrast.spec.ts`. All 19 were run against the old source: 18 failed as expected, and the phone sticky-header test was rewritten until it did too. Docs touched: `DESIGN.md`, the sidecar, `MASTER.md`, `docs/SPEC.md` and the README test section.
 
 ## Step 3d in brief (#25)
 
