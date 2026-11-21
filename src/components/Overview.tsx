@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarClock, CircleCheck, CircleDashed, type LucideIcon } from 'lucide-react'
+import { AlertCircle, CalendarClock, Check, CircleCheck, CircleDashed, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotionConfig } from 'motion/react'
 import { matchesScope, type Scope } from '../lib/filter'
 import type { Task } from '../types'
@@ -13,6 +13,8 @@ interface Stat {
   value: number
   icon: LucideIcon
   tone: string
+  /** The tile's panel colour, which the check on a picked tile is cut out in. */
+  fill: string
   /** Draws the eye: the icon pulses. */
   alert?: boolean
   /** Shows a percentage and a completion meter (0–100). */
@@ -49,22 +51,23 @@ export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
 
   const stats: Stat[] = [
     // The alarm colour only when something is late; calm otherwise.
-    { scope: 'overdue', label: 'Overdue', value: overdue, icon: AlertCircle, tone: overdue ? panel.critical : panel.neutral, alert: overdue > 0 },
-    { scope: 'today', label: 'Due today', value: count('today'), icon: CalendarClock, tone: panel.warning },
-    { scope: 'open', label: 'Open', value: count('open'), icon: CircleDashed, tone: panel.info },
+    { scope: 'overdue', label: 'Overdue', value: overdue, icon: AlertCircle, tone: overdue ? panel.critical : panel.neutral, fill: overdue ? 'var(--panel-maroon)' : 'var(--panel-taupe)', alert: overdue > 0 },
+    { scope: 'today', label: 'Due today', value: count('today'), icon: CalendarClock, tone: panel.warning, fill: 'var(--panel-mustard)' },
+    { scope: 'open', label: 'Open', value: count('open'), icon: CircleDashed, tone: panel.info, fill: 'var(--panel-violet)' },
     {
       scope: 'done',
       label: 'Completed',
       value: done,
       icon: CircleCheck,
       tone: panel.calm,
+      fill: 'var(--panel-sage)',
       progress: tasks.length ? Math.round((done / tasks.length) * 100) : 0,
     },
   ]
 
   return (
     <section aria-label="Overview" className="grid h-full grid-cols-2 gap-3 sm:grid-cols-4">
-      {stats.map(({ scope: s, label, value, icon: Icon, tone, alert, progress }, i) => {
+      {stats.map(({ scope: s, label, value, icon: Icon, tone, fill, alert, progress }, i) => {
         const picked = scope === s
         return (
           <Reveal key={s} index={firstIndex + i} className="relative min-w-0">
@@ -78,8 +81,16 @@ export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
             >
               <span className="flex min-w-0 items-start justify-between gap-2">
                 <span className="truncate text-sm font-semibold">{label}</span>
-                {/* Left out where tiles are slimmest: on phones, and beside the heading below `xl`. */}
-                <Icon className={`size-5 shrink-0 max-sm:hidden lg:max-xl:hidden ${alert ? 'motion-safe:animate-pulse' : ''}`} aria-hidden />
+                {/* Picked: a check in an ink disc takes the icon's place at every size, so "picked" never
+                    looks like the focus outline alone. Otherwise the icon, left out where tiles are
+                    slimmest: on phones, and beside the heading below `xl`. */}
+                {picked ? (
+                  <span data-picked-mark className="grid size-5 shrink-0 place-items-center rounded-full bg-current" aria-hidden>
+                    <Check className="size-3.5" style={{ color: fill }} strokeWidth={3} />
+                  </span>
+                ) : (
+                  <Icon className={`size-5 shrink-0 max-sm:hidden lg:max-xl:hidden ${alert ? 'motion-safe:animate-pulse' : ''}`} aria-hidden />
+                )}
               </span>
               <span className="flex items-end gap-1.5 sm:mt-auto sm:gap-2 sm:pt-3">
                 <CountUp value={value} className="font-display text-2xl leading-none font-extrabold tracking-tight tabular-nums sm:text-4xl" />

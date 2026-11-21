@@ -54,9 +54,21 @@ const EMPTY_SCOPE: Record<Scope, { title: string; body: string }> = {
 
 /**
  * The empty list: before any tasks, a way in (sample data); with only a tile picked, that tile's
- * own answer ("Nothing overdue") and a way back to everything; with other filters, "No matches".
+ * own answer ("Nothing overdue") and a way back to everything; with a search or other filters,
+ * "No matches" and a button that clears them.
  */
-function ListEmpty({ tasks, filters, onShowAll }: { tasks: Task[]; filters: Filters; onShowAll: () => void }) {
+function ListEmpty({
+  tasks,
+  filters,
+  onShowAll,
+  onClear,
+}: {
+  tasks: Task[]
+  filters: Filters
+  onShowAll: () => void
+  /** Clears the search and every filter (Show completed stays as it is). */
+  onClear: () => void
+}) {
   if (tasks.length === 0) {
     return (
       <EmptyState icon={ClipboardList} title="No tasks yet" action={<SampleDataButton variant="brand" />}>
@@ -81,9 +93,19 @@ function ListEmpty({ tasks, filters, onShowAll }: { tasks: Task[]; filters: Filt
     )
   }
   if (hasActiveFilters(filters)) {
+    // Say what's narrowing the list: only a search, or filters (with or without one).
+    const onlySearch = !hasActiveFilters({ ...filters, query: '' })
     return (
-      <EmptyState icon={SearchX} title="No matches">
-        No tasks match these filters.
+      <EmptyState
+        icon={SearchX}
+        title="No matches"
+        action={
+          <button type="button" onClick={onClear} className={btn.secondary}>
+            {onlySearch ? 'Clear search' : 'Clear filters'}
+          </button>
+        }
+      >
+        {onlySearch ? <>No tasks match “{filters.query.trim()}”.</> : 'No tasks match these filters.'}
       </EmptyState>
     )
   }
@@ -493,7 +515,7 @@ export default function App() {
 
           <div className="flex flex-col gap-3">
             <Reveal index={hasTasks ? 1 + OVERVIEW_TILE_COUNT : 1}>
-              <QuickAdd />
+              <QuickAdd projects={projects} tags={tags} />
             </Reveal>
             {/* Nothing to filter yet on an empty list, so the empty state's way out stays in view. */}
             {hasTasks && (
@@ -523,7 +545,16 @@ export default function App() {
             )}
 
             {tasks === undefined ? null : visible.length === 0 ? (
-              <ListEmpty tasks={tasks} filters={filters} onShowAll={() => setScope(undefined)} />
+              <ListEmpty
+                tasks={tasks}
+                filters={filters}
+                onShowAll={() => setScope(undefined)}
+                onClear={() => {
+                  setFilters((f) => ({ ...EMPTY_FILTERS, showCompleted: f.showCompleted }))
+                  // The button goes with the empty state; the search field heads the controls that narrowed the list.
+                  document.getElementById('search')?.focus()
+                }}
+              />
             ) : (
               <div
                 className="space-y-8"

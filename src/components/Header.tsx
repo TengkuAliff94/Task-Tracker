@@ -5,6 +5,7 @@ import { useHideOnScroll } from '../hooks/useHideOnScroll'
 import { NotificationButton } from './NotificationButton'
 import { ThemeToggle } from './ThemeToggle'
 import { SPRING } from './motion/presets'
+import { cn } from '../lib/utils'
 import { btn, panel } from '../ui'
 
 /** Which screen the app shows: the task list or the Trash. */
@@ -30,10 +31,11 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
   return (
     // The slide itself is CSS (`.hide-on-scroll`), so focus moving into the header shows it in the
     // same style pass, before the browser decides whether to scroll the focused button into view.
+    // The bar is the solid canvas colour: a see-through blur smeared the saturated tiles passing under it.
     <header
       ref={ref}
       data-hidden={hidden}
-      className="hide-on-scroll sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 bg-bg/75 px-4 py-4 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60 sm:py-5"
+      className="hide-on-scroll sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 bg-bg px-4 py-4 sm:py-5"
     >
       {view === 'trash' ? (
         <div className="flex min-w-0 items-center gap-2">
@@ -41,7 +43,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             <ArrowLeft className="size-5" />
           </button>
           <div className="min-w-0">
-            <h1 id="page-heading" tabIndex={-1} className="truncate text-xl font-semibold tracking-tight sm:text-2xl">Trash</h1>
+            <h1 id="page-heading" tabIndex={-1} className="truncate text-xl font-bold tracking-tight sm:text-2xl">Trash</h1>
             <p className="truncate text-xs text-muted">Restore or permanently delete</p>
           </div>
         </div>
@@ -79,7 +81,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
                 initial={reduce ? false : { scale: 0.4 }}
                 animate={{ scale: 1 }}
                 transition={SPRING.pop}
-                className={`absolute -top-0.5 -right-0.5 min-w-4 rounded-full px-1 text-[10px] leading-4 font-semibold ring-2 ring-surface ${panel.danger}`}
+                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface ${panel.danger}`}
               >
                 {trashCount}
               </motion.span>
@@ -90,7 +92,13 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             <Keyboard className="size-5" />
           </button>
         </div>
-        <button onClick={onNewTask} aria-label="New task" className={`${btn.brand} max-sm:size-10 max-sm:px-0`}>
+        {/* Not offered in Trash, where a new task wouldn't show. Hidden rather than removed, so the tray
+            keeps its place and the Trash button stays under the pointer to switch back. */}
+        <button
+          onClick={onNewTask}
+          aria-label="New task"
+          className={cn(btn.brand, 'max-sm:size-10 max-sm:px-0', view === 'trash' && 'invisible')}
+        >
           <Plus className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">New task</span>
         </button>
       </div>

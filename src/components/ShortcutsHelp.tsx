@@ -9,7 +9,15 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
           <div key={s.keys} className="flex items-center justify-between gap-4">
             <dt>{s.label}</dt>
             <dd>
-              <kbd className="rounded border border-line-strong bg-subtle px-1.5 py-0.5 font-mono text-xs">{s.keys}</kbd>
+              {/* The same key caps as everywhere else in the app; "J / K" is two keys. */}
+              <span className="inline-flex items-center gap-1 text-xs text-muted">
+                {s.keys.split(' / ').map((key, i) => (
+                  <span key={key} className="inline-flex items-center gap-1">
+                    {i > 0 && <span aria-hidden>/</span>}
+                    <kbd>{key}</kbd>
+                  </span>
+                ))}
+              </span>
             </dd>
           </div>
         ))}

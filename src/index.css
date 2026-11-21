@@ -236,7 +236,8 @@ button:not(:disabled),
 [role='button'],
 select:not(:disabled),
 label:has(input[type='checkbox']),
-input[type='checkbox']:not(:disabled) {
+input[type='checkbox']:not(:disabled),
+input[type='color']:not(:disabled) {
   cursor: pointer;
 }
 
@@ -254,7 +255,7 @@ select option {
   color: var(--fg);
 }
 
-/* Small checkboxes (filters, checklist) take the brand color. */
+/* Any checkbox left native takes the brand colour. */
 input[type='checkbox'] {
   accent-color: var(--primary);
 }
@@ -272,7 +273,8 @@ input[type='checkbox'] {
   background: var(--surface);
   transition: background-color 200ms, border-color 200ms, box-shadow 200ms;
 }
-.task-check::after {
+.task-check::after,
+.box-check::after {
   content: '';
   width: 0.7rem;
   height: 0.7rem;
@@ -283,16 +285,74 @@ input[type='checkbox'] {
   transition: transform 200ms var(--ease-out-soft);
 }
 .task-check:hover,
-label:hover > .task-check {
+label:hover > .task-check,
+.box-check:hover,
+label:hover > .box-check {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-soft);
 }
-.task-check:checked {
+.task-check:checked,
+.box-check:checked {
   background: var(--primary);
   border-color: var(--primary);
 }
-.task-check:checked::after {
+.task-check:checked::after,
+.box-check:checked::after {
   transform: scale(1);
+}
+
+/*
+ * The square sibling of the task checkbox, for everything that isn't completing a task ("Show
+ * completed", checklist items): the same tick, fill and hover halo, with a 4px corner so a round
+ * control still only ever means "done". Its border is Weathered Grey, so the box itself meets 3:1.
+ */
+.box-check {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1.5px solid var(--muted);
+  background: transparent;
+  transition: background-color 200ms, border-color 200ms, box-shadow 200ms;
+}
+.box-check::after {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+/*
+ * A project or tag colour (Projects & tags): a round swatch, like the dot the label shows everywhere
+ * else, instead of each browser's square picker. A faint inner ring keeps light colours visible.
+ */
+.swatch {
+  appearance: none;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  transition: box-shadow 200ms;
+}
+.swatch:hover {
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+.swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 9999px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 15%, transparent);
+}
+.swatch::-moz-color-swatch {
+  border: none;
+  border-radius: 9999px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 15%, transparent);
 }
 
 /*
@@ -338,7 +398,7 @@ dialog::backdrop {
 /* In the base layer so utilities like `max-sm:hidden` on a <kbd> still win. */
 @layer base {
   kbd {
-    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-line-strong bg-surface px-1 font-sans text-[11px] font-medium text-muted shadow-xs;
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-line-strong bg-surface px-1 font-sans text-xs font-medium text-muted tabular-nums shadow-xs;
   }
 }
 
@@ -363,9 +423,9 @@ dialog::backdrop {
 .markdown {
   @apply space-y-2 text-sm leading-relaxed;
 }
-.markdown h1 { @apply text-lg font-semibold; }
-.markdown h2 { @apply text-base font-semibold; }
-.markdown h3 { @apply text-sm font-semibold; }
+.markdown h1 { @apply text-lg font-bold; }
+.markdown h2 { @apply text-base font-bold; }
+.markdown h3 { @apply text-sm font-bold; }
 .markdown ul { @apply list-disc pl-5; }
 .markdown ol { @apply list-decimal pl-5; }
 .markdown a { @apply text-primary underline; }

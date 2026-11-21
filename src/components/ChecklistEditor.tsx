@@ -42,7 +42,7 @@ export function ChecklistEditor({ value, onChange, draft, onDraftChange }: Props
                   checked={item.done}
                   onChange={(e) => update(item.id, { done: e.target.checked })}
                   aria-label={`Done: ${item.text}`}
-                  className="size-4 accent-primary"
+                  className="box-check"
                 />
                 <input
                   value={item.text}

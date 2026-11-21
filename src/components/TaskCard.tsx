@@ -73,7 +73,7 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
           className="task-check mt-px"
         />
       </label>
-      <button onClick={onEdit} data-card-edit className="min-w-0 flex-1 rounded-lg text-left focus-visible:outline-offset-4">
+      <button onClick={onEdit} data-card-edit className="min-w-0 flex-1 rounded-lg text-left">
         <div
           className={`line-clamp-2 text-[15px] leading-5 font-medium break-words transition-colors duration-200 ${
             done ? 'text-muted line-through decoration-muted/60' : ''

@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-22. Step 4 is done, pushed, and #26 is closed; step 5 (#27) is next.
+Last updated 2026-11-22. Step 5's polish half is done and committed locally (not pushed); its last part, `/impeccable critique src`, is next. #27 stays open until the new score is recorded.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -22,11 +22,11 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates (+ [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28)) | **done** |
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **done** (`e0b8ad1`) |
 | 4 | `/impeccable audit src`, then harden, adapt and clarify | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps | **done** (`391ccaf`, closed) |
-| 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | **next** |
+| 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | polish **done**; critique **next** |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** start a session in this repo, run `/impeccable polish src`, and work through #27. The audit report for #26 is at `.impeccable/audit/2026-11-21T08-50-45Z__src.md` (local only); its P3 "10px Trash badge" was left for #27, to fix together with the 11px `kbd`.
+**To resume:** push `ui-revamp` if it isn't yet, then run `/impeccable critique src` (baseline **24/40**), record the score in #27, close it, and update #19. The old critique snapshot is closed (the code changed), so the critique starts fresh.
 
 **Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
 
@@ -54,8 +54,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 162 passing after step 4
-npm run test:e2e                # e2e (Playwright, port 4173): 172 passing after step 4
+npm test                        # unit (Vitest): 162 passing after step 5
+npm run test:e2e                # e2e (Playwright, port 4173): 187 passing after step 5
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -63,8 +63,6 @@ npm run build                   # production build + PWA
 
 **Known detector findings.** These were there before step 1; don't chase them as regressions:
 - `bounce-easing` on the dialog spring: documented and intentional.
-- `design-system-font-size` 11px (`kbd`, `index.css`): real, and #27 fixes it.
-- `design-system-font-size` 10px (Trash badge, `Header.tsx`): real, and #27 fixes it with the `kbd`.
 - `design-system-font-size` 13px (`labelText`, `ui.ts`): documented in DESIGN.md's prose.
 - `design-system-color` `#000`: unit-test fixture data.
 
@@ -106,6 +104,28 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Step 5 polish in brief (#27)
+
+Every item in #27's list except the re-critique. No snapshot was used: the 2026-11-17 critique is closed because `src` changed, so this was an independent pass with #27 as the backlog.
+
+- **Drift:** no hairlines left (editor footer, Markdown preview; the Backup divider had already gone). `kbd` and the Trash badge are 12px; nothing is below 12px. The shortcuts sheet uses the global `kbd`, with J / K as two keys. Chips read `#finance` / `@Home` with no drawn gap (the gap came from flex `gap`, not text), and the quick-add preview shows an existing label's spelling. The title button's dead `focus-visible:outline-offset-4` is gone. Markdown headings are bold.
+- **Overview:** a picked tile shows a check cut out of an ink disc in its icon's place, at every size, so picked never looks like focus alone.
+- **Trash:** no strike-through, bold `h1`, New task hidden with `invisible` (it keeps its space; removing it shifted the tray so the Trash button left the pointer).
+- **Toast Undo** is the violet panel inverted (`attentionAction` + `INVERTED_PANEL.info`).
+- **Checkboxes:** `.box-check` (square, 4px, Weathered Grey border, same tick and halo as `.task-check`) for Show completed and checklist items.
+- **Solid surfaces:** the editor footer is solid Well Stone (Cancel hovers to `bg-line`), and the sticky header is solid `bg-bg` with no blur.
+- **No matches** has **Clear search** (only a search) or **Clear filters**; both keep Show completed and focus `#search`.
+- **Projects & tags:** names in `field` wells, round `.swatch` colour pickers, per-label task counts (`countTasks`, also the name field's description).
+- **Docs:** `DESIGN.md`, the sidecar (two new components: Square Checkbox, Label Row), `docs/SPEC.md` (audience, sync as a direction, out of scope), `MASTER.md`, README, and regenerated screenshots. `impeccable doctor` is clean; the detector shows only the documented dialog spring.
+- **Review:** a self-review of the diff, as in step 4.
+
+The tests are `e2e/polish.spec.ts` (14) and one more in `e2e/header.spec.ts`. All 15 failed against the old source. The phone header test now checks every visible header button instead of New task.
+
+**Gotchas from this step:**
+- **`getByText` can't see a flex gap.** `<span>@</span>Home` has the text "@Home" but draws "@ Home". `polish.spec.ts` measures the gap with a `Range`.
+- **The README editor shot shows the date picker as 03/13/2026, 09:30 AM.** Headless Chromium's native date field follows its own locale, not Playwright's `locale`. DESIGN.md already says the pickers follow the browser's locale, and the line under them gives DD/MM.
+- **A ticked card leaves at once**, so use `click()`, not `check()`, on a task checkbox in tests.
 
 ## Step 4 in brief (#26)
 

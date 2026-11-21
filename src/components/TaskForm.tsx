@@ -403,7 +403,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
               </div>
             </div>
             {preview ? (
-              <div className="min-h-24 rounded-lg border border-line bg-subtle/40 px-3 py-2">
+              <div className="min-h-24 rounded-lg bg-subtle px-3 py-2">
                 {description.trim() ? (
                   <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
                     <Markdown text={description} />
@@ -568,7 +568,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
             key="discard"
             role="group"
             aria-labelledby={messageId}
-            className={`sticky bottom-0 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-transparent px-6 py-3.5 ${panel.warning}`}
+            className={`sticky bottom-0 flex flex-wrap items-center gap-x-3 gap-y-2 px-6 py-3.5 ${panel.warning}`}
           >
             {/* flex-auto, not flex-1: on narrow phones the buttons wrap below instead of crushing the question. */}
             <p id={messageId} className="flex-auto animate-fade-up text-sm font-semibold">
@@ -585,7 +585,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
             </div>
           </div>
         ) : (
-          <div key="actions" className="sticky bottom-0 flex items-center gap-2 border-t border-line bg-subtle/80 px-6 py-3.5 backdrop-blur">
+          // Solid Well Stone, no rule: the tone step sets it apart, and nothing scrolling behind shows through around Save.
+          <div key="actions" className="sticky bottom-0 flex items-center gap-2 bg-subtle px-6 py-3.5">
             {task && (
               <button
                 type="button"
@@ -599,7 +600,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
               </button>
             )}
             <div className="ml-auto flex gap-2">
-              <button type="button" ref={cancelRef} onClick={requestClose} className={btn.ghost}>
+              {/* On the Well Stone footer, Cancel's hover steps one tone further, to the seam colour. */}
+              <button type="button" ref={cancelRef} onClick={requestClose} className={cn(btn.ghost, 'hover:bg-line')}>
                 Cancel
               </button>
               <button type="submit" disabled={saving} className={btn.primary}>

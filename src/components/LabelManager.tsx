@@ -1,4 +1,5 @@
 import { useId, useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { Trash2 } from 'lucide-react'
 import { projectRepo, tagRepo } from '../db/labels'
 import { useConfirm } from '../hooks/useConfirm'
@@ -32,6 +33,9 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
   const [name, setName] = useState(label.name)
   const [error, setError] = useState<string | null>(null)
   const errorId = useId()
+  const countId = useId()
+  // The same count the delete question gives, so "3 tasks" here is what deleting it would touch.
+  const count = useLiveQuery(() => repo.countTasks(label.id), [repo, label.id])
 
   async function save(patch: Partial<Omit<Label, 'id'>>) {
     try {
@@ -71,24 +75,31 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
   }
 
   return (
-    <li className="py-1" data-label-id={label.id}>
+    <li data-label-id={label.id}>
       <div className="flex items-center gap-2">
         <input
           type="color"
           aria-label={`Color for ${label.name}`}
           value={label.color}
           onChange={(e) => save({ color: e.target.value })}
-          className="size-7 shrink-0 cursor-pointer rounded border-0 bg-transparent p-0"
+          className="swatch"
         />
+        {/* A field well like every other text field, so it reads as editable; it saves on blur or Enter. */}
         <input
           aria-label={`Name of ${label.name}`}
-          aria-describedby={error ? errorId : undefined}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={[count !== undefined && countId, error && errorId].filter(Boolean).join(' ') || undefined}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={() => name !== label.name && save({ name })}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          className="min-w-0 flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-sm hover:border-line focus:border-ring"
+          className={cn(field, 'min-w-0 flex-1 py-1.5', error && INVALID_FIELD)}
         />
+        {count !== undefined && (
+          <span id={countId} className="min-w-14 shrink-0 text-right text-xs text-muted tabular-nums">
+            {plural(count, 'task')}
+          </span>
+        )}
         <button type="button" onClick={remove} aria-label={`Delete ${label.name}`} data-delete-label className={btn.icon}>
           <Trash2 className="size-4" />
         </button>
@@ -132,9 +143,9 @@ function Section({ title, items, repo, kind }: { title: string; items: Label[]; 
 
   return (
     <section>
-      <h3 className="mb-1 text-sm font-semibold">{title}</h3>
+      <h3 className="mb-2 text-sm font-bold">{title}</h3>
       {items.length === 0 && <p className="py-1 text-sm text-muted">None yet.</p>}
-      <ul ref={listRef}>
+      <ul ref={listRef} className="space-y-2">
         {items.map((l, i) => (
           <LabelRow key={l.id} label={l} repo={repo} kind={kind} ask={ask} onRemoved={() => focusAfterRemoving(i)} />
         ))}

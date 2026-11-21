@@ -1,13 +1,16 @@
 # Personal Task Tracker — Spec
 
-A personal task tracker for daily use that doubles as a learning/portfolio project.
+A personal task tracker for privacy-minded people who want a capable one without an account, a cloud service or a subscription. Each person runs their own install, and their data stays on their device unless they export it. It is also a public portfolio piece, seen through the live demo and its sample data; where daily use and the demo pull apart, daily use wins. `PRODUCT.md` holds the full picture of users, positioning and principles.
 
 ## Platform & stack
-- Browser-only web app, single device, no server or login.
+- Browser-only web app, no server or login. Today each install keeps its data on the one device it runs on.
 - React + TypeScript + Vite + Tailwind CSS.
 - Storage: IndexedDB via Dexie. All data access goes through one repository module so a backend can replace it later.
 - Installable PWA (offline + notifications).
 - Design system generated with `ui-ux-pro-max-cli`. Light/dark theme follows the system setting, with a manual toggle. Responsive layout.
+
+## Direction: sync for one person
+Multi-device sync for one person is coming. It isn't built and there is no backend yet, so nothing in the app may claim it. Choices made now must not block it: all data access stays behind the repository seam in `src/db/`, nothing assumes data is only ever local, and the interface leaves room for sync status and conflict states later. Sharing, collaboration and multi-user features are out of scope.
 
 ## Task fields
 | Field | Details |
@@ -39,7 +42,7 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Dates**: `DD/MM/YYYY`, 24-hour clock, relative labels ("Tomorrow", "In 3 days").
 
 ## Quality & release
-- Vitest for logic (overdue, recurrence, quick-add parser, filters). Playwright for 2–3 main flows.
+- Vitest for logic (overdue, recurrence, quick-add parser, filters, backup rules). Playwright for the main flows, plus accessibility, contrast, focus, reduced-motion and layout checks, because WCAG 2.2 AA is a requirement.
 - Public GitHub repo. Auto-deploy to Vercel or Netlify. A "Load sample data" button for demo visitors. README with screenshots.
 
 ## Milestones
@@ -64,10 +67,16 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Attachments are staged in the form.** They're only saved or removed when you click Save, so Cancel discards changes. Only http(s) links are allowed, and imported links are checked again before rendering.
 - **Save adds what's typed but not added.** Text left in the editor's "add" fields (a checklist item, a link, a tag, a new project name, a reminder time) is added when you click Save rather than dropped. A new project or tag whose name already exists (ignoring case) reuses that label. A link that isn't valid stops Save with an error at the link field.
 - **Confirmations and validation stay in the app.** Every "are you sure?" is an in-app dialog that shows the counts, with Cancel as the safe default for anything destructive; the browser's `confirm()` and validation bubbles are never used. A restore file is checked before the question is asked, so a file that isn't a backup never gets as far as "Replace everything?". Date and time pickers are the browser's own, so a line under them shows the value as `DD/MM/YYYY` and 24-hour whatever the browser's locale.
+- **Labels are spelt one way.** A tag shows as `#finance` and a project as `@Home`, with the sigil against the name, on cards, in the filter pills and in the quick-add preview. The preview shows an existing label's own spelling (`@home` previews as `@Home`), because that's the label the task will get.
+- **An empty search offers the way back.** "No matches" names the search when only a search narrows the list ("No tasks match “rent”.", **Clear search**), and otherwise offers **Clear filters**, which clears the search, the filters and the Overview pick but leaves "Show completed" as it was.
+- **Trash doesn't offer New task**, since a new task wouldn't show there. The button keeps its space so the header doesn't shift.
 - **Theme preference** (system/light/dark) is stored in localStorage, because it's a per-browser convenience. Everything else is in IndexedDB.
 - **Sample data** is offered in the empty state and in the Backup & restore window, where it sits in its own "Try the app" section below backup and restore, so it never reads as a way to restore data. When tasks already exist it asks first, and it always adds to existing data, never replacing it. It loads in one transaction, with dates set relative to today, and reuses any projects or tags with the same names (ignoring case), so loading it twice never duplicates labels.
 - **Deploy target** is Vercel. `vercel.json` rewrites page paths (anything outside `/assets/` without a file extension) to `index.html` so deep links and reloads never 404. Everything except hashed `/assets/` must revalidate on each load, so a new `sw.js` and app shell are picked up after a deploy. The service worker (`registerType: autoUpdate`) skips waiting, claims clients and deletes outdated caches.
 - **Design system**: flat colour panels after the Sill template (issue #9). Tokens live in `src/index.css`: dark is a near-black canvas with off-white text, light inverts it onto warm off-white, and the panel colours are shared. Where a Sill swatch failed 4.5:1 contrast it was shifted (noted beside the token), and `e2e/contrast.spec.ts` checks the rendered screens with axe.
 
 ## Deferred
-Kanban board, calendar view, CSV export, multi-device sync, custom repeat rules, full subtasks.
+Kanban board, calendar view, CSV export, custom repeat rules, full subtasks. (Multi-device sync is a direction, not a deferral: see above.)
+
+## Out of scope
+Sharing, collaboration and multi-user features.

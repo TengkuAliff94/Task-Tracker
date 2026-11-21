@@ -3,7 +3,7 @@ import { motion, useReducedMotionConfig } from 'motion/react'
 import { X } from 'lucide-react'
 import { exitTransition, SLIDE_FROM, SLIDE_TO, SPRING } from './motion/presets'
 import { cn } from '../lib/utils'
-import { hoverHighlight, panel, toastDismiss } from '../ui'
+import { attentionAction, INVERTED_PANEL, panel, toastDismiss } from '../ui'
 
 export interface ToastData {
   id: string
@@ -72,12 +72,13 @@ export function Toast({ toast, onDismiss, onAction, shortcut, paused = false }: 
         <p className="font-medium">{toast.message}</p>
         {toast.detail && <p className="mt-0.5">{toast.detail}</p>}
       </div>
+      {/* The panel's colours swapped, like Back up now on the violet backup reminder: one main action per panel, no second brand button. */}
       {toast.action && (
         <button
           type="button"
           onClick={() => onAction?.(toast)}
           aria-keyshortcuts={shortcut}
-          className={`shrink-0 rounded-md px-2 py-1 font-semibold transition-colors ${panel.brand} ${hoverHighlight}`}
+          className={cn('shrink-0', attentionAction, INVERTED_PANEL.info)}
         >
           {toast.action.label}
         </button>

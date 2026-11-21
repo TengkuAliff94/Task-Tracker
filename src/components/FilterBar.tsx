@@ -261,8 +261,8 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
             </div>
 
             <div className="flex min-h-8 items-center justify-between gap-3 text-sm text-muted">
-              <label className="flex items-center gap-2 font-medium">
-                <input type="checkbox" checked={f.showCompleted} onChange={(e) => set({ showCompleted: e.target.checked })} className="accent-primary" />
+              <label className="flex items-center gap-2 font-medium tabular-nums">
+                <input type="checkbox" checked={f.showCompleted} onChange={(e) => set({ showCompleted: e.target.checked })} className="box-check" />
                 Show completed ({doneCount})
               </label>
               {clearButton}

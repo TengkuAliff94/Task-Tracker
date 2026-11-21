@@ -10,7 +10,7 @@ import { projectRepo, tagRepo } from '../db/labels'
 import { parseQuickAdd } from '../lib/quickAdd'
 import { formatDeadline } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
-import { PRIORITY_LABEL } from '../types'
+import { PRIORITY_LABEL, type Label } from '../types'
 
 /**
  * One recognised token in the preview. It pops in when the parser first picks it up; the key
@@ -32,7 +32,16 @@ const SYNTAX: ReactNode[] = ['#tag', '@project', '!high', '~30m', 'tomorrow 5pm'
   </span>
 ))
 
-export function QuickAdd() {
+/**
+ * A typed project or tag name as the task will show it: an existing label's own spelling when one
+ * matches (the lookup ignores case, like `findOrCreate`), else the name as typed.
+ */
+function shownName(labels: Label[], typed: string): string {
+  const key = typed.trim().toLowerCase()
+  return labels.find((l) => l.name.trim().toLowerCase() === key)?.name ?? typed
+}
+
+export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tags: Label[] }) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
@@ -99,9 +108,9 @@ export function QuickAdd() {
       {parsed && (
         <div role="group" aria-label="Quick add preview" className="mt-1 flex animate-fade-up flex-wrap items-center gap-1.5 rounded-lg bg-subtle px-3 py-2 text-xs text-muted">
           <span className="font-medium text-fg">{parsed.title || '(no title)'}</span>
-          {parsed.projectName && <Chip key={`@${parsed.projectName}`}>@{parsed.projectName}</Chip>}
+          {parsed.projectName && <Chip key={`@${parsed.projectName}`}>@{shownName(projects, parsed.projectName)}</Chip>}
           {parsed.tagNames.map((t) => (
-            <Chip key={`#${t}`}>#{t}</Chip>
+            <Chip key={`#${t}`}>#{shownName(knownTags, t)}</Chip>
           ))}
           {parsed.priority && <Chip key={`!${parsed.priority}`} className={PRIORITY_PANEL[parsed.priority]}>{PRIORITY_LABEL[parsed.priority]}</Chip>}
           {parsed.effortMinutes && <Chip key={`~${parsed.effortMinutes}`}>~{formatEffort(parsed.effortMinutes)}</Chip>}

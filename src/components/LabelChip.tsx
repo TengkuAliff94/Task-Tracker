@@ -20,8 +20,11 @@ export function LabelChip({ name, color, prefix, onRemove }: Props) {
       style={labelTint(color)}
     >
       <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
-      <span className="text-muted">{prefix}</span>
-      {name}
+      {/* The sigil sits against the name ("#finance", "@Home"), as typed in quick add and shown in the filter pills. */}
+      <span>
+        {prefix && <span className="text-muted">{prefix}</span>}
+        {name}
+      </span>
       {onRemove && (
         // 24px to tap (WCAG 2.5.8), drawn the same size as before: the padding is cancelled by negative margins.
         <button type="button" onClick={onRemove} aria-label={`Remove ${name}`} className="-my-1.5 -mr-1.5 -ml-1 rounded p-1.5 opacity-60 hover:opacity-100">

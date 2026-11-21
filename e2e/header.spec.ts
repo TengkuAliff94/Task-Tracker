@@ -97,6 +97,14 @@ test('every header action keeps its accessible name', async ({ app, page }) => {
   }
   await bar.getByRole('button', { name: 'Trash (0)' }).click()
   await expect(bar.getByRole('button', { name: 'Back to tasks' })).toBeVisible()
+  // A new task wouldn't show in Trash, so the button that makes one isn't offered there; it keeps its
+  // space, so the Trash button doesn't move out from under the pointer.
+  const trashButton = bar.getByRole('button', { name: /^Trash \(/ })
+  await expect(bar.getByRole('button', { name: 'New task' })).toBeHidden()
+  const inTrash = (await trashButton.boundingBox())!
+  await trashButton.click()
+  await expect(bar.getByRole('button', { name: 'New task' })).toBeVisible()
+  expect((await trashButton.boundingBox())!.x).toBe(inTrash.x)
 })
 
 test.describe('phone', () => {
@@ -105,8 +113,11 @@ test.describe('phone', () => {
   for (const view of ['tasks', 'trash'] as const) {
     test(`the header fits the screen in the ${view} view`, async ({ app, page }) => {
       if (view === 'trash') await header(page).getByRole('button', { name: 'Trash (0)' }).click()
-      const newTask = await header(page).getByRole('button', { name: 'New task' }).boundingBox()
-      expect(newTask!.x + newTask!.width, 'New task is fully on screen').toBeLessThanOrEqual(360)
+      for (const button of await header(page).getByRole('button').all()) {
+        if (!(await button.isVisible())) continue
+        const box = (await button.boundingBox())!
+        expect(box.x + box.width, `${await button.getAttribute('aria-label')} is fully on screen`).toBeLessThanOrEqual(360)
+      }
       expect(await app.scrollsSideways()).toBe(false)
     })
   }

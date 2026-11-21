@@ -110,7 +110,8 @@ export function TrashView() {
               {/* A taupe stripe: the low-emphasis colour, as these tasks are set aside. */}
               <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${panel.neutral}`} />
               <div className="min-w-0 flex-1">
-                <div className="line-clamp-2 font-medium break-words text-muted line-through decoration-muted/50">{t.title}</div>
+                {/* No strike-through: here that would read as done. The taupe stripe and the dates say it's set aside. */}
+                <div className="line-clamp-2 text-[15px] leading-5 font-medium break-words">{t.title}</div>
                 <div className="mt-1 text-xs text-muted">
                   Deleted {new Date(t.deletedAt!).toLocaleDateString('en-GB')} · {daysLeft} day{daysLeft === 1 ? '' : 's'} left
                 </div>

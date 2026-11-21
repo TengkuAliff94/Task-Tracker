@@ -218,6 +218,8 @@ Every animation takes its timing from here, never from ad-hoc numbers. CSS durat
 - Inline errors anywhere use `FieldError` (`role="alert"`, with `aria-describedby` on the field).
 - Roles and accessible names used by the e2e fixture are a contract: don't rename them.
 - Dialogs stay native `<dialog>`, which gives Escape, focus trapping and focus return.
+- No checkbox keeps the browser's own look: `.task-check` (round) completes a task, `.box-check`
+  (square) is everything else. Both have a hover halo and the orange fill.
 
 ---
 
@@ -247,4 +249,5 @@ Before delivering any UI code, verify:
 - [ ] Only `transform` and `opacity` animate
 - [ ] Responsive at 390px, 768px, 1024px and 1440px, with no horizontal scroll on mobile
 - [ ] Accessible roles and names are unchanged
+- [ ] No type below 12px, no hairline rules, one brand-orange button per screen, and labels spelt `#tag` / `@Project` (`e2e/polish.spec.ts`)
 - [ ] `21st review src` shows no new errors or warnings
