@@ -40,6 +40,38 @@ export class App {
     await expect(this.taskRow('Renew car insurance')).toBeVisible()
   }
 
+  /**
+   * Brings up the backup reminder on purpose, as it shows for someone who has used the app for real
+   * for 4 days without a backup: records that first use straight into IndexedDB, then reloads so the
+   * app reads it. Sample data alone never brings it up.
+   */
+  async showBackupNudge() {
+    await this.page.evaluate(
+      ([key, at]) =>
+        new Promise<void>((resolve, reject) => {
+          const open = indexedDB.open('task-tracker')
+          open.onerror = () => reject(open.error)
+          open.onsuccess = () => {
+            const tx = open.result.transaction('meta', 'readwrite')
+            tx.objectStore('meta').put({ key, value: at })
+            tx.oncomplete = () => {
+              open.result.close()
+              resolve()
+            }
+            tx.onerror = () => reject(tx.error)
+          }
+        }),
+      ['firstUsedAt', FIXED_NOW.getTime() - 4 * 86_400_000] as const,
+    )
+    await this.page.reload()
+    await expect(this.backupNudge).toBeVisible()
+  }
+
+  /** The backup reminder's "Remind me later" button, which only exists while the reminder shows. */
+  get backupNudge(): Locator {
+    return this.page.getByRole('button', { name: 'Remind me later' })
+  }
+
   /** The task cards in a list, in reading order. Lists are named "Tasks", or "<group> tasks" when grouped. */
   taskCards(list = 'Tasks'): Locator {
     return this.page.getByRole('list', { name: list }).getByRole('listitem')

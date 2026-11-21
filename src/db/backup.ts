@@ -1,12 +1,38 @@
 // Full backup and restore. Files are embedded as base64 so one JSON file holds everything.
 import type { Attachment, Label, Task } from '../types'
 import { createMetaStore, db as defaultDb, type TaskTrackerDB } from './db'
+import { createUsage } from './usage'
 
 export const BACKUP_APP = 'task-tracker'
 export const BACKUP_VERSION = 1
 export const LAST_BACKUP_KEY = 'lastBackupAt'
 export const BACKUP_NUDGE_DAYS = 14
+/** Days of real use before the first "you haven't backed up" nudge, and how long "Remind me later" lasts. */
+export const NUDGE_GRACE_DAYS = 3
 const NUDGE_SNOOZED_KEY = 'backupNudgeSnoozedUntil'
+const DAY = 86_400_000
+
+export type BackupNudge = { kind: 'never' } | { kind: 'stale'; days: number }
+
+/**
+ * Whether to suggest a backup, and why. Never backed up: once real use is 3+ days old (sample data
+ * doesn't count, see usage.ts). Backed up before: once the last backup is 14+ days old. Not while
+ * snoozed, and not when there's nothing to back up.
+ */
+export function backupNudge(s: {
+  now: number
+  hasTasks: boolean
+  firstUsedAt?: number
+  lastBackupAt?: number
+  snoozedUntil?: number
+}): BackupNudge | null {
+  if (!s.hasTasks || (s.snoozedUntil !== undefined && s.snoozedUntil > s.now)) return null
+  if (s.lastBackupAt === undefined) {
+    return s.firstUsedAt !== undefined && s.now - s.firstUsedAt >= NUDGE_GRACE_DAYS * DAY ? { kind: 'never' } : null
+  }
+  const days = Math.floor((s.now - s.lastBackupAt) / DAY)
+  return days >= BACKUP_NUDGE_DAYS ? { kind: 'stale', days } : null
+}
 
 type StoredAttachment = Omit<Attachment, 'blob'> & { blobBase64?: string; blobType?: string }
 
@@ -37,6 +63,7 @@ function base64ToBlob(b64: string, type: string): Blob {
 
 export function createBackup(db: TaskTrackerDB = defaultDb) {
   const meta = createMetaStore(db)
+  const usage = createUsage(db)
 
   return {
     async exportData(now = new Date()): Promise<BackupFile> {
@@ -61,18 +88,25 @@ export function createBackup(db: TaskTrackerDB = defaultDb) {
       return { tasks: data.tasks.length, attachments: data.attachments.length }
     },
 
-    /** Replaces all tasks, projects, tags and attachments with the backup's contents. */
-    async importData(raw: unknown): Promise<{ tasks: number; attachments: number }> {
+    /**
+     * Replaces all tasks, projects, tags and attachments with the backup's contents. The data now
+     * matches the file, so the file counts as the last backup, and a restore counts as real use.
+     */
+    async importData(raw: unknown, now = Date.now()): Promise<{ tasks: number; attachments: number }> {
       const data = validate(raw)
       const attachments: Attachment[] = data.attachments.map(({ blobBase64, blobType, ...rest }) =>
         blobBase64 !== undefined ? { ...rest, blob: base64ToBlob(blobBase64, blobType ?? '') } : rest,
       )
-      await db.transaction('rw', [db.tasks, db.projects, db.tags, db.attachments], async () => {
+      const exportedAt = Date.parse(data.exportedAt)
+      await db.transaction('rw', [db.tasks, db.projects, db.tags, db.attachments, db.meta], async () => {
         await Promise.all([db.tasks.clear(), db.projects.clear(), db.tags.clear(), db.attachments.clear()])
         await db.tasks.bulkAdd(data.tasks)
         await db.projects.bulkAdd(data.projects)
         await db.tags.bulkAdd(data.tags)
         await db.attachments.bulkAdd(attachments)
+        // A file with no readable date (hand-edited) still restores; "Last backup" is just left as it was.
+        if (Number.isFinite(exportedAt)) await meta.set(LAST_BACKUP_KEY, Math.min(exportedAt, now))
+        if (data.tasks.length) await usage.noteUse(now)
       })
       return { tasks: data.tasks.length, attachments: attachments.length }
     },

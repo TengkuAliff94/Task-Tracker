@@ -31,7 +31,7 @@ The screenshots show the built-in sample data. To regenerate them after a UI cha
 - **Keyboard shortcuts**: see the [table below](#keyboard-shortcuts).
 - **Themes**: light and dark, following the system setting by default. Responsive down to phone widths.
 
-New here? Open the app and click **Load sample data** to see a filled-in list. It is also in the Backup & restore window.
+New here? Open the app and click **Load sample data** to see a filled-in list. It is also under "Try the app" in the Backup & restore window. Sample data never sets off the backup reminder.
 
 ## Tech
 
@@ -58,7 +58,7 @@ UI (src/App.tsx, src/components/)  ->  storage module (src/db/)  ->  IndexedDB (
    pure logic (src/lib/): quick-add parser, recurrence, overdue rules, reminders, filters, sorting
 ```
 
-- **`src/db/`** is the only code that touches the database. Tasks, projects and tags, attachments, backup, reminder bookkeeping and sample data each have a repository there (`tasks.ts`, `labels.ts`, `attachments.ts`, `backup.ts`, `reminders.ts`, `sample.ts`). Components and hooks call these and never import the Dexie handle, so a backend could replace IndexedDB by swapping this module. One catch: the UI wraps repository calls in Dexie's `useLiveQuery` to re-render when data changes, so a backend swap would also need another way to push updates.
+- **`src/db/`** is the only code that touches the database. Tasks, projects and tags, attachments, backup, reminder bookkeeping, sample data, when real use began and persistent storage each have a module there (`tasks.ts`, `labels.ts`, `attachments.ts`, `backup.ts`, `reminders.ts`, `sample.ts`, `usage.ts`, `persistence.ts`). Components and hooks call these and never import the Dexie handle, so a backend could replace IndexedDB by swapping this module. One catch: the UI wraps repository calls in Dexie's `useLiveQuery` to re-render when data changes, so a backend swap would also need another way to push updates.
 - **`src/lib/`** is plain TypeScript with no storage or React, so it's easy to unit test.
 
 ## Design decisions
@@ -119,4 +119,4 @@ The repo is connected to Vercel, so every push to `main` deploys to production a
 
 ## Privacy
 
-Everything stays in your browser's storage on this device. Clearing site data deletes it, so use **Backup & restore** to keep a copy.
+Everything stays in your browser's storage on this device. Clearing site data deletes it, so use **Backup & restore** to keep a copy. Once you add your first task, the app asks the browser to keep its storage when space runs low; Backup & restore shows whether it agreed.

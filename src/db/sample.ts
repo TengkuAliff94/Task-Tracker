@@ -227,6 +227,7 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
           recurrence: s.recurrence,
         },
         addedAt,
+        { sample: true },
       )
       for (const [name, url] of s.links ?? []) await attachments.addLink(task.id, url, name, addedAt)
     }

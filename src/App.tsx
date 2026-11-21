@@ -10,6 +10,7 @@ import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { formatDeadline } from './lib/deadline'
 import { describeSaveError } from './lib/utils'
 import { useNow } from './hooks/useNow'
+import { useKeepStorage } from './hooks/useKeepStorage'
 import { useReminders } from './hooks/useReminders'
 import { useShortcuts } from './hooks/useShortcuts'
 import { TaskCard } from './components/TaskCard'
@@ -57,7 +58,7 @@ const EMPTY_SCOPE: Record<Scope, { title: string; body: string }> = {
 function ListEmpty({ tasks, filters, onShowAll }: { tasks: Task[]; filters: Filters; onShowAll: () => void }) {
   if (tasks.length === 0) {
     return (
-      <EmptyState icon={ClipboardList} title="No tasks yet" action={<SampleDataButton prominent />}>
+      <EmptyState icon={ClipboardList} title="No tasks yet" action={<SampleDataButton variant="brand" />}>
         Type one in the quick-add bar above, or try the app with example tasks.
       </EmptyState>
     )
@@ -137,6 +138,7 @@ export default function App() {
   const attachmentCounts = useLiveQuery(() => attachmentRepo.countsByTask(), [])
   const trashCount = useLiveQuery(() => taskRepo.countTrash(), []) ?? 0
   const now = useNow()
+  useKeepStorage()
 
   const [view, setView] = useState<View>('tasks')
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
@@ -176,7 +178,6 @@ export default function App() {
   const groups = useMemo(() => groupTasks(visible, group, projects), [visible, group, projects])
   const ordered = useMemo(() => groups.flatMap((g) => g.tasks), [groups])
   const doneCount = tasks?.filter((t) => t.status === 'done').length ?? 0
-  const oldestTaskAt = tasks?.length ? Math.min(...tasks.map((t) => t.createdAt)) : undefined
   const selected = ordered.find((t) => t.id === selectedId)
   const hasTasks = Boolean(tasks?.length)
   const urgency = useMemo(
@@ -397,7 +398,7 @@ export default function App() {
           {/* Notices come after the heading, so the page title is always the first thing read. */}
           <div className="flex flex-col gap-3 empty:hidden">
             <MissedRemindersBanner alerts={alerts} onDismissAll={dismissAll} onOpen={openTask} />
-            <BackupNudge oldestTaskAt={oldestTaskAt} onOpen={() => setModal('backup')} />
+            <BackupNudge hasTasks={hasTasks} onOpen={() => setModal('backup')} />
           </div>
 
           <div className="flex flex-col gap-3">

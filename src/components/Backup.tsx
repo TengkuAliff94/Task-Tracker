@@ -1,9 +1,11 @@
-import { useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { DatabaseBackup, Download, Upload } from 'lucide-react'
 import { taskRepo } from '../db/tasks'
-import { backup, BACKUP_NUDGE_DAYS } from '../db/backup'
-import { toDateInput } from '../lib/deadline'
+import { backup, backupNudge, NUDGE_GRACE_DAYS } from '../db/backup'
+import { persistence, type StorageProtection } from '../db/persistence'
+import { usage } from '../db/usage'
+import { formatDateTime, toDateInput } from '../lib/deadline'
 import { plural } from '../lib/utils'
 import { useConfirm } from '../hooks/useConfirm'
 import { attentionAction, attentionQuiet, btn, INVERTED_PANEL, panel } from '../ui'
@@ -12,7 +14,6 @@ import { Dialog } from './Dialog'
 import { SampleDataButton } from './SampleDataButton'
 
 const DAY = 86_400_000
-const SNOOZE_DAYS = 3
 
 async function downloadBackup() {
   const data = await backup.exportData()
@@ -29,12 +30,93 @@ function useLastBackup() {
   return useLiveQuery(async () => ({ at: await backup.lastBackupAt() }), [])
 }
 
+type Message = { ok: boolean; text: string } | null
+
+/**
+ * A result line that screen readers announce. While empty it's visually hidden but stays in the
+ * accessibility tree (`display: none` would take it out), so the first message is read too.
+ */
+function MessageLine({ message, className = '' }: { message: Message; className?: string }) {
+  return (
+    <p role="status" className={`empty:sr-only ${message?.ok === false ? 'text-danger' : 'text-primary'} ${className}`}>
+      {message?.text}
+    </p>
+  )
+}
+
+const PROTECTION: Record<StorageProtection, { label: string; detail: string }> = {
+  protected: { label: 'Protected', detail: 'The browser won’t clear your tasks to free up space.' },
+  unprotected: { label: 'Not protected', detail: 'The browser may clear your tasks if the device runs low on space.' },
+  unknown: { label: 'Not reported', detail: 'This browser doesn’t say whether it keeps your tasks when space runs low.' },
+}
+
+/** Whether the browser has agreed to keep this site's storage, with a way to ask while it hasn't. */
+function StorageStatus() {
+  const [status, setStatus] = useState<StorageProtection>()
+  /** How many times in a row a request was turned down, so a repeat refusal still changes the line (and is read out). */
+  const [refusals, setRefusals] = useState(0)
+  const asking = useRef(false)
+  const labelRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    let live = true
+    void persistence.status().then((s) => live && setStatus(s))
+    // A request made elsewhere (after a restore, say) can change the answer while this is open.
+    const unsubscribe = persistence.subscribe((s) => live && setStatus(s))
+    return () => {
+      live = false
+      unsubscribe()
+    }
+  }, [])
+
+  async function ask() {
+    // A ref, not `disabled`: disabling the focused button would drop focus while Firefox's prompt is up.
+    if (asking.current) return
+    asking.current = true
+    try {
+      const result = await persistence.request()
+      setStatus(result)
+      setRefusals((n) => (result === 'unprotected' ? n + 1 : 0))
+      // The button goes once protection is granted; focus the new state so it's read out, not lost.
+      if (result !== 'unprotected') requestAnimationFrame(() => labelRef.current?.focus())
+    } finally {
+      asking.current = false
+    }
+  }
+
+  if (!status) return <span className="font-normal text-muted">Checking…</span>
+  const { label, detail } = PROTECTION[status]
+  return (
+    <span className="flex flex-col items-start gap-1">
+      <span ref={labelRef} tabIndex={-1} className="rounded-sm">
+        {label}
+      </span>
+      <span className="font-normal text-muted" aria-live="polite">
+        {status === 'unprotected' && refusals > 0
+          ? `${refusals > 1 ? 'Still not granted' : 'Not granted'}. Some browsers decide this for themselves; installing the app often helps.`
+          : detail}
+      </span>
+      {status === 'unprotected' && (
+        <button
+          type="button"
+          onClick={ask}
+          className="rounded-sm text-left font-medium text-primary underline decoration-primary/40 underline-offset-3 transition-[text-decoration-color] duration-200 hover:decoration-primary"
+        >
+          {refusals > 0 ? 'Ask again' : 'Ask the browser to protect it'}
+        </button>
+      )}
+    </span>
+  )
+}
+
 export function BackupDialog({ onClose }: { onClose: () => void }) {
   const last = useLastBackup()
   const fileInput = useRef<HTMLInputElement>(null)
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const [message, setMessage] = useState<Message>(null)
+  const [sampleMessage, setSampleMessage] = useState<Message>(null)
   const [busy, setBusy] = useState(false)
   const [confirmDialog, ask] = useConfirm()
+  const tryHeading = useId()
 
   async function exportNow() {
     setBusy(true)
@@ -96,50 +178,67 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
         <p className="text-muted">
           Your tasks live only in this browser. Clearing site data or switching browsers loses them, so download a backup now and then.
         </p>
-        <p>
-          Last backup:{' '}
-          <strong>{last?.at ? new Date(last.at).toLocaleString('en-GB', { hour12: false }) : 'never'}</strong>
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={exportNow} disabled={busy} className={btn.primary}>
-            <Download className="size-4" /> Download backup
-          </button>
-          <button onClick={() => fileInput.current?.click()} disabled={busy} className={btn.secondary}>
-            <Upload className="size-4" /> Restore from file…
-          </button>
-          <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => importFile(e.target.files?.[0])} />
+        <CountList
+          rows={[
+            ['Last backup', last ? (last.at ? formatDateTime(new Date(last.at)) : 'Never') : '…'],
+            ['Storage', <StorageStatus key="storage" />],
+          ]}
+        />
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <button onClick={exportNow} disabled={busy} className={btn.primary}>
+              <Download className="size-4" /> Download backup
+            </button>
+            <button onClick={() => fileInput.current?.click()} disabled={busy} className={btn.secondary}>
+              <Upload className="size-4" /> Restore from file…
+            </button>
+            <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => importFile(e.target.files?.[0])} />
+          </div>
+          <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
+          <MessageLine message={message} />
         </div>
-        <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
-        <div className="space-y-2 border-t border-line pt-4">
-          <p className="text-muted">Want to explore? Add example tasks that show off every feature. Your own tasks are kept.</p>
-          <SampleDataButton onLoaded={(n) => setMessage({ ok: true, text: `Added ${plural(n, 'sample task')}.` })} />
-        </div>
-        {message && <p className={message.ok ? 'text-primary' : 'text-danger'}>{message.text}</p>}
+        {/* Demo content, kept apart from backup and restore (extra space and its own heading, no rule) so it never reads as a way to restore data. */}
+        <section aria-labelledby={tryHeading} className="space-y-2 pt-3">
+          <h3 id={tryHeading} className="text-sm font-bold">
+            Try the app
+          </h3>
+          <p className="text-muted">Adds example tasks that show off every feature, alongside your own. Nothing is replaced.</p>
+          {/* Button and result share a wrapper, so the empty (visually hidden) line leaves no gap at the bottom. */}
+          <div>
+            <SampleDataButton
+              variant="ghost"
+              onLoaded={(n) => setSampleMessage({ ok: true, text: `Added ${plural(n, 'sample task')}.` })}
+            />
+            <MessageLine message={sampleMessage} className="mt-2" />
+          </div>
+        </section>
       </div>
       {confirmDialog}
     </Dialog>
   )
 }
 
-/** Suggests a backup when there's never been one (after a few days of use) or the last is old. */
-export function BackupNudge({ oldestTaskAt, onOpen }: { oldestTaskAt?: number; onOpen: () => void }) {
+/** Suggests a backup when there's never been one (after a few days of real use) or the last is old. */
+export function BackupNudge({ hasTasks, onOpen }: { hasTasks: boolean; onOpen: () => void }) {
   const state = useLiveQuery(
-    async () => ({ last: await backup.lastBackupAt(), snoozedUntil: await backup.nudgeSnoozedUntil() }),
+    async () => ({
+      last: await backup.lastBackupAt(),
+      snoozedUntil: await backup.nudgeSnoozedUntil(),
+      firstUsedAt: await usage.firstUsedAt(),
+    }),
     [],
   )
-  if (!state || oldestTaskAt === undefined) return null
+  if (!state) return null
   const now = Date.now()
-  if (state.snoozedUntil && state.snoozedUntil > now) return null
-
-  let text: string
-  if (state.last === undefined) {
-    if (now - oldestTaskAt < SNOOZE_DAYS * DAY) return null
-    text = 'You haven’t backed up your tasks yet.'
-  } else {
-    const days = Math.floor((now - state.last) / DAY)
-    if (days < BACKUP_NUDGE_DAYS) return null
-    text = `Your last backup was ${days} days ago.`
-  }
+  const nudge = backupNudge({
+    now,
+    hasTasks,
+    firstUsedAt: state.firstUsedAt,
+    lastBackupAt: state.last,
+    snoozedUntil: state.snoozedUntil,
+  })
+  if (!nudge) return null
+  const text = nudge.kind === 'never' ? 'You haven’t backed up your tasks yet.' : `Your last backup was ${nudge.days} days ago.`
 
   return (
     <div role="status" className={`flex animate-fade-up flex-wrap items-center gap-3 rounded-panel px-5 py-4 text-sm ${panel.info}`}>
@@ -150,7 +249,7 @@ export function BackupNudge({ oldestTaskAt, onOpen }: { oldestTaskAt?: number; o
       <button onClick={onOpen} className={`${attentionAction} ${INVERTED_PANEL.info}`}>
         Back up now
       </button>
-      <button onClick={() => backup.snoozeNudge(now + SNOOZE_DAYS * DAY)} className={attentionQuiet}>
+      <button onClick={() => backup.snoozeNudge(now + NUDGE_GRACE_DAYS * DAY)} className={attentionQuiet}>
         Remind me later
       </button>
     </div>

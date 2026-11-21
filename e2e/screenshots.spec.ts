@@ -4,12 +4,11 @@
 import type { Page } from '@playwright/test'
 import { expect, FIXED_NOW, test, type App } from './fixtures'
 
-/** Loads the demo tasks and hides the backup nudge, which would otherwise top every shot. */
+/** Loads the demo tasks. Sample data never brings up the backup nudge, so it stays out of the shots. */
 async function loadSample(app: App) {
   // The fixture's clock keeps running from FIXED_NOW; stop it so "Added …" timestamps don't drift by seconds.
   await app.page.clock.setFixedTime(FIXED_NOW)
   await app.loadSampleData()
-  await app.page.getByRole('button', { name: 'Remind me later' }).click()
 }
 
 /** Takes a shot that comes out the same every run: fonts loaded, no hover state, no animations. */

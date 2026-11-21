@@ -34,7 +34,8 @@ test.describe('wide screen', () => {
 })
 
 // Short visits are for checking what's overdue and ticking it off, so the first task must be on
-// the first screen, even with the backup reminder showing (sample tasks are old enough to trigger it).
+// the first screen, even with the backup reminder showing. Sample data doesn't bring the reminder up,
+// so the worst case is set up on purpose.
 for (const viewport of [
   { width: 1280, height: 900 },
   { width: 1024, height: 768 },
@@ -44,7 +45,7 @@ for (const viewport of [
 
     test('the first task card is fully on the first screen', async ({ app, page }) => {
       await app.loadSampleData()
-      await expect(page.getByRole('button', { name: 'Remind me later' })).toBeVisible()
+      await app.showBackupNudge()
       const first = await box(app.taskCards().first())
       expect(first.y + first.height).toBeLessThanOrEqual(viewport.height)
       expect(await app.scrollsSideways()).toBe(false)
@@ -95,8 +96,9 @@ test.describe('phone', () => {
   // and the filter row directly, so the first card is on the first screen.
   test('the first task card is fully on the first screen once the backup reminder is dismissed', async ({ app, page }) => {
     await app.loadSampleData()
-    await page.getByRole('button', { name: 'Remind me later' }).click()
-    await expect(page.getByRole('button', { name: 'Remind me later' })).toHaveCount(0)
+    await app.showBackupNudge()
+    await app.backupNudge.click()
+    await expect(app.backupNudge).toHaveCount(0)
     const filters = await box(app.filtersToggle)
     const first = await box(app.taskCards().first())
     expect(first.y, 'the list comes after the filter row').toBeGreaterThan(filters.y + filters.height)

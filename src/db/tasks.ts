@@ -2,6 +2,7 @@
 import type { ChecklistItem, Deadline, Priority, Recurrence, Reminder, Status, Task } from '../types'
 import { nextInstance } from '../lib/recurrence'
 import { db as defaultDb, type TaskTrackerDB } from './db'
+import { createUsage } from './usage'
 
 export interface TaskInput {
   title: string
@@ -20,6 +21,8 @@ export interface TaskInput {
 export type TaskPatch = Partial<Omit<Task, 'id' | 'createdAt'>>
 
 export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
+  const usage = createUsage(db)
+
   /**
    * Applies a patch. Status changes keep completedAt in step, and completing a recurring task
    * creates its next instance (once). Reopening it moves that instance to Trash, as long as
@@ -67,7 +70,11 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
       return db.tasks.get(id)
     },
 
-    async create(input: TaskInput, now = Date.now()): Promise<Task> {
+    /**
+     * Adds a task. The first one the person adds marks the start of real use (see usage.ts);
+     * `sample` tasks are the app's own demo content, so they don't.
+     */
+    async create(input: TaskInput, now = Date.now(), { sample = false }: { sample?: boolean } = {}): Promise<Task> {
       const title = input.title.trim()
       if (!title) throw new Error('Title is required')
       const status = input.status ?? 'todo'
@@ -87,7 +94,12 @@ export function createTaskRepo(db: TaskTrackerDB = defaultDb) {
         createdAt: now,
         completedAt: status === 'done' ? now : undefined,
       }
-      await db.tasks.add(task)
+      if (sample) await db.tasks.add(task)
+      else
+        await db.transaction('rw', db.tasks, db.meta, async () => {
+          await db.tasks.add(task)
+          await usage.noteUse(now)
+        })
       return task
     },
 

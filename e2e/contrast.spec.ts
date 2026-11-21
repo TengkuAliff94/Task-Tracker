@@ -19,6 +19,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
     test(`task list, completed tasks and the backup nudge are readable (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
+      await app.showBackupNudge()
       await app.openFilters()
       await page.getByText(/^Show completed/).click()
       await expect(app.taskRow('File expense claims')).toBeVisible()

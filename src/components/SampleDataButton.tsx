@@ -9,9 +9,16 @@ import { btn } from '../ui'
 /**
  * Adds the demo projects, tags and tasks. When tasks already exist it asks first,
  * since the sample set is added alongside them and never replaces anything.
- * `prominent` makes it the brand button, for the first-run empty state where it's the main action.
+ * `variant`: `brand` for the first-run empty state, where it's the main action; `ghost` in Backup & restore,
+ * where it must not read as a peer of Restore.
  */
-export function SampleDataButton({ onLoaded, prominent = false }: { onLoaded?: (count: number) => void; prominent?: boolean }) {
+export function SampleDataButton({
+  onLoaded,
+  variant = 'secondary',
+}: {
+  onLoaded?: (count: number) => void
+  variant?: 'brand' | 'secondary' | 'ghost'
+}) {
   const [busy, setBusy] = useState(false)
   const [confirmDialog, ask] = useConfirm()
   /** Set at once on click, so a quick second click can't start a second load before busy renders. */
@@ -55,7 +62,7 @@ export function SampleDataButton({ onLoaded, prominent = false }: { onLoaded?: (
 
   return (
     <>
-      <button onClick={load} disabled={busy} className={prominent ? btn.brand : btn.secondary}>
+      <button onClick={load} disabled={busy} className={variant === 'ghost' ? `${btn.ghost} -ms-3` : btn[variant]}>
         <Sparkles className="size-4" /> Load sample data
       </button>
       {confirmDialog}
