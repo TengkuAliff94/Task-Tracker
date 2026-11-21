@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-21, at the end of the session that ran step 3c.
+Last updated 2026-11-21, at the end of the session that ran step 3d.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -20,13 +20,13 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 3a | `/impeccable harden src/components/TaskForm.tsx` | [#22](https://github.com/TengkuAliff94/Task-Tracker/issues/22) the editor must not discard edits silently | **done** (`32624b4`, review fixes `c88b2e4`) |
 | 3b | `/impeccable harden src/App.tsx` | [#23](https://github.com/TengkuAliff94/Task-Tracker/issues/23) completion toast with Undo, next-due note, J/K position | **done** (`c45be56`) |
 | 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates (+ [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28)) | **done** |
-| 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **next** |
-| 4 | `/impeccable audit src` | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps. Do this **after #23** | to do |
+| 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **done** (`e0b8ad1`) |
+| 4 | `/impeccable audit src` | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps. Do this **after #23** | **next** |
 | 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** start a session in this repo, run `/impeccable harden src/components/Backup.tsx src/db`, and work through #25's acceptance criteria. Step 3c has no loose ends: #24 and #28 are closed and #19's table is up to date.
+**To resume:** start a session in this repo, run `/impeccable audit src`, and work through #26's acceptance criteria. Gather the items marked "Left for #26" in the step write-ups below first.
 
 **Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
 
@@ -54,8 +54,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 135 passing after step 3c
-npm run test:e2e                # e2e (Playwright, port 4173): 145 passing after step 3c
+npm test                        # unit (Vitest): 156 passing after step 3d
+npm run test:e2e                # e2e (Playwright, port 4173): 153 passing after step 3d
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -85,7 +85,10 @@ npm run build                   # production build + PWA
 - **The task editor asks before discarding.** With unsaved changes, Esc, × and Cancel show the "Discard your changes?" bar instead of closing. In e2e, close an edited editor with Save, or press Discard on the bar (`e2e/task-editor.spec.ts` shows how). Closing an untouched editor is still instant.
 - **Give each review agent its own port.** The adversarial review runs many agents that each start Playwright. Pass `E2E_PORT=<unique port>` to each one (`playwright.config.ts` reads it), or they reuse or kill each other's dev server. Probe tests go in `e2e/zz-probe-*.spec.ts` and get deleted afterwards.
 - **Faking a storage failure.** To test what happens when IndexedDB refuses a write, patch `IDBObjectStore.prototype.add` in `page.addInitScript` to throw a `QuotaExceededError` for one store. "when attachments fail to save" in `e2e/task-editor.spec.ts` does this.
-- **#25 will break a layout assertion.** `e2e/layout.spec.ts` expects the backup nudge to show after sample data, to measure the worst case. When #25 stops that, bring the nudge up deliberately rather than deleting the check. There's a comment on #25 about this.
+- **Sample data never brings up the backup nudge.** To test with it showing, call `app.showBackupNudge()` (in `e2e/fixtures.ts`). It writes `firstUsedAt` (4 days back) straight into IndexedDB and reloads. The layout and contrast specs use it for the worst case.
+- **Run e2e with `npm run test:e2e`, not bare `npx playwright test`.** The bare command also runs the screenshots project, which rewrites `docs/screenshots/*.png`. If it happens, `git checkout -- docs/screenshots`.
+- **Faking the storage manager.** Headless Chromium answers `navigator.storage.persist()` on its own terms. Patch `StorageManager.prototype.persisted/persist` (and `Permissions.prototype.query` for `persistent-storage`) in `page.addInitScript`, then reload. `fakeStorageManager` in `e2e/backup.spec.ts` does this; tests that call it need the `app` fixture so there's a page to reload.
+- **`taskRepo.create` writes `meta` too.** It notes first use in the same transaction, so calling it inside an outer transaction needs `db.meta` in scope, or `{ sample: true }` (which skips the note), as `sample.ts` does.
 - **README screenshots are stale.** They show the old bento. Regenerate them with `npm run screenshots` in #27, not earlier, so it's done once.
 - **Confirmations are in-app `alertdialog`s.** There is no `window.confirm()` left, so `page.on('dialog')` never fires. Find a question with `page.getByRole('alertdialog', { name: 'Empty Trash?' })` and press its named button ("Delete forever", "Cancel"). It's an `alertdialog`, not a `dialog`, so `getByRole('dialog')` still means the window behind it. `e2e/confirm.spec.ts` fails any test where a native dialog opens.
 - **The task editor validates itself.** The form is `noValidate`; errors are `role="alert"` under the field, and the field gets `aria-invalid` and `aria-describedby`. Assert with `toHaveAccessibleDescription(...)`. The Project select is now named "Project".
@@ -96,6 +99,17 @@ npm run build                   # production build + PWA
 - **Shortcuts after quick add.** Quick add keeps focus in its field, so J/K/X/Z typed afterwards go into the field. Blur it first (`addTasks` in `e2e/completion.spec.ts`). Checkboxes and buttons no longer count as typing, so shortcuts work while one has focus.
 - **Faking a failed task write.** Patch `IDBObjectStore.prototype.put` for the `tasks` store behind a window flag you turn on mid-test (see "when storage refuses the change" in `e2e/completion.spec.ts`). Patching it from the start breaks nothing else, because creating a task uses `add`.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Step 3d in brief (#25)
+
+- **Nudge rule:** `backupNudge()` in `src/db/backup.ts` (pure, unit-tested). Never backed up: shows once real use is 3+ days old. Backed up: shows at 14+ days. Not while snoozed, not with no tasks. Real use is `firstUsedAt` in `meta` (`src/db/usage.ts`), set by `taskRepo.create` (unless `{ sample: true }`) and by a restore. A Dexie v3 upgrade seeds it from the oldest task on existing installs, so their behaviour is unchanged. The trade-off: an old install with only sample data still gets the nudge.
+- **Restore** sets `lastBackupAt` to the file's `exportedAt` (never later than now), because the data then matches the file. An older file moves it back on purpose.
+- **Persistent storage:** `src/db/persistence.ts` and `src/hooks/useKeepStorage.ts` (in `App`). It asks right after the first own task or restore in a visit, when Firefox's prompt makes sense, and on later launches only when `permissions.query('persistent-storage')` is `granted`. It never prompts on load. Backup & restore shows Storage: Protected, Not protected or Not reported. "Ask the browser to protect it" leads to "Not granted" or "Still not granted"; when protection is granted, focus moves to the answer. `persistence.subscribe` keeps an open dialog current.
+- **Dialog:** Last backup is `DD/MM/YYYY` via `formatDateTime`. `CountList` now takes nodes. Sample data lives in a "Try the app" section with a bold h3 and a ghost button, with spacing and no rule. Result lines are `role="status"` and `empty:sr-only`, so they stay in the accessibility tree.
+- **Review:** three lenses. Eight findings, checked by hand against code and renders rather than by three skeptics each, since all were measured facts. Fixed: stale status after a restore, `display:none` status regions, a silent second refusal, the centred wrap on phones, the h3 weight, the hairline, Firefox-inaccurate copy, DESIGN.md wording. Not fixed: old sample-only installs (by design), an older restore moving Last backup back (intended), two tabs both asking (rare, unproven).
+- **Left for #26:** the Ask flow puts focus on `<body>` for one animation frame before it reaches "Protected". Focusing in a layout effect would close that gap.
+
+The tests are `src/db/usage.test.ts` (21) and `e2e/backup.spec.ts` (8). The 7 original e2e tests were run against the old source and failed; the restore catch-up test was checked the same way against its fix.
 
 ## Step 3c in brief (#24, #28)
 
