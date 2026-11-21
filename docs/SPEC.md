@@ -35,7 +35,7 @@ A personal task tracker for daily use that doubles as a learning/portfolio proje
 - **Complete**: a "Done" toast with Undo, which puts the task back to the status it had. For a recurring task it also says when the new copy is due, and Undo follows the reopen rule below.
 - **Delete**: an Undo toast, then Trash, which purges after 30 days. Deleting a project moves its tasks to "No project", after a confirmation that shows the count.
 - **Backup**: full JSON export/import (including attachments), plus a "last backup N days ago" nudge.
-- **Shortcuts**: `N` quick-add, `/` search, `J`/`K` navigate, `E` edit, `X` toggle done, `Z` undo (while the toast shows), `?` help. After `X`, the selection passes to the card that takes the completed card's place, so `J`/`K` carry on from there.
+- **Shortcuts**: `N` quick-add, `/` search, `J`/`K` navigate, `E` edit, `X` toggle done, `Z` undo (while the toast shows), `?` help. After `X`, the selection passes to the card that takes the completed card's place, so `J`/`K` carry on from there. `J`/`K` move keyboard focus along with the selection, and Tabbing to a card selects it. When a focused card leaves the list, focus moves to the card that takes its place.
 - **Dates**: `DD/MM/YYYY`, 24-hour clock, relative labels ("Tomorrow", "In 3 days").
 
 ## Quality & release

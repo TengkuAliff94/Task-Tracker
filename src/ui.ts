@@ -21,7 +21,7 @@ export const btn = {
 
 /** Flat input: a filled well with no outline at rest; the border appears on hover and focus. */
 export const field =
-  'w-full rounded-lg border border-transparent bg-subtle px-3 py-2 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted/70 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] disabled:opacity-50'
+  'w-full rounded-lg border border-transparent bg-subtle px-3 py-2 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)] disabled:opacity-50'
 
 /** Added to `field` (through `cn`) while a field has an error: a danger border that stays on hover and focus. */
 export const INVALID_FIELD = 'border-danger hover:border-danger focus:border-danger'
@@ -90,11 +90,11 @@ export const ALERT_OUTLINE = 'ring-2 ring-panel-maroon'
  */
 const attentionBase = 'rounded-lg px-3 py-1.5 text-xs font-semibold transition'
 export const attentionAction = `${attentionBase} hover:opacity-85`
-/** Dimmed to 85% at rest; on violet that is still about 5.6:1. */
-export const attentionQuiet = `${attentionBase} opacity-85 hover:bg-black/10 hover:opacity-100`
+/** Dimmed to 85% at rest; on violet that is still about 5.6:1. Hover tints from the panel's own ink. */
+export const attentionQuiet = `${attentionBase} opacity-85 hover:bg-current/10 hover:opacity-100`
 
 /** The Dismiss (×) button on a toast panel, in the panel's own text colour (75% at rest, still AA on violet and mustard). */
-export const toastDismiss = 'rounded-md p-1 opacity-75 transition hover:bg-black/10 hover:opacity-100'
+export const toastDismiss = 'rounded-md p-1 opacity-75 transition hover:bg-current/10 hover:opacity-100'
 
 /** Sill's hover: a coloured control lights up mustard. */
 export const hoverHighlight = 'hover:bg-panel-mustard hover:text-on-panel-mustard'

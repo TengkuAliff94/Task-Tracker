@@ -41,7 +41,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             <ArrowLeft className="size-5" />
           </button>
           <div className="min-w-0">
-            <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">Trash</h1>
+            <h1 id="page-heading" tabIndex={-1} className="truncate text-xl font-semibold tracking-tight sm:text-2xl">Trash</h1>
             <p className="truncate text-xs text-muted">Restore or permanently delete</p>
           </div>
         </div>
@@ -55,7 +55,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
         </div>
       )}
       <div className="flex shrink-0 items-center gap-2">
-        <div className="flex items-center gap-0.5 rounded-panel bg-surface p-1 shadow-card max-sm:[&>*]:size-8">
+        <div className="flex items-center gap-0.5 rounded-panel bg-surface p-1 shadow-card max-sm:[&>button]:size-8">
           <NotificationButton />
           <button onClick={onLabels} aria-label="Projects & tags" title="Projects & tags" className={btn.headerIcon}>
             <Tags className="size-5" />

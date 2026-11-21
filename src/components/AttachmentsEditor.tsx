@@ -33,6 +33,7 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
   const [linkError, setLinkError] = useState<string | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const linkErrorId = useId()
+  const fileErrorId = useId()
   const shownLinkError = draftError ?? linkError
   const fileInput = useRef<HTMLInputElement>(null)
   const kept = existing.filter((a) => !removed.includes(a.id))
@@ -84,7 +85,7 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
             {a.name}
           </a>
           {a.size !== undefined && <span className="text-xs text-muted">{formatBytes(a.size)}</span>}
-          <button type="button" onClick={() => onRemovedChange([...removed, a.id])} aria-label={`Remove ${a.name}`} className="rounded p-0.5 text-muted hover:text-fg">
+          <button type="button" onClick={() => onRemovedChange([...removed, a.id])} aria-label={`Remove ${a.name}`} className="-m-1 rounded p-1.5 text-muted hover:text-fg">
             <X className="size-3.5" />
           </button>
         </div>
@@ -97,7 +98,7 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
             <span className="min-w-0 flex-1 truncate">{name}</span>
             {p.kind === 'file' && <span className="text-xs text-muted">{formatBytes(p.file.size)}</span>}
             <span className="text-xs text-muted">unsaved</span>
-            <button type="button" onClick={() => onPendingChange(pending.filter((_, j) => j !== i))} aria-label={`Remove ${name}`} className="rounded p-0.5 text-muted hover:text-fg">
+            <button type="button" onClick={() => onPendingChange(pending.filter((_, j) => j !== i))} aria-label={`Remove ${name}`} className="-m-1 rounded p-1.5 text-muted hover:text-fg">
               <X className="size-3.5" />
             </button>
           </div>
@@ -123,13 +124,18 @@ export function AttachmentsEditor({ existing, removed, onRemovedChange, pending,
           aria-describedby={shownLinkError ? linkErrorId : undefined}
           className={cn(field, shownLinkError && INVALID_FIELD)}
         />
-        <button type="button" onClick={() => fileInput.current?.click()} className={btn.secondary}>
+        <button
+          type="button"
+          onClick={() => fileInput.current?.click()}
+          aria-describedby={fileError ? fileErrorId : undefined}
+          className={btn.secondary}
+        >
           <Paperclip className="size-4" /> File
         </button>
         <input ref={fileInput} type="file" multiple hidden onChange={(e) => addFiles(e.target.files)} />
       </div>
       {shownLinkError && <FieldError id={linkErrorId}>{shownLinkError}</FieldError>}
-      {fileError && <p className="text-xs text-danger">{fileError}</p>}
+      {fileError && <FieldError id={fileErrorId}>{fileError}</FieldError>}
     </div>
   )
 }

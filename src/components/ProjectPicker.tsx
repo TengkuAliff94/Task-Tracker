@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { projectRepo } from '../db/labels'
 import type { Label } from '../types'
 import { cn } from '../lib/utils'
-import { btn } from '../ui'
+import { btn, INVALID_FIELD } from '../ui'
+import { FieldError } from './FieldError'
 
 interface Props {
   projects: Label[]
@@ -19,6 +20,7 @@ const NEW = '__new__'
 /** A project dropdown with a "New project…" option that turns into an inline name input. */
 export function ProjectPicker({ projects, value, onChange, className, draft, onDraftChange }: Props) {
   const [error, setError] = useState<string | null>(null)
+  const errorId = useId()
 
   async function create() {
     try {
@@ -38,7 +40,10 @@ export function ProjectPicker({ projects, value, onChange, className, draft, onD
           <input
             autoFocus
             value={draft}
-            onChange={(e) => onDraftChange(e.target.value)}
+            onChange={(e) => {
+              onDraftChange(e.target.value)
+              setError(null)
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
@@ -51,13 +56,19 @@ export function ProjectPicker({ projects, value, onChange, className, draft, onD
             }}
             placeholder="Project name"
             aria-label="New project name"
-            className={cn(className, 'min-w-0 flex-[1_1_6rem]')}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+            className={cn(className, 'min-w-0 flex-[1_1_6rem]', error && INVALID_FIELD)}
           />
           <button type="button" onClick={create} className={btn.secondary}>
             Add
           </button>
         </div>
-        {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+        {error && (
+          <div className="mt-1">
+            <FieldError id={errorId}>{error}</FieldError>
+          </div>
+        )}
       </div>
     )
   }

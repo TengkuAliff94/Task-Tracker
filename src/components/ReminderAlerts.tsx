@@ -45,9 +45,9 @@ export function MissedRemindersBanner({ alerts, onDismissAll, onOpen }: Omit<Pro
 
 export function ReminderToast({ alert, onDismiss, onOpen }: { alert: Alert; onDismiss: () => void; onOpen: () => void }) {
   return (
-    <ToastPanel role="alert" className={`p-3.5 ${panel.warning}`}>
+    <ToastPanel role="alert" toastId={keyOf(alert)} className={`p-3.5 ${panel.warning}`}>
       <div className="flex items-start gap-2">
-        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-black/10">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-current/10">
           <Bell className="size-4" aria-hidden />
         </span>
         <button onClick={onOpen} className="min-w-0 flex-1 text-left">

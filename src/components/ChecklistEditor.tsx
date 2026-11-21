@@ -55,7 +55,7 @@ export function ChecklistEditor({ value, onChange, draft, onDraftChange }: Props
                   type="button"
                   onClick={() => onChange(value.filter((i) => i.id !== item.id))}
                   aria-label={`Remove ${item.text}`}
-                  className="rounded p-1 text-muted opacity-60 hover:bg-subtle hover:opacity-100"
+                  className="rounded p-1.5 text-muted opacity-60 hover:bg-subtle hover:opacity-100"
                 >
                   <X className="size-3.5" />
                 </button>

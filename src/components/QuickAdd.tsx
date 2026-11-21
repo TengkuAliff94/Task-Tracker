@@ -1,5 +1,7 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useId, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
+import { FieldError } from './FieldError'
+import { PHONE_QUERY, useMediaQuery } from '../hooks/useMediaQuery'
 import { card, PRIORITY_PANEL } from '../ui'
 import { POP_FROM } from './motion/presets'
 import { Reveal } from './motion/Reveal'
@@ -22,9 +24,23 @@ function Chip({ children, className = 'bg-surface text-fg' }: { children: ReactN
   )
 }
 
+/** The quick-add syntax, as the full placeholder shows it from `sm` and the hint shows it on phones. */
+const SYNTAX: ReactNode[] = ['#tag', '@project', '!high', '~30m', 'tomorrow 5pm'].map((token, i) => (
+  <span key={token}>
+    {i > 0 && ' '}
+    <span className="font-medium text-fg">{token}</span>
+  </span>
+))
+
 export function QuickAdd() {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [focused, setFocused] = useState(false)
+  // On phones the full example placeholder is cut off mid-token, so it shortens and the syntax
+  // moves to a hint under the field while it's focused and empty.
+  const phone = useMediaQuery(PHONE_QUERY)
+  const hintId = useId()
+  const errorId = useId()
   const parsed = useMemo(() => (text.trim() ? parseQuickAdd(text) : null), [text])
   const deadlineLabel = parsed?.deadline && formatDeadline(parsed.deadline)
 
@@ -68,9 +84,13 @@ export function QuickAdd() {
             setError(null)
           }}
           onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
-          placeholder="Quick add: Pay rent #finance @home !high ~30m tomorrow 5pm"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={phone ? 'Quick add a task' : 'Quick add: Pay rent #finance @home !high ~30m tomorrow 5pm'}
           aria-label="Quick add task"
-          className="w-full rounded-xl bg-transparent py-3.5 pr-12 pl-13 text-base placeholder:text-muted/70 sm:py-4"
+          aria-invalid={error ? true : undefined}
+          aria-describedby={[phone && hintId, error && errorId].filter(Boolean).join(' ') || undefined}
+          className="w-full rounded-xl bg-transparent py-3.5 pr-12 pl-13 text-base placeholder:text-muted sm:py-4"
         />
         <kbd className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 transition-opacity group-focus-within:opacity-0 max-sm:hidden" aria-hidden>
           N
@@ -89,7 +109,24 @@ export function QuickAdd() {
           <span className="ml-auto inline-flex items-center gap-1.5"><kbd>↵</kbd> to add</span>
         </div>
       )}
-      {error && <p className="mt-1.5 px-1 text-xs text-danger">{error}</p>}
+      {/* Always there on phones, so the field can point at it; only drawn while it helps. */}
+      {phone && (
+        <p
+          id={hintId}
+          className={
+            focused && !text
+              ? 'mt-1 animate-fade-up rounded-lg bg-subtle px-3 py-2 text-xs text-muted'
+              : 'sr-only'
+          }
+        >
+          Add details as you type: {SYNTAX}
+        </p>
+      )}
+      {error && (
+        <div className="mt-1.5 px-1">
+          <FieldError id={errorId}>{error}</FieldError>
+        </div>
+      )}
     </form>
   )
 }

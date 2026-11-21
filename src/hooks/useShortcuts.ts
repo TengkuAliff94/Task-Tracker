@@ -16,6 +16,16 @@ export const SHORTCUTS: { keys: string; label: string }[] = [
 /** Inputs that take no typed text, so letter keys stay shortcuts while one has focus. */
 const NON_TEXT_INPUTS = ['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file', 'image']
 
+/** A dialog or an open popover takes the keys (Esc closes it), so the page's shortcuts stand aside. */
+function overlayOpen(): boolean {
+  if (document.querySelector('dialog[open]')) return true
+  try {
+    return document.querySelector(':popover-open') !== null
+  } catch {
+    return false // browsers without popovers
+  }
+}
+
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   if (target instanceof HTMLInputElement) return !NON_TEXT_INPUTS.includes(target.type)
@@ -24,7 +34,7 @@ function isTyping(target: EventTarget | null): boolean {
 
 /**
  * Single-key shortcuts, keyed by `event.key` (e.g. 'n', '/', '?', 'Escape').
- * Ignored while typing, while a dialog is open, or with Ctrl/Alt/Meta held.
+ * Ignored while typing, while a dialog or popover is open, or with Ctrl/Alt/Meta held.
  */
 export function useShortcuts(map: ShortcutMap) {
   const ref = useRef(map)
@@ -33,7 +43,7 @@ export function useShortcuts(map: ShortcutMap) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return
-      if (isTyping(e.target) || document.querySelector('dialog[open]')) return
+      if (isTyping(e.target) || overlayOpen()) return
       const handler = ref.current[e.key.length === 1 ? e.key.toLowerCase() : e.key] ?? ref.current[e.key]
       if (!handler) return
       e.preventDefault()

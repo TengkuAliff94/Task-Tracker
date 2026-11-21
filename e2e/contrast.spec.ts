@@ -12,6 +12,39 @@ async function contrastProblems(page: Page): Promise<string[]> {
   )
 }
 
+/**
+ * Placeholders that fall short of 4.5:1, which axe doesn't check. Each placeholder's colour is
+ * painted over the backgrounds behind its field (alpha included) on a canvas, and the result measured.
+ */
+async function placeholderProblems(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!
+    const paint = (colour: string) => {
+      ctx.fillStyle = colour
+      ctx.fillRect(0, 0, 1, 1)
+    }
+    const read = () => Array.from(ctx.getImageData(0, 0, 1, 1).data.slice(0, 3))
+    const luminance = (rgb: number[]) =>
+      rgb
+        .map((v) => (v / 255 <= 0.03928 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4))
+        .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0)
+    const fields = [...document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[placeholder], textarea[placeholder]')]
+    return fields.flatMap((el) => {
+      if (!el.placeholder || !el.checkVisibility()) return []
+      const layers: string[] = []
+      for (let n: Element | null = el; n; n = n.parentElement) layers.unshift(getComputedStyle(n).backgroundColor)
+      ctx.clearRect(0, 0, 1, 1)
+      paint(getComputedStyle(document.documentElement).getPropertyValue('--bg'))
+      layers.forEach(paint)
+      const bg = read()
+      paint(getComputedStyle(el, '::placeholder').color)
+      const [hi, lo] = [luminance(read()), luminance(bg)].sort((x, y) => y - x)
+      const ratio = (hi + 0.05) / (lo + 0.05)
+      return ratio < 4.5 ? [`${el.getAttribute('aria-label') ?? el.placeholder}: ${ratio.toFixed(2)}:1`] : []
+    })
+  })
+}
+
 for (const colorScheme of ['light', 'dark'] as const) {
   test.describe(colorScheme, () => {
     // Reduced motion so axe measures settled colours, not something halfway through fading in.
@@ -100,6 +133,20 @@ for (const colorScheme of ['light', 'dark'] as const) {
       // Hovered too: the go-ahead darkens (light) or lightens (dark) and must stay AA.
       await ask.getByRole('button', { name: 'Delete project' }).hover()
       expect(await contrastProblems(page)).toEqual([])
+    })
+
+    test(`placeholders are readable on the list, in the editor and in Projects & tags (${colorScheme})`, async ({ app, page }) => {
+      await app.loadSampleData()
+      expect(await placeholderProblems(page)).toEqual([])
+      await page.getByRole('banner').getByRole('button', { name: 'New task' }).click()
+      const editor = page.getByRole('dialog', { name: 'New task' })
+      await editor.getByLabel('Project').selectOption({ label: '+ New project…' })
+      expect(await placeholderProblems(page)).toEqual([])
+      await page.keyboard.press('Escape') // Esc leaves the new-project field first
+      await editor.getByRole('button', { name: 'Close' }).click()
+      await expect(editor).toBeHidden()
+      await page.getByRole('banner').getByRole('button', { name: 'Projects & tags' }).click()
+      expect(await placeholderProblems(page)).toEqual([])
     })
 
     test(`the editor's inline errors and deadline readout are readable (${colorScheme})`, async ({ app, page }) => {

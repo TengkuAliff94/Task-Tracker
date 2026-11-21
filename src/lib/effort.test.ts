@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { formatEffort, parseEffort } from './effort'
+import { describeEffort, formatEffort, parseEffort } from './effort'
 
 it.each([
   ['30m', 30],
@@ -21,4 +21,15 @@ it.each([
   [90, '1h 30m'],
 ])('formatEffort(%i) = %s', (input, expected) => {
   expect(formatEffort(input)).toBe(expected)
+})
+
+it.each([
+  [1, '1 minute'],
+  [30, '30 minutes'],
+  [60, '1 hour'],
+  [120, '2 hours'],
+  [90, '1 hour 30 minutes'],
+  [61, '1 hour 1 minute'],
+])('describeEffort(%i) = %s', (input, expected) => {
+  expect(describeEffort(input)).toBe(expected)
 })

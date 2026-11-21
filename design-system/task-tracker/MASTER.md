@@ -207,6 +207,15 @@ Every animation takes its timing from here, never from ad-hoc numbers. CSS durat
 - Focus is always visible: an unlayered `:focus-visible` outline in the text colour, with a halo
   in the canvas colour, so it shows on every panel colour. Nothing may remove it. This is checked
   in `e2e/focus.spec.ts`.
+- Placeholders meet 4.5:1 too (`placeholder:text-muted`, never a faded muted). axe skips them, so
+  `e2e/contrast.spec.ts` measures them itself.
+- Focus never drops to the page: J/K move it with the selection, and when the focused thing goes (a
+  card, a Trash card, a toast) it moves to the neighbour's same control, else the empty state or the
+  page heading (`#page-heading`). Every control in `<main>` has a 6rem `scroll-margin-top`, so
+  focus never lands under the sticky header. `e2e/accessibility.spec.ts` guards these.
+- Toast countdowns wait while a modal dialog is open (`useModalOpen`). Status toasts are read out
+  through `ToastAnnouncer`, an always-present live region; failures use `role="alert"`.
+- Inline errors anywhere use `FieldError` (`role="alert"`, with `aria-describedby` on the field).
 - Roles and accessible names used by the e2e fixture are a contract: don't rename them.
 - Dialogs stay native `<dialog>`, which gives Escape, focus trapping and focus return.
 
@@ -233,6 +242,7 @@ Before delivering any UI code, verify:
 - [ ] Colours, radii and motion come from the tokens, `src/ui.ts` and `presets.ts`
 - [ ] Text contrast meets 4.5:1 in light **and** dark (`e2e/contrast.spec.ts`)
 - [ ] Focus is visible on every control (`e2e/focus.spec.ts`)
+- [ ] Focus never drops to `<body>` when something disappears, and nothing focused hides under the header (`e2e/accessibility.spec.ts`)
 - [ ] Under `prefers-reduced-motion`, content shows in its final state at once
 - [ ] Only `transform` and `opacity` animate
 - [ ] Responsive at 390px, 768px, 1024px and 1440px, with no horizontal scroll on mobile

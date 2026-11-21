@@ -1,6 +1,6 @@
-import { Bell, CalendarDays, ChevronRight, Clock, ListChecks, Paperclip, Repeat } from 'lucide-react'
+import { Bell, CalendarDays, ChevronRight, Clock, ListChecks, Paperclip, Repeat, type LucideIcon } from 'lucide-react'
 import { formatDeadline, isOverdue } from '../lib/deadline'
-import { formatEffort } from '../lib/effort'
+import { describeEffort, formatEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
 import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Task } from '../types'
 import { ALERT_OUTLINE, panel, PRIORITY_PANEL, SELECTED_OUTLINE } from '../ui'
@@ -23,6 +23,22 @@ interface Props {
 
 const meta = 'inline-flex items-center gap-1 text-muted'
 const badge = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium'
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+/**
+ * An icon and a short figure ("2", "1/3", "30m") that only make sense together. A screen reader
+ * gets the words instead ("2 reminders"), which also show as the tooltip.
+ */
+function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; spoken: string }) {
+  return (
+    <span className={meta} title={spoken}>
+      <Icon className="size-3.5" aria-hidden />
+      <span aria-hidden>{shown}</span>
+      <span className="sr-only">{spoken}</span>
+    </span>
+  )
+}
 
 /**
  * One task as a card in an `AnimatedList`. The stripe down its left edge is the priority colour;
@@ -47,14 +63,17 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
       className={`group relative flex items-start gap-3.5 overflow-hidden rounded-panel bg-surface py-4 pr-4 pl-5 shadow-card transition-[background-color,box-shadow] duration-200 hover:bg-hover hover:shadow-pop ${outline}`}
     >
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${PRIORITY_PANEL[task.priority]}`} />
-      <input
-        type="checkbox"
-        aria-label={done ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
-        checked={done}
-        onChange={(e) => onToggleDone(e.currentTarget)}
-        className="task-check mt-px"
-      />
-      <button onClick={onEdit} className="min-w-0 flex-1 text-left focus-visible:outline-offset-4">
+      {/* The label pads the 20px circle out to a 44px touch target without moving it. */}
+      <label className="-m-3 grid shrink-0 p-3">
+        <input
+          type="checkbox"
+          aria-label={done ? `Mark "${task.title}" as not done` : `Mark "${task.title}" as done`}
+          checked={done}
+          onChange={(e) => onToggleDone(e.currentTarget)}
+          className="task-check mt-px"
+        />
+      </label>
+      <button onClick={onEdit} data-card-edit className="min-w-0 flex-1 rounded-lg text-left focus-visible:outline-offset-4">
         <div
           className={`line-clamp-2 text-[15px] leading-5 font-medium break-words transition-colors duration-200 ${
             done ? 'text-muted line-through decoration-muted/60' : ''
@@ -70,7 +89,8 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
           {task.deadline && (
             <span className={overdue ? 'inline-flex items-center gap-1 font-medium text-danger' : meta}>
               <CalendarDays className="size-3.5" aria-hidden />
-              {formatDeadline(task.deadline, now)}
+              <span className="sr-only">Due </span>
+              <span>{formatDeadline(task.deadline, now)}</span>
             </span>
           )}
           {task.recurrence && (
@@ -79,24 +99,18 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
             </span>
           )}
           {task.reminders.length > 0 && (
-            <span className={meta} title={`${task.reminders.length} reminder(s)`}>
-              <Bell className="size-3.5" aria-hidden /> {task.reminders.length}
-            </span>
+            <Meta icon={Bell} shown={String(task.reminders.length)} spoken={plural(task.reminders.length, 'reminder')} />
           )}
           {task.checklist.length > 0 && (
-            <span className={meta} title="Checklist">
-              <ListChecks className="size-3.5" aria-hidden /> {checked}/{task.checklist.length}
-            </span>
+            <Meta
+              icon={ListChecks}
+              shown={`${checked}/${task.checklist.length}`}
+              spoken={`Checklist: ${checked} of ${task.checklist.length} done`}
+            />
           )}
-          {attachmentCount > 0 && (
-            <span className={meta} title="Attachments">
-              <Paperclip className="size-3.5" aria-hidden /> {attachmentCount}
-            </span>
-          )}
+          {attachmentCount > 0 && <Meta icon={Paperclip} shown={String(attachmentCount)} spoken={plural(attachmentCount, 'attachment')} />}
           {task.effortMinutes !== undefined && (
-            <span className={meta} title="Effort">
-              <Clock className="size-3.5" aria-hidden /> {formatEffort(task.effortMinutes)}
-            </span>
+            <Meta icon={Clock} shown={formatEffort(task.effortMinutes)} spoken={`Effort: ${describeEffort(task.effortMinutes)}`} />
           )}
           {project && <LabelChip name={project.name} color={project.color} prefix="@" />}
           {task.tagIds.map((id) => {

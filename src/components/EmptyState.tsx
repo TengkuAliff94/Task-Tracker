@@ -19,7 +19,7 @@ export function EmptyState({ icon: Icon, title, children, action }: Props) {
   const titleId = useId()
   return (
     <Reveal>
-      <section aria-labelledby={titleId} className={`${card} px-6 py-14 text-center sm:py-20`}>
+      <section aria-labelledby={titleId} tabIndex={-1} data-empty-state className={`${card} px-6 py-14 text-center sm:py-20`}>
         <span className={`mx-auto mb-6 grid size-16 place-items-center rounded-2xl motion-safe:animate-float ${panel.brand}`}>
           <Icon className="size-8" aria-hidden />
         </span>

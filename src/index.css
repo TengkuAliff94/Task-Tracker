@@ -179,14 +179,13 @@ html {
 
 /*
  * What the shortcuts scroll to (a task card for J/K, the quick-add and search fields for N and /),
- * and the filter bar's controls when Tab or Shift+Tab reaches them (WCAG 2.4.11), stops below the sticky header (72px, 84px from sm), which slides back in as the page scrolls up.
+ * and every control in the page content when Tab or Shift+Tab reaches it (WCAG 2.4.11), stops
+ * below the sticky header (72px, 84px from sm), which slides back in as the page scrolls up.
  * Set on those targets rather than as the page's scroll-padding: scroll-padding would also make the
  * browser scroll the page when focus enters the header itself, which sits inside that top strip.
  */
 [data-task-id],
-#quick-add,
-#search,
-[data-filter-bar] :is(button, select, input) {
+main :is(a[href], button, input, select, textarea, [tabindex]) {
   scroll-margin-top: 6rem;
 }
 
@@ -283,7 +282,8 @@ input[type='checkbox'] {
   transform: scale(0);
   transition: transform 200ms var(--ease-out-soft);
 }
-.task-check:hover {
+.task-check:hover,
+label:hover > .task-check {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--primary-soft);
 }

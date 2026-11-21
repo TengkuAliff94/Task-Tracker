@@ -21,7 +21,7 @@ interface Props {
 
 /** A flat well like the form fields: no outline at rest, a border on hover and focus. */
 const select =
-  'h-9 w-full min-w-0 rounded-lg border border-transparent bg-subtle px-2.5 text-sm text-fg transition-[border-color,box-shadow] duration-200 hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)]'
+  'h-9 w-full min-w-0 rounded-lg border border-transparent bg-subtle px-2.5 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)]'
 
 /** The 32px pill shared by the filter toggles, the active-filter chips and Clear filters. */
 const pill = 'inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200'

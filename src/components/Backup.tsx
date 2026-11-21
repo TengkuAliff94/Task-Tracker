@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { DatabaseBackup, Download, Upload } from 'lucide-react'
 import { taskRepo } from '../db/tasks'
@@ -57,6 +57,15 @@ function StorageStatus() {
   const [refusals, setRefusals] = useState(0)
   const asking = useRef(false)
   const labelRef = useRef<HTMLSpanElement>(null)
+  /** Set when a request is granted: the Ask button is about to go, so focus moves to the new state. */
+  const focusLabel = useRef(false)
+
+  // In the same commit that removes the button, so focus never rests on the page in between.
+  useLayoutEffect(() => {
+    if (!focusLabel.current || !status || status === 'unprotected') return
+    focusLabel.current = false
+    labelRef.current?.focus()
+  }, [status])
 
   useEffect(() => {
     let live = true
@@ -74,11 +83,12 @@ function StorageStatus() {
     if (asking.current) return
     asking.current = true
     try {
+      // Set before asking: the answer can also arrive through the subscription above, first.
+      focusLabel.current = true
       const result = await persistence.request()
+      if (result === 'unprotected') focusLabel.current = false
       setStatus(result)
       setRefusals((n) => (result === 'unprotected' ? n + 1 : 0))
-      // The button goes once protection is granted; focus the new state so it's read out, not lost.
-      if (result !== 'unprotected') requestAnimationFrame(() => labelRef.current?.focus())
     } finally {
       asking.current = false
     }
@@ -242,7 +252,7 @@ export function BackupNudge({ hasTasks, onOpen }: { hasTasks: boolean; onOpen: (
 
   return (
     <div role="status" className={`flex animate-fade-up flex-wrap items-center gap-3 rounded-panel px-5 py-4 text-sm ${panel.info}`}>
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white/15">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-current/15">
         <DatabaseBackup className="size-4.5" aria-hidden />
       </span>
       <span className="flex-1 font-medium">{text}</span>

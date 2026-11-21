@@ -29,17 +29,24 @@ interface Props {
   onAction?: (toast: ToastData) => void
   /** The key that also runs the action, for `aria-keyshortcuts`. */
   shortcut?: string
+  /** Holds the countdown, e.g. while a modal dialog makes the toast unreachable. */
+  paused?: boolean
 }
 
 /**
  * A notice that closes itself after 6 seconds. The countdown waits while the pointer is over the
- * toast or focus is inside it, so its action can't vanish while someone is reaching for it. An
+ * toast, while focus is inside it, and while it's `paused` (a dialog is open over it), so its action
+ * can't vanish while someone is reaching for it; it starts again from 6 seconds after each wait. An
  * urgent toast (a failure) has no countdown: it stays until dismissed, so its advice can be read.
+ *
+ * Only an urgent toast announces itself (`role="alert"`). The others are read out through the app's
+ * always-present live region (`ToastAnnouncer`), which screen readers pick up more reliably than a
+ * region that arrives with its text already in it, so their own status role is kept silent.
  */
-export function Toast({ toast, onDismiss, onAction, shortcut }: Props) {
+export function Toast({ toast, onDismiss, onAction, shortcut, paused = false }: Props) {
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
-  const held = hovered || focused || Boolean(toast.urgent)
+  const held = hovered || focused || paused || Boolean(toast.urgent)
 
   useEffect(() => {
     if (held) return
@@ -50,6 +57,7 @@ export function Toast({ toast, onDismiss, onAction, shortcut }: Props) {
   return (
     <ToastPanel
       role={toast.urgent ? 'alert' : 'status'}
+      toastId={toast.id}
       className={`flex items-center gap-3 py-3 pr-3 pl-4 text-sm ${panel.info}`}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
@@ -83,6 +91,26 @@ export function Toast({ toast, onDismiss, onAction, shortcut }: Props) {
 
 type PanelHandlers = Pick<HTMLAttributes<HTMLDivElement>, 'onPointerEnter' | 'onPointerLeave' | 'onFocus' | 'onBlur'>
 
+/** What a toast says to a screen reader: its message and detail, and how to undo where it can. */
+export function toastAnnouncement(toast: ToastData, shortcut?: string): string {
+  const parts = [toast.message, toast.detail].filter(Boolean)
+  if (toast.action && shortcut) parts.push(`Press ${shortcut.toUpperCase()} to ${toast.action.label.toLowerCase()}.`)
+  return parts.join('. ').replace(/\.\. /g, '. ')
+}
+
+/**
+ * A live region that's on the page from the start, so screen readers announce each new toast. Each
+ * announcement is a new child (keyed by the toast), so the same words twice are still read twice.
+ * Visually hidden: the toast itself is what sighted people see.
+ */
+export function ToastAnnouncer({ announcement }: { announcement: { id: string; text: string } | null }) {
+  return (
+    <div aria-live="polite" className="sr-only">
+      {announcement && <p key={announcement.id}>{announcement.text}</p>}
+    </div>
+  )
+}
+
 /**
  * A colour panel that slides in from the screen edge and back out when removed. Render it as a
  * direct child of an `AnimatePresence` so the exit can play. Under reduced motion it appears and
@@ -90,16 +118,25 @@ type PanelHandlers = Pick<HTMLAttributes<HTMLDivElement>, 'onPointerEnter' | 'on
  */
 export function ToastPanel({
   role,
+  toastId,
   className,
   children,
   ...handlers
-}: { role: 'status' | 'alert'; className?: string; children: ReactNode } & PanelHandlers) {
+}: { role: 'status' | 'alert'; toastId: string; className?: string; children: ReactNode } & PanelHandlers) {
   const reduce = useReducedMotionConfig()
   const motionProps = reduce
     ? {}
     : { layout: true, initial: SLIDE_FROM, animate: SLIDE_TO, exit: { ...SLIDE_FROM, transition: exitTransition }, transition: SPRING.soft }
   return (
-    <motion.div role={role} {...motionProps} {...handlers} className={cn('rounded-panel shadow-pop', className)}>
+    // A status toast stays silent itself (`aria-live="off"`): ToastAnnouncer reads it out.
+    <motion.div
+      role={role}
+      aria-live={role === 'status' ? 'off' : undefined}
+      data-toast-id={toastId}
+      {...motionProps}
+      {...handlers}
+      className={cn('rounded-panel shadow-pop', className)}
+    >
       {children}
     </motion.div>
   )

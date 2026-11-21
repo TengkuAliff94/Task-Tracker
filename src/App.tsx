@@ -13,6 +13,7 @@ import { useNow } from './hooks/useNow'
 import { useKeepStorage } from './hooks/useKeepStorage'
 import { useReminders } from './hooks/useReminders'
 import { useShortcuts } from './hooks/useShortcuts'
+import { useModalOpen } from './hooks/useModalOpen'
 import { TaskCard } from './components/TaskCard'
 import { GroupHeading } from './components/GroupHeading'
 import { AnimatedList } from './components/motion/AnimatedList'
@@ -31,7 +32,7 @@ import { HeadingPanel } from './components/HeadingPanel'
 import { Reveal } from './components/motion/Reveal'
 import { EmptyState } from './components/EmptyState'
 import { ShortcutsHelp } from './components/ShortcutsHelp'
-import { Toast, type ToastData } from './components/Toast'
+import { Toast, ToastAnnouncer, toastAnnouncement, type ToastData } from './components/Toast'
 import type { Deadline, Status, Task } from './types'
 import { btn } from './ui'
 
@@ -129,6 +130,33 @@ const focusById = (id: string) => {
   el?.scrollIntoView({ block: 'nearest' })
 }
 
+/** The two controls on a task card: its checkbox and the button that opens it. */
+type CardControl = 'check' | 'edit'
+
+/**
+ * Focuses a card's checkbox or edit button. For keyboard users it also scrolls the whole card into
+ * view; after a mouse click the page stays put. False if the card isn't listed.
+ */
+function focusCard(id: string, control: CardControl): boolean {
+  const card = document.querySelector<HTMLElement>(`[data-task-id="${CSS.escape(id)}"]`)
+  const el = card?.querySelector<HTMLElement>(control === 'check' ? 'input[type="checkbox"]' : '[data-card-edit]')
+  if (!card || !el) return false
+  el.focus({ preventScroll: true })
+  if (el.matches(':focus-visible')) card.scrollIntoView({ block: 'nearest' })
+  return true
+}
+
+/** Where focus goes when what had it is gone and has no neighbour: the empty state, else the page heading. */
+function focusFallback() {
+  ;(document.querySelector<HTMLElement>('[data-empty-state]') ?? document.getElementById('page-heading'))?.focus()
+}
+
+/** True when focus has dropped to the page, or still sits in a card that's on its way out (`id`). */
+function focusLostWith(id: string): boolean {
+  const active = document.activeElement
+  return !active || active === document.body || active.closest(`[data-task-id="${CSS.escape(id)}"]`) !== null
+}
+
 export default function App() {
   const tasks = useLiveQuery(() => taskRepo.list(), [])
   const loadedProjects = useLiveQuery(() => projectRepo.list(), [])
@@ -148,7 +176,11 @@ export default function App() {
   const [modal, setModal] = useState<Modal>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastData[]>([])
+  /** The newest toast's words for screen readers (see ToastAnnouncer). */
+  const [announcement, setAnnouncement] = useState<{ id: string; text: string } | null>(null)
   const { alerts, dismiss, dismissAll } = useReminders(tasks)
+  // A modal makes the toasts behind it unreachable, so their countdowns wait until it closes.
+  const modalOpen = useModalOpen()
 
   // Clear out Trash items past the retention period once per launch.
   useEffect(() => {
@@ -193,14 +225,47 @@ export default function App() {
   )
   const setScope = (scope: Scope | undefined) => setFilters((f) => ({ ...f, scope }))
 
-  const showToast = useCallback(
-    (t: Omit<ToastData, 'id'>) =>
-      setToasts((prev) => [...prev.filter((p) => !t.slot || p.slot !== t.slot), { ...t, id: crypto.randomUUID() }]),
-    [],
+  // Focus inside a toast goes back to where it came from when the toast goes, rather than to the page.
+  const toastStack = useRef<HTMLDivElement>(null)
+  const focusBeforeToasts = useRef<HTMLElement | null>(null)
+  const releaseToastFocus = useCallback((ids: string[]) => {
+    const inToast = document.activeElement?.closest<HTMLElement>('[data-toast-id]')
+    if (!inToast || !ids.includes(inToast.dataset.toastId ?? '')) return
+    const back = focusBeforeToasts.current
+    if (back?.isConnected && !toastStack.current?.contains(back)) back.focus()
+    else document.getElementById('page-heading')?.focus()
+  }, [])
+
+  const toastsRef = useRef<ToastData[]>([])
+  useEffect(() => {
+    toastsRef.current = toasts
+  }, [toasts])
+  /** Takes toasts away, first moving focus out of one that's going. */
+  const removeToasts = useCallback(
+    (gone: (t: ToastData) => boolean) => {
+      const ids = toastsRef.current.filter(gone).map((t) => t.id)
+      releaseToastFocus(ids)
+      setToasts((prev) => prev.filter((t) => !gone(t)))
+      setAnnouncement((a) => (a && ids.includes(a.id) ? null : a))
+    },
+    [releaseToastFocus],
   )
-  const closeToast = useCallback((id: string) => setToasts((prev) => prev.filter((t) => t.id !== id)), [])
+  const showToast = useCallback(
+    (t: Omit<ToastData, 'id'>) => {
+      if (t.slot) removeToasts((p) => p.slot === t.slot)
+      const id = crypto.randomUUID()
+      setToasts((prev) => [...prev.filter((p) => !t.slot || p.slot !== t.slot), { ...t, id }])
+      // A failure announces itself (role="alert"). Z only means something with a keyboard to hand.
+      if (!t.urgent) {
+        const shortcut = t.action && window.matchMedia('(pointer: fine)').matches ? 'z' : undefined
+        setAnnouncement({ id, text: toastAnnouncement({ ...t, id }, shortcut) })
+      }
+    },
+    [removeToasts],
+  )
+  const closeToast = useCallback((id: string) => removeToasts((t) => t.id === id), [removeToasts])
   /** Drops the toasts about a task, e.g. its "Done" toast once it's reopened some other way. */
-  const closeToastsAbout = useCallback((taskId: string) => setToasts((prev) => prev.filter((t) => t.taskId !== taskId)), [])
+  const closeToastsAbout = useCallback((taskId: string) => removeToasts((t) => t.taskId === taskId), [removeToasts])
   const showSaveError = useCallback(
     (what: string, err: unknown) => showToast({ message: what, detail: describeSaveError(err), urgent: true }),
     [showToast],
@@ -310,12 +375,32 @@ export default function App() {
   // When the selected card leaves its place (completed and hidden, filtered out, moved to Trash, or
   // moved by X), the selection passes to the card that now holds that place: the next one, else the
   // one before. So J and K carry on from where the person was instead of starting over at the top.
+  // Focus does the same: if it was in a card that left, it moves to the same control on the card that
+  // took its place (or to the empty state when none did), instead of dropping to the page.
   // It's judged against the previous order, so a recurring task's new copy landing nearby doesn't count.
+  /** The card control that last had focus. Kept when focus drops to the page, so a card that leaves can hand it on. */
+  const focusedCard = useRef<{ id: string; control: CardControl } | null>(null)
   const previousOrder = useRef<Task[]>([])
   const toggledByX = useRef<{ id: string; status: Status } | null>(null)
   useLayoutEffect(() => {
     const before = previousOrder.current
     previousOrder.current = ordered
+    const listed = new Set(ordered.map((t) => t.id))
+    /** The card after `id` (at `was` in the previous order) that's still listed, else the one before it. */
+    const successor = (id: string, was: number) =>
+      before.slice(was + 1).find((t) => t.id !== id && listed.has(t.id)) ??
+      before.slice(0, was).reverse().find((t) => t.id !== id && listed.has(t.id))
+
+    const focused = focusedCard.current
+    if (focused && !listed.has(focused.id) && focusLostWith(focused.id)) {
+      const was = before.findIndex((t) => t.id === focused.id)
+      if (was !== -1) {
+        focusedCard.current = null
+        const next = successor(focused.id, was)
+        if (!(next && focusCard(next.id, focused.control))) focusFallback()
+      }
+    }
+
     if (!selectedId) return
     const was = before.findIndex((t) => t.id === selectedId)
     if (was === -1) return
@@ -325,20 +410,24 @@ export default function App() {
     const settled = toggled !== null && (is === -1 || ordered[is].status !== toggled.status)
     if (settled) toggledByX.current = null
     if (is !== -1 && !(settled && is !== was)) return
-    const remaining = new Set(ordered.map((t) => t.id))
-    remaining.delete(selectedId)
-    const next =
-      before.slice(was + 1).find((t) => remaining.has(t.id)) ?? before.slice(0, was).reverse().find((t) => remaining.has(t.id))
+    const next = successor(selectedId, was)
     setSelectedId(next?.id ?? null)
+    // X on a card that stays listed but moves: focus follows the selection to the card in its place.
+    if (is !== -1 && next && focused?.id === selectedId && focusLostWith(selectedId)) focusCard(next.id, focused.control)
   }, [ordered, selectedId])
 
+  /**
+   * J and K move the selection and real focus together, so a screen reader announces the card and
+   * E and X act on what's in focus. Focus lands on the same control (checkbox or title) as before.
+   */
   function moveSelection(delta: number) {
     if (!ordered.length) return
-    const i = ordered.findIndex((t) => t.id === selectedId)
+    const inCard = document.activeElement?.closest<HTMLElement>('[data-task-id]')?.dataset.taskId
+    const i = ordered.findIndex((t) => t.id === (selectedId ?? inCard))
     const next = i === -1 ? (delta > 0 ? 0 : ordered.length - 1) : Math.min(ordered.length - 1, Math.max(0, i + delta))
     const id = ordered[next].id
     setSelectedId(id)
-    document.querySelector(`[data-task-id="${id}"]`)?.scrollIntoView({ block: 'nearest' })
+    focusCard(id, inCard && focusedCard.current ? focusedCard.current.control : 'edit')
   }
 
   // X and Z ignore a held key's repeats: holding X would tick off card after card, and holding Z
@@ -376,6 +465,7 @@ export default function App() {
         onShortcuts={() => setModal('shortcuts')}
       />
 
+      <main>
       {view === 'trash' ? (
         <TrashView />
       ) : (
@@ -435,7 +525,20 @@ export default function App() {
             {tasks === undefined ? null : visible.length === 0 ? (
               <ListEmpty tasks={tasks} filters={filters} onShowAll={() => setScope(undefined)} />
             ) : (
-              <div className="space-y-8">
+              <div
+                className="space-y-8"
+                onFocus={(e) => {
+                  const id = e.target.closest<HTMLElement>('[data-task-id]')?.dataset.taskId
+                  if (!id) return
+                  focusedCard.current = { id, control: e.target instanceof HTMLInputElement ? 'check' : 'edit' }
+                  // Tabbing to a card selects it, so J, K, E and X carry on from where focus is.
+                  if (e.target.matches(':focus-visible')) setSelectedId(id)
+                }}
+                onBlur={(e) => {
+                  // Focus dropping to the page (no relatedTarget) is remembered: the card may be on its way out.
+                  if (e.relatedTarget && !e.relatedTarget.closest('[data-task-id]')) focusedCard.current = null
+                }}
+              >
                 {groups.map((g) => (
                   <section key={g.key}>
                     {g.label && <GroupHeading by={group} group={g} />}
@@ -466,13 +569,31 @@ export default function App() {
           </div>
         </div>
       )}
+      </main>
 
       <BurstLayer />
-      <div className="fixed right-4 bottom-4 z-50 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-2">
+      {/* A named region while it holds anything, so screen readers can jump to it from the landmarks list. */}
+      <div
+        ref={toastStack}
+        role={toasts.length || liveAlerts.length ? 'region' : undefined}
+        aria-label={toasts.length || liveAlerts.length ? 'Notifications' : undefined}
+        onFocus={(e) => {
+          if (!toastStack.current?.contains(e.relatedTarget)) focusBeforeToasts.current = e.relatedTarget as HTMLElement | null
+        }}
+        className="fixed right-4 bottom-4 z-50 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-2"
+      >
         {/* Lets a dismissed toast slide out; the rest of the stack then glides into its place. */}
         <AnimatePresence>
           {liveAlerts.map((a) => (
-            <ReminderToast key={alertKey(a)} alert={a} onDismiss={() => dismiss(a)} onOpen={() => openTask(a.task)} />
+            <ReminderToast
+              key={alertKey(a)}
+              alert={a}
+              onDismiss={() => {
+                releaseToastFocus([alertKey(a)])
+                dismiss(a)
+              }}
+              onOpen={() => openTask(a.task)}
+            />
           ))}
           {toasts.map((t) => (
             <Toast
@@ -481,10 +602,12 @@ export default function App() {
               onDismiss={closeToast}
               onAction={runToastAction}
               shortcut={t === latestUndo ? 'z' : undefined}
+              paused={modalOpen}
             />
           ))}
         </AnimatePresence>
       </div>
+      <ToastAnnouncer announcement={announcement} />
 
       {editing && (
         <TaskForm

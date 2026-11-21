@@ -1,11 +1,12 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { projectRepo, tagRepo } from '../db/labels'
 import { useConfirm } from '../hooks/useConfirm'
-import { plural } from '../lib/utils'
+import { cn, plural } from '../lib/utils'
 import type { Label } from '../types'
-import { btn, field } from '../ui'
+import { btn, field, INVALID_FIELD } from '../ui'
 import { Dialog } from './Dialog'
+import { FieldError } from './FieldError'
 
 interface Props {
   projects: Label[]
@@ -30,6 +31,7 @@ interface RowProps {
 function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
   const [name, setName] = useState(label.name)
   const [error, setError] = useState<string | null>(null)
+  const errorId = useId()
 
   async function save(patch: Partial<Omit<Label, 'id'>>) {
     try {
@@ -80,6 +82,7 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
         />
         <input
           aria-label={`Name of ${label.name}`}
+          aria-describedby={error ? errorId : undefined}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onBlur={() => name !== label.name && save({ name })}
@@ -90,7 +93,11 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
           <Trash2 className="size-4" />
         </button>
       </div>
-      {error && <p className="ml-9 text-xs text-danger">{error}</p>}
+      {error && (
+        <div className="mt-1 ml-9">
+          <FieldError id={errorId}>{error}</FieldError>
+        </div>
+      )}
     </li>
   )
 }
@@ -98,6 +105,7 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
 function Section({ title, items, repo, kind }: { title: string; items: Label[]; repo: Repo; kind: Kind }) {
   const [newName, setNewName] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const errorId = useId()
   const [confirmDialog, ask] = useConfirm()
   const listRef = useRef<HTMLUListElement>(null)
   const newNameRef = useRef<HTMLInputElement>(null)
@@ -135,7 +143,10 @@ function Section({ title, items, repo, kind }: { title: string; items: Label[]; 
         <input
           ref={newNameRef}
           value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          onChange={(e) => {
+            setNewName(e.target.value)
+            setError(null)
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
@@ -144,13 +155,19 @@ function Section({ title, items, repo, kind }: { title: string; items: Label[]; 
           }}
           placeholder={`New ${kind}`}
           aria-label={`New ${kind} name`}
-          className={field}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(field, error && INVALID_FIELD)}
         />
         <button type="button" onClick={add} className={btn.secondary}>
           Add
         </button>
       </div>
-      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+      {error && (
+        <div className="mt-1">
+          <FieldError id={errorId}>{error}</FieldError>
+        </div>
+      )}
       {confirmDialog}
     </section>
   )

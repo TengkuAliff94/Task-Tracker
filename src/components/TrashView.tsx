@@ -16,15 +16,32 @@ export function TrashView() {
   const now = Date.now()
   const [confirmDialog, ask] = useConfirm()
   const listRef = useRef<HTMLUListElement>(null)
-  /** After a card goes for good, the card whose Delete forever button should take focus next. */
-  const focusNext = useRef<string | null>(null)
+  /**
+   * Where focus goes once a card leaves (restored or deleted for good): the same button on its
+   * neighbour, or the empty state when Trash is now empty, so focus never drops to the page.
+   */
+  const focusNext = useRef<{ id: string; button: 'restore' | 'delete' } | 'empty' | null>(null)
 
   useEffect(() => {
-    const id = focusNext.current
-    if (!id || !trashed?.some((t) => t.id === id)) return
+    const next = focusNext.current
+    if (!next || !trashed) return
+    if (next === 'empty') {
+      if (trashed.length) return
+      focusNext.current = null
+      document.querySelector<HTMLElement>('[data-empty-state]')?.focus()
+      return
+    }
+    if (!trashed.some((t) => t.id === next.id)) return
     focusNext.current = null
-    listRef.current?.querySelector<HTMLElement>(`[data-trash-id="${CSS.escape(id)}"] [data-delete-forever]`)?.focus()
+    const button = next.button === 'delete' ? '[data-delete-forever]' : '[data-restore]'
+    listRef.current?.querySelector<HTMLElement>(`[data-trash-id="${CSS.escape(next.id)}"] ${button}`)?.focus()
   }, [trashed])
+
+  /** Card `index` is about to go: its neighbour's same button takes focus, or the empty state if it was the last. */
+  function handOverFocus(index: number, button: 'restore' | 'delete') {
+    const neighbour = trashed?.[index + 1] ?? trashed?.[index - 1]
+    focusNext.current = neighbour ? { id: neighbour.id, button } : 'empty'
+  }
 
   async function emptyAll() {
     if (!trashed?.length) return
@@ -34,7 +51,9 @@ export function TrashView() {
       confirmLabel: 'Delete forever',
       danger: true,
     })
-    if (ok) await taskRepo.emptyTrash()
+    if (!ok) return
+    focusNext.current = 'empty'
+    await taskRepo.emptyTrash()
   }
 
   async function deleteForever(index: number) {
@@ -52,8 +71,8 @@ export function TrashView() {
       danger: true,
     })
     if (!ok) return
-    // The button that asked is about to disappear with its card, so move focus to its neighbour.
-    focusNext.current = (trashed[index + 1] ?? trashed[index - 1])?.id ?? null
+    // The button that asked is about to disappear with its card.
+    handOverFocus(index, 'delete')
     await taskRepo.purge([task.id])
   }
 
@@ -96,7 +115,15 @@ export function TrashView() {
                   Deleted {new Date(t.deletedAt!).toLocaleDateString('en-GB')} · {daysLeft} day{daysLeft === 1 ? '' : 's'} left
                 </div>
               </div>
-              <button onClick={() => taskRepo.restore(t.id)} aria-label={`Restore "${t.title}"`} className={btn.secondary}>
+              <button
+                onClick={() => {
+                  handOverFocus(i, 'restore')
+                  void taskRepo.restore(t.id)
+                }}
+                aria-label={`Restore "${t.title}"`}
+                data-restore
+                className={btn.secondary}
+              >
                 <RotateCcw className="size-4" /> Restore
               </button>
               <button

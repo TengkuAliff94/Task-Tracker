@@ -19,3 +19,11 @@ export function formatEffort(minutes: number): string {
   if (!h) return `${m}m`
   return m ? `${h}h ${m}m` : `${h}h`
 }
+
+/** The words for an effort, for screen readers: 30 -> "30 minutes", 60 -> "1 hour", 90 -> "1 hour 30 minutes" */
+export function describeEffort(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  return [h && unit(h, 'hour'), m && unit(m, 'minute')].filter(Boolean).join(' ')
+}
