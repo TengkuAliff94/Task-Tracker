@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-22. Step 5's polish half is done and committed locally (not pushed); its last part, `/impeccable critique src`, is next. #27 stays open until the new score is recorded.
+Last updated 2026-11-22. Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). Still to do: record the score in #27, close it, update #19, and decide on follow-ups.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -22,11 +22,11 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 3c | `/impeccable harden src/components` | [#24](https://github.com/TengkuAliff94/Task-Tracker/issues/24) in-app ConfirmDialog, inline validation, DD/MM dates (+ [#28](https://github.com/TengkuAliff94/Task-Tracker/issues/28)) | **done** |
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **done** (`e0b8ad1`) |
 | 4 | `/impeccable audit src`, then harden, adapt and clarify | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps | **done** (`391ccaf`, closed) |
-| 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | polish **done**; critique **next** |
+| 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | **done**: 28/40 |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** push `ui-revamp` if it isn't yet, then run `/impeccable critique src` (baseline **24/40**), record the score in #27, close it, and update #19. The old critique snapshot is closed (the code changed), so the critique starts fresh.
+**To resume:** record 28/40 in #27, close it, update #19, then pick follow-ups from the new critique (its P1s map to `/impeccable clarify` for the header and `/impeccable harden` for the date field).
 
 **Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
 
