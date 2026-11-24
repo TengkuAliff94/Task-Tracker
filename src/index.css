@@ -366,7 +366,10 @@ label:hover > .box-check {
 .hide-on-scroll[data-hidden='true'] {
   transform: translateY(-100%);
 }
-.hide-on-scroll:focus-within {
+.hide-on-scroll:focus-within,
+/* A menu or popover from the header (theme, More, notifications blocked) keeps it shown. Focus inside an
+   open popover doesn't count towards its ancestors' :focus-within in Chromium, so it's named here. */
+.hide-on-scroll:has(:popover-open) {
   transform: none;
   transition: none;
 }

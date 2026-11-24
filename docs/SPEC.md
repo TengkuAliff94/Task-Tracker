@@ -7,7 +7,7 @@ A personal task tracker for privacy-minded people who want a capable one without
 - React + TypeScript + Vite + Tailwind CSS.
 - Storage: IndexedDB via Dexie. All data access goes through one repository module so a backend can replace it later.
 - Installable PWA (offline + notifications).
-- Design system generated with `ui-ux-pro-max-cli`. Light/dark theme follows the system setting, with a manual toggle. Responsive layout.
+- Design system generated with `ui-ux-pro-max-cli`. Light/dark theme follows the system setting, with a manual choice of System, Light or Dark from the header's theme menu (in More on phones). Responsive layout.
 
 ## Direction: sync for one person
 Multi-device sync for one person is coming. It isn't built and there is no backend yet, so nothing in the app may claim it. Choices made now must not block it: all data access stays behind the repository seam in `src/db/`, nothing assumes data is only ever local, and the interface leaves room for sync status and conflict states later. Sharing, collaboration and multi-user features are out of scope.

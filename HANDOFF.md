@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24. Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), still open). Still to do: record the score in #27, close it, note #29 on #19 and close it, and pick the next follow-up.
+Last updated 2026-11-24. Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7). Still to do: pick the next follow-up.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -23,11 +23,12 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **done** (`e0b8ad1`) |
 | 4 | `/impeccable audit src`, then harden, adapt and clarify | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps | **done** (`391ccaf`, closed) |
 | 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | **done**: 28/40 |
-| 6 | `/impeccable harden src/components/TaskForm.tsx` | [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) re-critique P1: typed DD/MM/YYYY and 24-hour dates, picker behind a button | **done** (`63657c9`, pushed; issue still open) |
+| 6 | `/impeccable harden src/components/TaskForm.tsx` | [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) re-critique P1: typed DD/MM/YYYY and 24-hour dates, picker behind a button | **done** (`63657c9`, closed) |
+| 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** record 28/40 in #27 and close it. Add #29 to #19 and close #29. Then pick the next re-critique follow-up: the other P1, the icon-only header (`/impeccable clarify`); P2 colour meanings (`/impeccable colorize`); P2 the 13-field editor (`/impeccable distill`); P3 quick-add help (`/impeccable onboard`).
+**To resume:** pick the next re-critique follow-up: P2 colour meanings (`/impeccable colorize`); P2 the 13-field editor (`/impeccable distill`); P3 quick-add help (`/impeccable onboard`).
 
 **Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`). Three agents reviewed it (correctness, WCAG, layout); it was committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) and pushed. See "Typed dates in brief" below.
 
@@ -111,6 +112,15 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Header in brief (#30)
+
+Backup and Trash show their words from `md`, Projects & tags and the bell from `lg`; Trash's count is a corner badge on the bare icon and an inline pill after the word. Under `sm` the tray is bell, Trash and **More** (a `Menu` with Projects & tags, Backup & restore and the Theme choices). Theme is a `Menu` (System / Light / Dark) showing a sun or moon, named "Theme: System". `src/components/Menu.tsx` (WAI-ARIA menu on `popover="auto"`, placed with `placeBelow`), `src/hooks/useTheme.ts`; `ThemeToggle.tsx` is gone. Tests: 7 new in `e2e/header.spec.ts`; 203 e2e passing.
+
+**Gotchas from this step:**
+- **`:focus-within` stops at an open popover in Chromium.** The header would hide under an open menu, so `index.css` adds `.hide-on-scroll:has(:popover-open)`.
+- **The menu focuses its item on the `toggle` event,** a moment after opening. In tests, wait for the item to be focused before pressing arrow keys.
+- **Theme in tests:** click "Theme: System", then the `menuitemradio` "Dark". On phones it's under "More".
 
 ## Typed dates in brief (re-critique P1)
 
