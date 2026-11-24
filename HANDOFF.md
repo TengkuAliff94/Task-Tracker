@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-22. Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). Still to do: record the score in #27, close it, update #19, and decide on follow-ups.
+Last updated 2026-11-24. Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), still open). Still to do: record the score in #27, close it, note #29 on #19 and close it, and pick the next follow-up.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -23,14 +23,19 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 3d | `/impeccable harden src/components/Backup.tsx src/db` | [#25](https://github.com/TengkuAliff94/Task-Tracker/issues/25) backup nudge timing, persistent storage, sample data placement | **done** (`e0b8ad1`) |
 | 4 | `/impeccable audit src`, then harden, adapt and clarify | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps | **done** (`391ccaf`, closed) |
 | 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | **done**: 28/40 |
+| 6 | `/impeccable harden src/components/TaskForm.tsx` | [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) re-critique P1: typed DD/MM/YYYY and 24-hour dates, picker behind a button | **done** (`63657c9`, pushed; issue still open) |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** record 28/40 in #27, close it, update #19, then pick follow-ups from the new critique (its P1s map to `/impeccable clarify` for the header and `/impeccable harden` for the date field).
+**To resume:** record 28/40 in #27 and close it. Add #29 to #19 and close #29. Then pick the next re-critique follow-up: the other P1, the icon-only header (`/impeccable clarify`); P2 colour meanings (`/impeccable colorize`); P2 the 13-field editor (`/impeccable distill`); P3 quick-add help (`/impeccable onboard`).
 
-**Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`), reviewed by three agents (correctness, WCAG, layout) and committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29). See "Typed dates in brief" below.
+**Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`). Three agents reviewed it (correctness, WCAG, layout); it was committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) and pushed. See "Typed dates in brief" below.
 
-**Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
+**Follow-ups outside the table:** #28 (Save dropped text typed into an "add" field) was fixed together with #24. The #29 review left some minor points for later:
+- Picking a preset reminder clears a half-typed specific time (as before).
+- Add is 36px tall beside 38px fields (`btn.secondary`).
+- One Save with both deadline and reminder errors can raise four alerts at once.
+- Opening the native picker still needs a by-hand check with a screen reader.
 
 ## Context files (read these, don't re-derive them)
 
@@ -56,8 +61,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 162 passing after step 5
-npm run test:e2e                # e2e (Playwright, port 4173): 187 passing after step 5
+npm test                        # unit (Vitest): 179 passing after #29
+npm run test:e2e                # e2e (Playwright, port 4173): 196 passing after #29
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
