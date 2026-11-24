@@ -1,6 +1,8 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24 (step 10). Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
+Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Step 11 is done** (`cd0cdca`, [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34)); resume at step 12.
+
+History: step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -28,10 +30,32 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 8 | `/impeccable colorize` | [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) re-critique P2: colour has one job; priority as signal bars, ink toasts, neutral backup reminder | **done** (`f0f26d5`) |
 | 9 | `/impeccable distill` (editor) | [#32](https://github.com/TengkuAliff94/Task-Tracker/issues/32) re-critique P2: the editor leads with the common fields; Status, Effort, Repeat, Reminders, Attachments behind a closed More details with a summary | **done** (`bdd1df8`) |
 | 10 | `/impeccable onboard` | [#33](https://github.com/TengkuAliff94/Task-Tracker/issues/33) re-critique P3: quick-add help. A `?` popover in the bar, the syntax in the shortcuts sheet, and a Try button on the first-run empty state | **done** (`74e5dfd`) |
+| 11 | `/impeccable distill src/components/FilterBar.tsx` | [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34) third critique P1: one rule for completed tasks (Done pill, Show completed, Completed tile) | **done** (`cd0cdca`) |
+| 12 | `/impeccable clarify src/components/Overview.tsx` | third critique P2: the tiles double-count (Due today includes overdue) | to do |
+| 13 | `/impeccable polish src/components/TaskCard.tsx` | third critique P2: selection, overdue and High share one dark-line language | to do |
+| 14 | `/impeccable onboard` | third critique P2: positioning on the first screen; explore New task focusing quick add; optional storage-status chip | to do |
+| 15 | `/impeccable polish src/components/TaskForm.tsx` | third critique P3 + minors: Tags placeholder, HH:MM "Added", overdue tone, 13px literal, copy nits | to do |
+| 16 | `/impeccable polish src`, then `/impeccable critique src` | final pass, README screenshots, re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** every re-critique finding is addressed. Next: decide whether to re-run `/impeccable critique src` for a new score, or take on the persona red flags in the 2026-11-21 report.
+**To resume:** step 12. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
+
+## Third critique (2026-11-24, 31/40): pending items
+
+Dual-agent run (design review + detector/browser). Scores: H3 user control 4; every other heuristic 3.
+
+1. **[P1] Completed tasks have three routes, and one misreports** (step 11). The Done status pill, "Show completed" and the Completed tile each reveal done tasks by their own rule. With Done pressed, completed tasks list while "Show completed (3)" stays unticked (`FilterBar.tsx:269`, `filter.ts:124`). Fix: drop Done from the status pills (keep To Do / In Progress), or make every route set and visibly tick Show completed. One rule in `filter.ts`.
+2. **[P2] The Overview tiles double-count** (step 12). Due today includes tasks already overdue today (`filter.ts:17`); with sample data, Overdue 3 and Due today 2 overlap and picking Due today lists overdue cards. Fix: exclusive buckets (Due today = due later today, not yet overdue), or an honest label. Mind the tile-name test contract ("Overdue 2").
+3. **[P2] One dark-line language for three meanings** (step 13). Selection `ring-2 ring-fg` (`ui.ts:89`), overdue `ring-2 ring-panel-maroon` (`ui.ts:91`), the High ink stripe (`ui.ts:77`), and the title button's own focus ring inside the selection. A selected High card shows three dark lines; the dark-mode overdue ring is about 1.5:1 on the card. Fix: give selection its own form, hide the inner title ring while selected, lift the dark overdue ring to at least 3:1.
+4. **[P2] The positioning isn't visible where people land** (step 14). Nothing on the first screen says local-first / no account / offline (`App.tsx:76–95`); privacy appears only in Backup. Fix: one muted line in the first-run empty state ("Stored only in this browser. No account, works offline."). Also in this step: **explore** making New task focus quick add (user said explore, not decided), and optionally a header storage-status chip that can become the sync-status slot.
+5. **[P3] Editor gaps** (step 15). Tags well loses its placeholder once a tag exists (`TagPicker.tsx:54`); "Added 10/11/2026, 22:18:00" shows seconds (`TaskForm.tsx:660`); an overdue deadline reading is only muted. Plus the detector's one new drift: a `text-[13px]` literal on the More details toggle (`TaskForm.tsx:581`), either `labelText` or record 13px in the ramp. Copy nits: "permanently deletes 1 task and their attachments" with no attachments; "Restore from file..." uses three dots.
+
+**Other minor observations** (take in step 16 if cheap): a lone Clear filters with only a tile picked; the Trash-view header gap where New task hides; mixed bare and labelled icons in the 768 tray; quick-add preview chips without the label's colour dot; the editor's translucent title bar smears labels behind it; the discard bar has no way to save.
+
+**Persona red flags not in the plan** (bigger, decide later): no bulk select or bulk complete/move/tag; no key to trash the selected task; two toasts cover about 130px at 390 (including the bottom checkbox); New task, More and Trash all sit top-right, out of thumb reach; the Trash subtitle truncates to "Restore or per…" at 390; the permanent "Notifications blocked" label at 1280; sample data opens on "3 overdue".
+
+**Detector baseline after step 10:** 4 advisory findings: the three known ones plus `TaskForm.tsx:581` (above). Overlay-only hits `cream-palette` (the Sunwarmed Paper canvas) and `icon-tile-stack` (the documented empty state) are false positives against DESIGN.md.
 
 **Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`). Three agents reviewed it (correctness, WCAG, layout); it was committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) and pushed. See "Typed dates in brief" below.
 
@@ -65,8 +89,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 179 passing after #31
-npm run test:e2e                # e2e (Playwright, port 4173): 211 passing after #31
+npm test                        # unit (Vitest): 197 passing after #34
+npm run test:e2e                # e2e (Playwright, port 4173): 232 passing after #34
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -76,6 +100,7 @@ npm run build                   # production build + PWA
 - `bounce-easing` on the dialog spring: documented and intentional.
 - `design-system-font-size` 13px (`labelText`, `ui.ts`): documented in DESIGN.md's prose.
 - `design-system-color` `#000`: unit-test fixture data.
+- `design-system-font-size` 13px at `TaskForm.tsx:581` (More details toggle): new since #32, a real drift, scheduled for step 15.
 
 ## Gotchas learned the hard way
 
@@ -115,6 +140,12 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Completed-task rule in brief (step 11, #34)
+
+The user chose to drop the Done status pill. `showsCompleted(f)` in `src/lib/filter.ts` is the one rule: done tasks list when "Show completed" is on or the Completed tile is picked. The box renders `showsCompleted`, so it reads ticked while the tile is picked; unticking it calls `withShowCompleted`, which also unpicks the tile. The tile never writes `showCompleted`, so unpicking it restores the list. `Filters.statuses` is `OpenStatus[]` (`OPEN_STATUSES` in `types.ts`), so a done status filter can't be expressed. Tests: `e2e/completed-rule.spec.ts` (4; 3 failed on the old source, the 4th guards the restore) and four unit tests in `filter.test.ts`, one walking every tile × status × setting combination. The pressed-pill contrast test no longer presses Done. DESIGN.md (Overview), SPEC (decisions) and the sidecar (Filter Pill) updated; doctor and detector clean. Review: a self-review plus renders of the open panel at 320, 390, 768 and 1280 in both themes.
+
+**Gotcha:** a test file written through a Bash heredoc lost a backslash: the `\\b` in the tile locator's `RegExp` came out as `\b`, and the locator matched nothing. Write test files that contain backslash escapes with the Write tool.
 
 ## Quick-add help in brief (step 10)
 
