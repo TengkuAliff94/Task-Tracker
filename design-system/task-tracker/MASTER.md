@@ -57,8 +57,10 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 **Semantic mappings** (`src/ui.ts`):
 
 - Overview tiles, most urgent first, each a filter: Overdue → maroon (taupe at zero), Due today → mustard, Open → violet, Completed → sage.
-- `PRIORITY_PANEL`: low → taupe, medium → sage, high → mustard, urgent → rust.
+- Colour means time and state, one job per hue (DESIGN.md, the One Job Rule).
+- `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well, pressed pills are ink (`panel.ink`), and only High (ink) and Urgent (rust) cards get a stripe. Urgent alone keeps a hue: rust.
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
+- `panel.ink` (fg on canvas): toasts, Back up now, pressed priority pills. The backup reminder itself is a neutral surface panel.
 - Overdue: maroon badge plus a maroon outline (`ALERT_OUTLINE`).
 - Anything that carries meaning by colour uses one of these panels, never a raw hue.
 - User-picked project and tag colours stay as they are. They show as a dot, a tint and a ring

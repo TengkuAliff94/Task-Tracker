@@ -35,40 +35,47 @@ export const dialog =
 export const labelText = 'text-[13px] font-medium text-fg/90'
 
 /**
- * Saturated colour panels, each with its paired readable text colour. Anything that carries
- * meaning by colour (stats, priority, status) uses one of these, never a raw hue. Named for the
- * role they play; a role can show up in more than one place (sage marks both "completed" and
- * medium priority, as the calm, nothing-to-worry-about colour).
+ * Saturated colour panels, each with its paired readable text colour. Colour means time and
+ * state (overdue, due today, open, done), so each hue has one job. Priority isn't a colour: it's
+ * the signal-bars glyph and its word (`PriorityGlyph`), and only Urgent keeps a hue (rust).
  */
 export const panel = {
   /** Brand and primary emphasis (orange). */
   brand: 'bg-panel-orange text-on-panel-orange',
-  /** Open or in progress, and general notices such as toasts and the backup reminder (violet). */
+  /** Open or in progress (violet). Nothing else. */
   info: 'bg-panel-violet text-on-panel-violet',
-  /** Needs attention soon: due today, high priority (mustard). */
+  /** Needs attention soon: due today, missed reminders, the discard question (mustard). Also the hover light. */
   warning: 'bg-panel-mustard text-on-panel-mustard',
   /** Urgent priority, the Trash count (rust). */
   danger: 'bg-panel-rust text-on-panel-rust',
   /** The strongest alarm: overdue, wherever it shows (the badge, the card outline, the Overview tile) (maroon). */
   critical: 'bg-panel-maroon text-on-panel-maroon',
-  /** Calm, on track: completed, medium priority (sage). */
+  /** Done: completed work (sage). Nothing else. */
   calm: 'bg-panel-sage text-on-panel-sage',
-  /** Low emphasis: low priority (taupe). */
+  /** Low emphasis: to do, nothing overdue, set aside in Trash (taupe). */
   neutral: 'bg-panel-taupe text-on-panel-taupe',
+  /** Word from the app itself, with no state to colour: toasts, the backup reminder. The text colour on the canvas colour, so it inverts with the theme. */
+  ink: 'bg-fg text-bg',
 } as const
 
 /** A panel's two colours swapped, for a solid button sitting on that panel. Same contrast as the panel. */
 export const INVERTED_PANEL = {
   warning: 'bg-on-panel-mustard text-panel-mustard',
-  info: 'bg-on-panel-violet text-panel-violet',
+  ink: 'bg-bg text-fg',
 } as const
 
-/** Each priority's colour, wherever a priority is shown (task badges, the quick-add preview). */
-export const PRIORITY_PANEL: Record<Priority, string> = {
-  low: panel.neutral,
-  medium: panel.calm,
-  high: panel.warning,
-  urgent: panel.danger,
+/**
+ * How a priority looks wherever it's shown. Every priority carries `PriorityGlyph` and its word;
+ * colour is left to time and state, except Urgent, which keeps the rust panel.
+ * - `badge`: the card badge, the quick-add preview and priority group tabs (a neutral well).
+ * - `pressed`: a pressed priority filter pill and its collapsed chip (ink, so it reads as on).
+ * - `stripe`: the card's left edge, only where priority should catch the eye (High, Urgent).
+ */
+export const PRIORITY_TONE: Record<Priority, { badge: string; pressed: string; stripe?: string }> = {
+  low: { badge: 'bg-subtle text-fg', pressed: panel.ink },
+  medium: { badge: 'bg-subtle text-fg', pressed: panel.ink },
+  high: { badge: 'bg-subtle text-fg', pressed: panel.ink, stripe: 'bg-fg' },
+  urgent: { badge: panel.danger, pressed: panel.danger, stripe: 'bg-panel-rust' },
 }
 
 /** Each status's colour, e.g. for status group headings. */

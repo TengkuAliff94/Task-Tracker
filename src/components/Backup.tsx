@@ -8,7 +8,7 @@ import { usage } from '../db/usage'
 import { formatDateTime, toDateInput } from '../lib/deadline'
 import { plural } from '../lib/utils'
 import { useConfirm } from '../hooks/useConfirm'
-import { attentionAction, attentionQuiet, btn, INVERTED_PANEL, panel } from '../ui'
+import { attentionAction, attentionQuiet, btn, panel } from '../ui'
 import { CountList } from './ConfirmDialog'
 import { Dialog } from './Dialog'
 import { SampleDataButton } from './SampleDataButton'
@@ -251,12 +251,12 @@ export function BackupNudge({ hasTasks, onOpen }: { hasTasks: boolean; onOpen: (
   const text = nudge.kind === 'never' ? 'You haven’t backed up your tasks yet.' : `Your last backup was ${nudge.days} days ago.`
 
   return (
-    <div role="status" className={`flex animate-fade-up flex-wrap items-center gap-3 rounded-panel px-5 py-4 text-sm ${panel.info}`}>
-      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-current/15">
+    <div role="status" className="flex animate-fade-up flex-wrap items-center gap-3 rounded-panel bg-surface px-5 py-4 text-sm text-fg shadow-card">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-subtle">
         <DatabaseBackup className="size-4.5" aria-hidden />
       </span>
       <span className="flex-1 font-medium">{text}</span>
-      <button onClick={onOpen} className={`${attentionAction} ${INVERTED_PANEL.info}`}>
+      <button onClick={onOpen} className={`${attentionAction} ${panel.ink}`}>
         Back up now
       </button>
       <button onClick={() => backup.snoozeNudge(now + NUDGE_GRACE_DAYS * DAY)} className={attentionQuiet}>

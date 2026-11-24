@@ -3,8 +3,9 @@ import { formatDeadline, isOverdue } from '../lib/deadline'
 import { describeEffort, formatEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
 import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Task } from '../types'
-import { ALERT_OUTLINE, panel, PRIORITY_PANEL, SELECTED_OUTLINE } from '../ui'
+import { ALERT_OUTLINE, panel, PRIORITY_TONE, SELECTED_OUTLINE } from '../ui'
 import { LabelChip } from './LabelChip'
+import { PriorityGlyph } from './PriorityGlyph'
 import { AnimatedItem } from './motion/AnimatedList'
 
 interface Props {
@@ -41,8 +42,8 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
 }
 
 /**
- * One task as a card in an `AnimatedList`. The stripe down its left edge is the priority colour;
- * an overdue card gets a maroon outline as well as its badge. Ticking it hands over to the app,
+ * One task as a card in an `AnimatedList`. A High or Urgent task has a stripe down its left edge
+ * (ink, rust); an overdue card gets a maroon outline as well as its badge. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
 export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, onToggleDone, index = 0 }: Props) {
@@ -62,7 +63,9 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
       lift
       className={`group relative flex items-start gap-3.5 overflow-hidden rounded-panel bg-surface py-4 pr-4 pl-5 shadow-card transition-[background-color,box-shadow] duration-200 hover:bg-hover hover:shadow-pop ${outline}`}
     >
-      <span aria-hidden className={`absolute inset-y-0 left-0 w-1.5 ${PRIORITY_PANEL[task.priority]}`} />
+      {PRIORITY_TONE[task.priority].stripe && (
+        <span aria-hidden data-priority-stripe className={`absolute inset-y-0 left-0 w-1.5 ${PRIORITY_TONE[task.priority].stripe}`} />
+      )}
       {/* The label pads the 20px circle out to a 44px touch target without moving it. */}
       <label className="-m-3 grid shrink-0 p-3">
         <input
@@ -83,7 +86,10 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
         </div>
         {/* Completed tasks keep full-strength metadata: fading it would push the text below 4.5:1. */}
         <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
-          <span className={`${badge} ${PRIORITY_PANEL[task.priority]}`}>{PRIORITY_LABEL[task.priority]}</span>
+          <span data-priority={task.priority} className={`${badge} ${PRIORITY_TONE[task.priority].badge}`}>
+            <PriorityGlyph priority={task.priority} />
+            {PRIORITY_LABEL[task.priority]}
+          </span>
           {task.status === 'in_progress' && <span className={`${badge} ${panel.info}`}>{STATUS_LABEL.in_progress}</span>}
           {overdue && <span className={`${badge} ${panel.critical}`}>Overdue</span>}
           {task.deadline && (

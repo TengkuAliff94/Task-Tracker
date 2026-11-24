@@ -58,7 +58,7 @@ export function Toast({ toast, onDismiss, onAction, shortcut, paused = false }: 
     <ToastPanel
       role={toast.urgent ? 'alert' : 'status'}
       toastId={toast.id}
-      className={`flex items-center gap-3 py-3 pr-3 pl-4 text-sm ${panel.info}`}
+      className={`flex items-center gap-3 py-3 pr-3 pl-4 text-sm ${panel.ink}`}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -72,13 +72,13 @@ export function Toast({ toast, onDismiss, onAction, shortcut, paused = false }: 
         <p className="font-medium">{toast.message}</p>
         {toast.detail && <p className="mt-0.5">{toast.detail}</p>}
       </div>
-      {/* The panel's colours swapped, like Back up now on the violet backup reminder: one main action per panel, no second brand button. */}
+      {/* The panel's colours swapped, like Back up now on the backup reminder: one main action per panel, no second brand button. */}
       {toast.action && (
         <button
           type="button"
           onClick={() => onAction?.(toast)}
           aria-keyshortcuts={shortcut}
-          className={cn('shrink-0', attentionAction, INVERTED_PANEL.info)}
+          className={cn('shrink-0', attentionAction, INVERTED_PANEL.ink)}
         >
           {toast.action.label}
         </button>

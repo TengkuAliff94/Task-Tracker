@@ -2,9 +2,10 @@ import { useId, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
 import { FieldError } from './FieldError'
 import { PHONE_QUERY, useMediaQuery } from '../hooks/useMediaQuery'
-import { card, PRIORITY_PANEL } from '../ui'
+import { card, PRIORITY_TONE } from '../ui'
 import { POP_FROM } from './motion/presets'
 import { Reveal } from './motion/Reveal'
+import { PriorityGlyph } from './PriorityGlyph'
 import { taskRepo } from '../db/tasks'
 import { projectRepo, tagRepo } from '../db/labels'
 import { parseQuickAdd } from '../lib/quickAdd'
@@ -18,7 +19,7 @@ import { PRIORITY_LABEL, type Label } from '../types'
  */
 function Chip({ children, className = 'bg-surface text-fg' }: { children: ReactNode; className?: string }) {
   return (
-    <Reveal from={POP_FROM} className={`rounded-md px-1.5 py-0.5 font-medium ${className}`}>
+    <Reveal from={POP_FROM} className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium ${className}`}>
       {children}
     </Reveal>
   )
@@ -112,7 +113,10 @@ export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tag
           {parsed.tagNames.map((t) => (
             <Chip key={`#${t}`}>#{shownName(knownTags, t)}</Chip>
           ))}
-          {parsed.priority && <Chip key={`!${parsed.priority}`} className={PRIORITY_PANEL[parsed.priority]}>{PRIORITY_LABEL[parsed.priority]}</Chip>}
+          {parsed.priority && <Chip key={`!${parsed.priority}`} className={parsed.priority === 'urgent' ? PRIORITY_TONE.urgent.badge : undefined}>
+              <PriorityGlyph priority={parsed.priority} />
+              {PRIORITY_LABEL[parsed.priority]}
+            </Chip>}
           {parsed.effortMinutes && <Chip key={`~${parsed.effortMinutes}`}>~{formatEffort(parsed.effortMinutes)}</Chip>}
           {deadlineLabel && <Chip key={`d${deadlineLabel}`}>{deadlineLabel}</Chip>}
           <span className="ml-auto inline-flex items-center gap-1.5"><kbd>↵</kbd> to add</span>

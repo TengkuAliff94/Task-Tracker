@@ -95,7 +95,7 @@ test.describe('with sample data', () => {
     await expect(page.getByRole('banner').getByRole('button', { name: 'New task' })).toBeHidden()
   })
 
-  test('the toast\'s Undo is the violet panel inverted, not a second brand-orange button', async ({ app, page }) => {
+  test('the toast\'s Undo is the ink panel inverted, not a second brand-orange button', async ({ app, page }) => {
     // click, not check: the ticked card leaves the list at once.
     await app.taskRow('Renew car insurance').getByRole('checkbox').click()
     const undo = page.getByRole('status').filter({ hasText: 'Done: Renew car insurance' }).getByRole('button', { name: 'Undo' })
@@ -105,12 +105,12 @@ test.describe('with sample data', () => {
       const probe = document.createElement('span')
       document.body.append(probe)
       const resolve = (v: string) => ((probe.style.color = root.getPropertyValue(v)), getComputedStyle(probe).color)
-      const out = [resolve('--on-panel-violet'), resolve('--panel-violet')]
+      const out = [resolve('--bg'), resolve('--fg')]
       probe.remove()
       return [getComputedStyle(el).backgroundColor === out[0], getComputedStyle(el).color === out[1]]
     })
-    expect(bg, 'Undo is filled with the violet panel’s ink').toBe(true)
-    expect(ink, 'Undo’s text is the violet panel colour').toBe(true)
+    expect(bg, 'Undo is filled with the canvas colour').toBe(true)
+    expect(ink, 'Undo’s text is the body text colour').toBe(true)
   })
 
   test('the editor footer is solid, with no rule above it', async ({ app, page }) => {

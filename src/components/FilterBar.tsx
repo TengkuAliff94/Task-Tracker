@@ -4,7 +4,8 @@ import { EMPTY_FILTERS, filterChips, hasActiveFilters, NO_PROJECT, removeChip, t
 import { GROUP_LABEL, SORT_LABEL, type GroupKey, type SortKey } from '../lib/sort'
 import { PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL, type Label } from '../types'
 import { labelTint } from '../lib/colors'
-import { card, hoverHighlight, labelText, panel, PRIORITY_PANEL, STATUS_PANEL } from '../ui'
+import { card, hoverHighlight, labelText, panel, PRIORITY_TONE, STATUS_PANEL } from '../ui'
+import { PriorityGlyph } from './PriorityGlyph'
 import { Reveal } from './motion/Reveal'
 
 interface Props {
@@ -62,7 +63,7 @@ function Pill({ active, onClick, children, activeTone = panel.brand, color }: Pi
 function chipTone(chip: FilterChip): { className: string; color?: string } {
   switch (chip.kind) {
     case 'priority':
-      return { className: PRIORITY_PANEL[chip.value] }
+      return { className: PRIORITY_TONE[chip.value].pressed }
     case 'status':
       return { className: STATUS_PANEL[chip.value] }
     case 'tag':
@@ -85,6 +86,7 @@ function Chip({ chip, onRemove }: { chip: FilterChip; onRemove: () => void }) {
       style={color ? labelTint(color, 22) : undefined}
     >
       {color && <span className="size-2 rounded-full" style={{ backgroundColor: color }} aria-hidden />}
+      {chip.kind === 'priority' && <PriorityGlyph priority={chip.value} />}
       {chip.label}
       <X className="size-3.5 opacity-75" aria-hidden />
     </button>
@@ -237,7 +239,8 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
               <Cluster label="Priority">
                 {PRIORITIES.map((p) => (
-                  <Pill key={p} activeTone={PRIORITY_PANEL[p]} active={f.priorities.includes(p)} onClick={() => set({ priorities: toggle(f.priorities, p) })}>
+                  <Pill key={p} activeTone={PRIORITY_TONE[p].pressed} active={f.priorities.includes(p)} onClick={() => set({ priorities: toggle(f.priorities, p) })}>
+                    <PriorityGlyph priority={p} />
                     {PRIORITY_LABEL[p]}
                   </Pill>
                 ))}
