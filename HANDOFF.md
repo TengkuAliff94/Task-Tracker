@@ -27,7 +27,7 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** (`af20632`) |
 | 8 | `/impeccable colorize` | [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) re-critique P2: colour has one job; priority as signal bars, ink toasts, neutral backup reminder | **done** (`f0f26d5`) |
 | 9 | `/impeccable distill` (editor) | [#32](https://github.com/TengkuAliff94/Task-Tracker/issues/32) re-critique P2: the editor leads with the common fields; Status, Effort, Repeat, Reminders, Attachments behind a closed More details with a summary | **done** (`bdd1df8`) |
-| 10 | `/impeccable onboard` | [#33](https://github.com/TengkuAliff94/Task-Tracker/issues/33) re-critique P3: quick-add help. A `?` popover in the bar, the syntax in the shortcuts sheet, and a Try button on the first-run empty state | **done**, not yet committed |
+| 10 | `/impeccable onboard` | [#33](https://github.com/TengkuAliff94/Task-Tracker/issues/33) re-critique P3: quick-add help. A `?` popover in the bar, the syntax in the shortcuts sheet, and a Try button on the first-run empty state | **done** (`74e5dfd`) |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
