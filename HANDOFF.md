@@ -28,6 +28,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 **To resume:** record 28/40 in #27, close it, update #19, then pick follow-ups from the new critique (its P1s map to `/impeccable clarify` for the header and `/impeccable harden` for the date field).
 
+**Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`), reviewed by three agents (correctness, WCAG, layout) and committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29). See "Typed dates in brief" below.
+
 **Follow-ups outside the table:** none open. #28 (Save dropped text typed into an "add" field) was fixed together with #24.
 
 ## Context files (read these, don't re-derive them)
@@ -104,6 +106,19 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Typed dates in brief (re-critique P1)
+
+The deadline and the reminder's "At a specific time" are typed text now: `DateField` / `TimeField` in `src/components/DateTimeFields.tsx`, read by `readDateText` / `readTimeText` in `src/lib/dateInput.ts`. Day first and 24-hour in any locale; short forms (`8/3`, `1730`, `5pm`) and quick-add words ("fri", "fri 5pm") are written back in full on blur, and a time given with the date moves to the time field. The native picker sits behind an icon button ("Open calendar for the deadline", "Open time picker for …") and only writes into the text; no `showPicker`, no button. Errors name the problem ("“31/02/2026” isn’t a date. Check the day and month."). A reminder with only one half typed now stops Save at its field instead of being dropped. TaskForm holds the deadline as `dateText` / `timeText` and derives `date` / `time` each render, so the readout follows the typing.
+
+Tests: `src/lib/dateInput.test.ts` (17) and ten new e2e tests in `e2e/editor-validation.spec.ts`; the old ones type `DD/MM/YYYY` now. 179 unit and 196 e2e passing.
+
+**Review fixes:** a space no longer separates the year, so "8/3 1730" is a date and a time (it had saved the year 1730, and "8/3 0930" a broken `930-03-08`); four-digit years before 1000 are refused. Each field tells screen readers its format until there's a reading or error. Clearing the date clears the disabled time field's error. The reminder's date and time share a row (min 9.25rem each, so the placeholder clears the button), each error under its own field, with the reading and Add on the line below. Pointing at a picker button keeps the field's hover border. The sidecar has a new Date Field component.
+
+**Gotchas from this step:**
+- **`getByLabel` matches substrings.** A picker button called "Choose deadline date" collided with the field "Deadline date", so the buttons are "Open calendar for the deadline". Keep new names clear of existing ones.
+- **The native picker can't be driven by Playwright.** Tests fill the hidden `input[type="date"]` with `{ force: true }`, which is what the picker writes on a choice.
+- **An owner holding date and time in one value** (the reminder draft) must take the tidied date and the time in one call: two `onDraftChange` calls from the same render overwrite each other. That's why `DateField`'s `onTimeRead(time, dateText)` carries both.
 
 ## Step 5 polish in brief (#27)
 

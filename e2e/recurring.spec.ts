@@ -5,7 +5,7 @@ test('completing a weekly task creates next week’s copy, and unticking removes
   await page.getByRole('button', { name: 'New task' }).click()
   const form = page.getByRole('dialog', { name: 'New task' })
   await form.getByLabel('Title').fill('Water plants')
-  await form.getByLabel('Deadline date').fill('2026-03-10')
+  await form.getByLabel('Deadline date').fill('10/03/2026')
   await form.getByLabel('Repeat').selectOption({ label: 'Weekly' })
   await form.getByRole('button', { name: 'Add task' }).click()
   await expect(form).toBeHidden()
@@ -25,7 +25,7 @@ test('completing a weekly task creates next week’s copy, and unticking removes
 
   await row.getByRole('button').click()
   const edit = page.getByRole('dialog', { name: 'Edit task' })
-  await expect(edit.getByLabel('Deadline date')).toHaveValue('2026-03-17')
+  await expect(edit.getByLabel('Deadline date')).toHaveValue('17/03/2026')
   await expect(edit.getByLabel('Repeat')).toHaveValue('week-1')
   await edit.getByRole('button', { name: 'Close' }).click()
   await expect(edit).toBeHidden()

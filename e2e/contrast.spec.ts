@@ -154,7 +154,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await page.getByRole('banner').getByRole('button', { name: 'New task' }).click()
       const editor = page.getByRole('dialog', { name: 'New task' })
       await editor.getByLabel('Effort').fill('a while')
-      await editor.getByLabel('Deadline date').fill('2026-03-11')
+      await editor.getByLabel('Deadline date').fill('11/03/2026')
       await editor.getByLabel('Add link').fill('ftp://example.com')
       await editor.getByRole('button', { name: 'Add task' }).click()
       await expect(editor.getByText('Give the task a title.')).toBeVisible()

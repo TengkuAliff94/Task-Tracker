@@ -26,7 +26,7 @@ async function addWeeklyTaskDueToday(page: Page, title: string) {
   await page.getByRole('button', { name: 'New task' }).click()
   const form = page.getByRole('dialog', { name: 'New task' })
   await form.getByLabel('Title').fill(title)
-  await form.getByLabel('Deadline date').fill('2026-03-10')
+  await form.getByLabel('Deadline date').fill('10/03/2026')
   await form.getByLabel('Deadline time').fill('09:30')
   await form.getByLabel('Repeat').selectOption({ label: 'Weekly' })
   await form.getByRole('button', { name: 'Add task' }).click()

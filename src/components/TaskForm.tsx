@@ -6,6 +6,7 @@ import { taskRepo } from '../db/tasks'
 import { projectRepo, tagRepo } from '../db/labels'
 import { attachmentRepo, normaliseUrl, type PendingAttachment } from '../db/attachments'
 import { describeDeadline } from '../lib/deadline'
+import { formatDateText, readDateText, readTimeText } from '../lib/dateInput'
 import { formatEffort, parseEffort } from '../lib/effort'
 import { MAX_REMINDERS } from '../lib/reminders'
 import { cn, describeSaveError } from '../lib/utils'
@@ -26,7 +27,8 @@ import { FieldError } from './FieldError'
 import { ProjectPicker } from './ProjectPicker'
 import { TagPicker } from './TagPicker'
 import { RecurrenceEditor } from './RecurrenceEditor'
-import { RemindersEditor } from './RemindersEditor'
+import { EMPTY_REMINDER_DRAFT, reminderDraftAt, RemindersEditor, type ReminderDraft } from './RemindersEditor'
+import { DateField, TimeField } from './DateTimeFields'
 import { ChecklistEditor } from './ChecklistEditor'
 import { AttachmentsEditor } from './AttachmentsEditor'
 
@@ -61,7 +63,7 @@ function Field({ label, children, className = '', error, errorId }: FieldProps) 
 }
 
 /** Fields checked on Save. Each error shows under its field, and focus goes to the first one. */
-type FieldErrors = Partial<Record<'title' | 'effort' | 'date' | 'time' | 'link', string>>
+type FieldErrors = Partial<Record<'title' | 'effort' | 'date' | 'time' | 'reminderDate' | 'reminderTime' | 'link', string>>
 
 /** Props that mark a control invalid and point it at its error message. */
 const invalidProps = (error: string | undefined, errorId: string) =>
@@ -74,8 +76,9 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [preview, setPreview] = useState(false)
   const [status, setStatus] = useState<Status>(task?.status ?? 'todo')
   const [priority, setPriority] = useState<Priority>(task?.priority ?? 'medium')
-  const [date, setDate] = useState(task?.deadline?.date ?? '')
-  const [time, setTime] = useState(task?.deadline?.time ?? '')
+  // The deadline as typed. It's read on every render, so the line under it follows the typing.
+  const [dateText, setDateText] = useState(task?.deadline ? formatDateText(task.deadline.date) : '')
+  const [timeText, setTimeText] = useState(task?.deadline?.time ?? '')
   const [projectId, setProjectId] = useState(task?.projectId)
   const [tagIds, setTagIds] = useState(task?.tagIds ?? [])
   const [effort, setEffort] = useState(task?.effortMinutes ? formatEffort(task.effortMinutes) : '')
@@ -88,7 +91,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [tagDraft, setTagDraft] = useState('')
   /** The new project's name while one is being typed, else null. */
   const [projectDraft, setProjectDraft] = useState<string | null>(null)
-  const [reminderDraft, setReminderDraft] = useState('')
+  const [reminderDraft, setReminderDraft] = useState<ReminderDraft>(EMPTY_REMINDER_DRAFT)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [existingFiles, setExistingFiles] = useState<Attachment[]>([])
   const [removedFiles, setRemovedFiles] = useState<string[]>([])
@@ -99,8 +102,6 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [confirming, setConfirming] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
-  const dateRef = useRef<HTMLInputElement>(null)
-  const timeRef = useRef<HTMLInputElement>(null)
   /** Set by a Save that found errors, so focus moves to the first one once they render. */
   const focusFirstError = useRef(false)
   const errorRef = useRef<HTMLDivElement>(null)
@@ -120,16 +121,44 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
     effort: useId(),
     date: useId(),
     time: useId(),
+    reminderDate: useId(),
+    reminderTime: useId(),
   }
   const deadlineHintId = useId()
 
-  // Everything the form edits, as one string, so "has anything changed?" is a single comparison.
-  const values = { title, description, status, priority, date, time, projectId, tagIds, effort, reminders, recurrence, checklist }
+  const dateReading = readDateText(dateText)
+  const timeReading = readTimeText(timeText)
+  /** The deadline's date (YYYY-MM-DD), or '' while there's none or it can't be read. */
+  const date = dateReading?.ok ? dateReading.date : ''
+  // A time typed with the date ("fri 5pm") is the newest word on it, so it wins until the date field tidies it away.
+  const time = dateReading?.ok && dateReading.time ? dateReading.time : timeReading?.ok ? timeReading.time : ''
+
+  // Everything the form edits, as one string, so "has anything changed?" is a single comparison. Text
+  // that can't be read counts as itself, so typing over a date with nonsense is still a change.
+  const values = {
+    title,
+    description,
+    status,
+    priority,
+    date: date || dateText.trim(),
+    time: time || timeText.trim(),
+    projectId,
+    tagIds,
+    effort,
+    reminders,
+    recurrence,
+    checklist,
+  }
   const snapshotOf = (v: typeof values) => JSON.stringify(v)
   const snapshot = snapshotOf(values)
   const [initialSnapshot, setInitialSnapshot] = useState(snapshot)
   const hasDrafts = Boolean(
-    checklistDraft.trim() || linkDraft.trim() || tagDraft.trim() || projectDraft?.trim() || reminderDraft,
+    checklistDraft.trim() ||
+      linkDraft.trim() ||
+      tagDraft.trim() ||
+      projectDraft?.trim() ||
+      reminderDraft.date.trim() ||
+      reminderDraft.time.trim(),
   )
   const isDirty = () => snapshot !== initialSnapshot || pendingFiles.length > 0 || removedFiles.length > 0 || hasDrafts
 
@@ -245,10 +274,23 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
     const errors: FieldErrors = {}
     if (!title.trim()) errors.title = 'Give the task a title.'
     if (effort.trim() && parseEffort(effort) === undefined) errors.effort = 'Effort should look like 30m, 2h or 1h30m.'
-    // A half-typed date or time reads as empty, which would quietly save no deadline.
-    if (dateRef.current?.validity.badInput) errors.date = 'Finish the date, or clear it.'
-    // Without a date the time field is disabled and no deadline is saved, so a half-typed time there doesn't matter.
-    if (date && timeRef.current?.validity.badInput) errors.time = 'Finish the time, or clear it.'
+    // Text that can't be read would otherwise save as no deadline, or a deadline without its time.
+    if (dateReading && !dateReading.ok) errors.date = dateReading.error
+    // Without a date the time field is disabled and no deadline is saved, so a stray time there doesn't matter.
+    if (dateText.trim() && timeReading && !timeReading.ok && !(dateReading?.ok && dateReading.time)) {
+      errors.time = timeReading.error
+    }
+    // A specific reminder time needs both halves; half of one would be dropped on Save.
+    const reminderDate = readDateText(reminderDraft.date)
+    const reminderTime = readTimeText(reminderDraft.time)
+    if (reminderDate || reminderTime) {
+      if (!reminderDate) errors.reminderDate = 'Give the reminder a date, or clear its time.'
+      else if (!reminderDate.ok) errors.reminderDate = reminderDate.error
+      if (!(reminderDate?.ok && reminderDate.time)) {
+        if (!reminderTime) errors.reminderTime = 'Give the reminder a time, such as 09:00.'
+        else if (!reminderTime.ok) errors.reminderTime = reminderTime.error
+      }
+    }
     if (linkDraft.trim()) {
       try {
         normaliseUrl(linkDraft)
@@ -283,7 +325,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
           extraTag ? tagRepo.findOrCreate(extraTag) : undefined,
           newProject ? projectRepo.findOrCreate(newProject) : undefined,
         ])
-        const at = reminderDraft ? new Date(reminderDraft).getTime() : NaN
+        const at = reminderDraftAt(reminderDraft)
         resolved = {
           ...values,
           checklist: checklistDraft.trim()
@@ -292,7 +334,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
           tagIds: tag && !tagIds.includes(tag.id) ? [...tagIds, tag.id] : tagIds,
           projectId: project?.id ?? projectId,
           reminders:
-            Number.isFinite(at) && reminders.length < MAX_REMINDERS
+            at !== undefined && reminders.length < MAX_REMINDERS
               ? [...reminders, { id: crypto.randomUUID(), kind: 'absolute' as const, at }]
               : reminders,
         }
@@ -313,8 +355,11 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
       setChecklistDraft('')
       setTagDraft('')
       setProjectDraft(null)
-      setReminderDraft('')
+      setReminderDraft(EMPTY_REMINDER_DRAFT)
       setLinkDraft('')
+      // Written back the way it's read, so the form shows exactly what's being saved.
+      setDateText(date ? formatDateText(date) : '')
+      if (date) setTimeText(time)
 
       const deadline: Deadline | undefined = date ? { date, time: time || undefined } : undefined
       const fields = {
@@ -462,41 +507,46 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
                 className={field}
               />
             </Field>
-            {/* Date and time sit side by side where both fit and stack on the narrowest phones, with the
-                app's own reading of them below: the native pickers follow the browser's locale
-                (mm/dd/yyyy and 12-hour under en-US) and can clip when squeezed. */}
-            <div className="col-span-2 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
+            {/* Date and time are typed (DD/MM/YYYY, 24-hour) with the native pickers behind their buttons,
+                since the pickers' own fields follow the browser's locale (mm/dd/yyyy and 12-hour under
+                en-US). They sit side by side where both fit and stack on the narrowest phones. The line
+                below confirms the reading as it's typed: "fri" shows which Friday. */}
+            <div className="col-span-2 grid grid-cols-[repeat(auto-fit,minmax(9.25rem,1fr))] gap-3">
               <Field label="Deadline" error={fieldErrors.date} errorId={errorIds.date}>
-                <input
-                  ref={dateRef}
-                  type="date"
-                  value={date}
-                  onChange={(e) => {
-                    setDate(e.target.value)
+                <DateField
+                  text={dateText}
+                  onTextChange={(text) => {
+                    setDateText(text)
                     clearError('date')
+                    // An empty date disables the time field, so an error left on it couldn't be fixed there.
+                    if (!text.trim()) clearError('time')
                   }}
-                  // A half-typed date fires no change, so clear the error on any typing too.
-                  onInput={() => clearError('date')}
-                  aria-label="Deadline date"
-                  aria-describedby={fieldErrors.date ? errorIds.date : date ? deadlineHintId : undefined}
-                  aria-invalid={fieldErrors.date ? true : undefined}
+                  onTimeRead={(t, d) => {
+                    setDateText(d)
+                    setTimeText(t)
+                    clearError('date')
+                    clearError('time')
+                  }}
+                  label="Deadline date"
+                  pickerFor="the deadline"
+                  invalid={Boolean(fieldErrors.date)}
+                  describedBy={fieldErrors.date ? errorIds.date : date ? deadlineHintId : undefined}
                   className={cn(field, fieldErrors.date && INVALID_FIELD)}
                 />
               </Field>
               <Field label="Time (optional)" error={fieldErrors.time} errorId={errorIds.time}>
-                <input
-                  ref={timeRef}
-                  type="time"
-                  value={time}
-                  disabled={!date}
-                  onChange={(e) => {
-                    setTime(e.target.value)
+                <TimeField
+                  text={timeText}
+                  onTextChange={(text) => {
+                    setTimeText(text)
                     clearError('time')
                   }}
-                  onInput={() => clearError('time')}
-                  aria-label="Deadline time"
-                  aria-describedby={fieldErrors.time ? errorIds.time : date ? deadlineHintId : undefined}
-                  aria-invalid={fieldErrors.time ? true : undefined}
+                  // Off only while the date is empty, not while it's half-typed, so it doesn't flicker.
+                  disabled={!dateText.trim()}
+                  label="Deadline time"
+                  pickerFor="the deadline"
+                  invalid={Boolean(fieldErrors.time)}
+                  describedBy={fieldErrors.time ? errorIds.time : date ? deadlineHintId : undefined}
                   className={cn(field, fieldErrors.time && INVALID_FIELD)}
                 />
               </Field>
@@ -523,7 +573,13 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
                 onChange={setReminders}
                 hasDeadline={Boolean(date)}
                 draft={reminderDraft}
-                onDraftChange={setReminderDraft}
+                onDraftChange={(d) => {
+                  setReminderDraft(d)
+                  if (d.date !== reminderDraft.date) clearError('reminderDate')
+                  if (d.time !== reminderDraft.time) clearError('reminderTime')
+                }}
+                errors={{ date: fieldErrors.reminderDate, time: fieldErrors.reminderTime }}
+                errorIds={{ date: errorIds.reminderDate, time: errorIds.reminderTime }}
                 className={field}
               />
             </Field>

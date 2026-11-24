@@ -103,7 +103,7 @@ test('a staged attachment and text not yet added both count as unsaved', async (
 test('a reminder time picked but not yet added counts as unsaved', async ({ app, page }) => {
   const dialog = await openTask(app, page)
   await dialog.getByLabel('Add reminder').selectOption({ label: 'At a specific time…' })
-  await dialog.getByLabel('Reminder time').fill('2026-12-01T09:00')
+  await dialog.getByLabel('Reminder date').fill('01/12/2026')
   await page.keyboard.press('Escape')
   await expect(discardBar(dialog)).toBeVisible()
 })
