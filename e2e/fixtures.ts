@@ -118,6 +118,19 @@ export const test = base.extend<{ app: App }>({
   },
 })
 
+/**
+ * Opens the task editor's More details (Status, Effort, Repeat, Reminders, Attachments), which
+ * starts closed on every open. Does nothing if it's already open.
+ */
+export async function openMoreDetails(editor: Locator) {
+  const toggle = editor.getByRole('button', { name: /^More details/ })
+  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  // The fields fade up into place; measure them only once they've settled.
+  const panel = editor.locator(`[id="${await toggle.getAttribute('aria-controls')}"]`)
+  await expect.poll(() => isAnimating(panel)).toBe(false)
+}
+
 /** Whether anything inside `el` is running a CSS or Web Animation right now. */
 export const isAnimating = (el: Locator) =>
   el.evaluate((node) => node.getAnimations({ subtree: true }).some((a) => a.playState === 'running'))

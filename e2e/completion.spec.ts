@@ -1,7 +1,7 @@
 // Completing a task: a "Done" toast confirms it and offers Undo, a recurring task's toast says when
 // it's next due, and after X the selection takes the next card so J and K carry on from there.
 import { type Locator, type Page } from '@playwright/test'
-import { box, expect, test, type App } from './fixtures'
+import { box, expect, test, type App, openMoreDetails } from './fixtures'
 
 const doneToast = (page: Page) => page.getByRole('status').filter({ hasText: /^Done: / })
 const checkbox = (page: Page, title: string, done = false) =>
@@ -28,6 +28,7 @@ async function addWeeklyTaskDueToday(page: Page, title: string) {
   await form.getByLabel('Title').fill(title)
   await form.getByLabel('Deadline date').fill('10/03/2026')
   await form.getByLabel('Deadline time').fill('09:30')
+  await openMoreDetails(form)
   await form.getByLabel('Repeat').selectOption({ label: 'Weekly' })
   await form.getByRole('button', { name: 'Add task' }).click()
   await expect(form).toBeHidden()
@@ -51,6 +52,7 @@ test('Undo puts a task back to the status it had, not just to do', async ({ app,
   await addTasks(app, 'Draft the budget')
   await app.taskRow('Draft the budget').getByRole('button').click()
   const edit = page.getByRole('dialog', { name: 'Edit task' })
+  await openMoreDetails(edit)
   await edit.getByLabel('Status').selectOption({ label: 'In Progress' })
   await edit.getByRole('button', { name: 'Save' }).click()
   await expect(edit).toBeHidden()

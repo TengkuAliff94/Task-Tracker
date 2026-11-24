@@ -27,7 +27,7 @@ export function TagPicker({ tags, value, onChange, draft, onDraftChange }: Props
   }
 
   return (
-    <div className={cn(field, 'flex flex-wrap items-center gap-1.5 px-2.5 py-1.5 focus-within:border-ring focus-within:shadow-[0_0_0_3px_var(--primary-soft)]')}>
+    <div className={cn(field, 'flex min-h-[2.375rem] flex-wrap items-center gap-1.5 px-2.5 py-1.5 focus-within:border-ring focus-within:shadow-[0_0_0_3px_var(--primary-soft)]')}>
       {value.map((id) => {
         const t = byId.get(id)
         return t ? (

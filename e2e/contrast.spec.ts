@@ -2,7 +2,7 @@
 // (4.5:1, or 3:1 for large text), checked by axe on the real rendered screens.
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { expect, test } from './fixtures'
+import { expect, test, openMoreDetails } from './fixtures'
 
 /** Contrast problems on the page as it is now, one line each, so a failure says what to fix. */
 async function contrastProblems(page: Page): Promise<string[]> {
@@ -153,6 +153,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       void app
       await page.getByRole('banner').getByRole('button', { name: 'New task' }).click()
       const editor = page.getByRole('dialog', { name: 'New task' })
+      await openMoreDetails(editor)
       await editor.getByLabel('Effort').fill('a while')
       await editor.getByLabel('Deadline date').fill('11/03/2026')
       await editor.getByLabel('Add link').fill('ftp://example.com')

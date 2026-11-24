@@ -1,7 +1,7 @@
 // The task editor never throws edits away silently. With nothing changed, every way out closes it
 // at once; with unsaved changes, each one asks "Discard your changes?" first, inside the dialog.
 import type { Locator, Page } from '@playwright/test'
-import { expect, isAnimating, test, type App } from './fixtures'
+import { expect, isAnimating, test, type App, openMoreDetails } from './fixtures'
 
 const editor = (page: Page) => page.getByRole('dialog', { name: 'Edit task' })
 const discardBar = (dialog: Locator) => dialog.getByRole('group', { name: /^Discard/ })
@@ -84,6 +84,7 @@ test('changing a field back to how it was counts as no change', async ({ app, pa
 
 test('a staged attachment and text not yet added both count as unsaved', async ({ app, page }) => {
   let dialog = await openTask(app, page)
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add link').fill('example.com')
   await dialog.getByLabel('Add link').press('Enter')
   await expect(dialog.getByText('unsaved')).toBeVisible()
@@ -102,6 +103,7 @@ test('a staged attachment and text not yet added both count as unsaved', async (
 
 test('a reminder time picked but not yet added counts as unsaved', async ({ app, page }) => {
   const dialog = await openTask(app, page)
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add reminder').selectOption({ label: 'At a specific time…' })
   await dialog.getByLabel('Reminder date').fill('01/12/2026')
   await page.keyboard.press('Escape')
@@ -151,6 +153,7 @@ test.describe('when attachments fail to save', () => {
     await page.getByRole('button', { name: 'New task' }).click()
     const dialog = page.getByRole('dialog', { name: 'New task' })
     await dialog.getByLabel('Title').fill('Book the dentist')
+    await openMoreDetails(dialog)
     await dialog.getByLabel('Add link').fill('example.com')
     await dialog.getByLabel('Add link').press('Enter')
     await dialog.getByRole('button', { name: 'Add task' }).click()

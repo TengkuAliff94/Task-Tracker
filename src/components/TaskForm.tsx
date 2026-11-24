@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type SyntheticEvent } from 'react'
-import { Trash2 } from 'lucide-react'
+import { ChevronDown, Trash2 } from 'lucide-react'
 import { useModalDialog } from '../hooks/useModalDialog'
 import { DialogTitleBar } from './Dialog'
 import { taskRepo } from '../db/tasks'
@@ -8,6 +8,7 @@ import { attachmentRepo, normaliseUrl, type PendingAttachment } from '../db/atta
 import { describeDeadline } from '../lib/deadline'
 import { formatDateText, readDateText, readTimeText } from '../lib/dateInput'
 import { formatEffort, parseEffort } from '../lib/effort'
+import { describeRecurrence } from '../lib/recurrence'
 import { MAX_REMINDERS } from '../lib/reminders'
 import { cn, describeSaveError } from '../lib/utils'
 import {
@@ -100,6 +101,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [saving, setSaving] = useState(false)
   /** Showing the "Discard changes?" bar in place of the footer buttons. */
   const [confirming, setConfirming] = useState(false)
+  /** Showing the rarely used fields (status, effort, repeat, reminders, attachments). Closed on every open: its summary says what's set. */
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
   /** Set by a Save that found errors, so focus moves to the first one once they render. */
@@ -116,6 +119,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   /** The task's id once it exists, so a retry after a half-finished save updates it instead of adding a copy. */
   const savedId = useRef(task?.id)
   const messageId = useId()
+  const detailsId = useId()
   const errorIds = {
     title: useId(),
     effort: useId(),
@@ -161,6 +165,19 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
       reminderDraft.time.trim(),
   )
   const isDirty = () => snapshot !== initialSnapshot || pendingFiles.length > 0 || removedFiles.length > 0 || hasDrafts
+
+  // What's set behind More details, so it can stay closed without hiding anything.
+  const attachmentCount = existingFiles.filter((f) => !removedFiles.includes(f.id)).length + pendingFiles.length
+  const parsedEffort = parseEffort(effort)
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  const detailsSummary = [
+    status !== 'todo' && STATUS_LABEL[status],
+    effort.trim() && (parsedEffort ? formatEffort(parsedEffort) : effort.trim()),
+    // A repeat needs a deadline, and isn't saved without one.
+    recurrence && date && `Repeats ${describeRecurrence(recurrence).toLowerCase()}`,
+    reminders.length > 0 && plural(reminders.length, 'reminder'),
+    attachmentCount > 0 && plural(attachmentCount, 'attachment'),
+  ].filter(Boolean) as string[]
 
   /** Clears one field's error as soon as it's edited. */
   function clearError(key: keyof FieldErrors) {
@@ -307,6 +324,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
     const errors = validate()
     setFieldErrors(errors)
     if (Object.keys(errors).length) {
+      // A problem behind More details must be seen and focusable, so open it in the same render.
+      if (errors.effort || errors.reminderDate || errors.reminderTime || errors.link) setDetailsOpen(true)
       focusFirstError.current = true
       setError(null)
       return
@@ -435,83 +454,14 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
             />
           </Field>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className={labelText}>Description</span>
-              <div className="flex gap-1" role="tablist">
-                <button type="button" role="tab" aria-selected={!preview} onClick={() => setPreview(false)} className={tab(!preview)}>
-                  Write
-                </button>
-                <button type="button" role="tab" aria-selected={preview} onClick={() => setPreview(true)} className={tab(preview)}>
-                  Preview
-                </button>
-              </div>
-            </div>
-            {preview ? (
-              <div className="min-h-24 rounded-lg bg-subtle px-3 py-2">
-                {description.trim() ? (
-                  <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
-                    <Markdown text={description} />
-                  </Suspense>
-                ) : (
-                  <p className="text-sm text-muted">Nothing to preview.</p>
-                )}
-              </div>
-            ) : (
-              <textarea
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Markdown supported: **bold**, - lists, [links](https://…)"
-                aria-label="Description"
-                className={field}
-              />
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <Field label="Status">
-              <select value={status} onChange={(e) => setStatus(e.target.value as Status)} aria-label="Status" className={field}>
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>{STATUS_LABEL[s]}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Priority">
-              <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} aria-label="Priority" className={field}>
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Effort" error={fieldErrors.effort} errorId={errorIds.effort}>
-              <input
-                value={effort}
-                onChange={(e) => {
-                  setEffort(e.target.value)
-                  clearError('effort')
-                }}
-                placeholder="e.g. 30m, 2h"
-                aria-label="Effort"
-                {...invalidProps(fieldErrors.effort, errorIds.effort)}
-                className={cn(field, fieldErrors.effort && INVALID_FIELD)}
-              />
-            </Field>
-            <Field label="Project">
-              <ProjectPicker
-                projects={projects}
-                value={projectId}
-                onChange={setProjectId}
-                draft={projectDraft}
-                onDraftChange={setProjectDraft}
-                className={field}
-              />
-            </Field>
+          {/* What most tasks need, in the order they're decided: when it's due and how much it matters.
+              min-w-0: a grid cell would otherwise grow to fit the widest native picker and push the dialog sideways. */}
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] [&>*]:min-w-0">
             {/* Date and time are typed (DD/MM/YYYY, 24-hour) with the native pickers behind their buttons,
                 since the pickers' own fields follow the browser's locale (mm/dd/yyyy and 12-hour under
                 en-US). They sit side by side where both fit and stack on the narrowest phones. The line
                 below confirms the reading as it's typed: "fri" shows which Friday. */}
-            <div className="col-span-2 grid grid-cols-[repeat(auto-fit,minmax(9.25rem,1fr))] gap-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(9.25rem,1fr))] gap-3">
               <Field label="Deadline" error={fieldErrors.date} errorId={errorIds.date}>
                 <DateField
                   text={dateText}
@@ -556,54 +506,154 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
                 </p>
               )}
             </div>
+            <Field label="Priority">
+              <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} aria-label="Priority" className={field}>
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
+                ))}
+              </select>
+            </Field>
           </div>
 
-          <Field label="Tags">
-            <TagPicker tags={tags} value={tagIds} onChange={setTagIds} draft={tagDraft} onDraftChange={setTagDraft} />
-          </Field>
-
-          {/* min-w-0: a grid cell would otherwise grow to fit the widest native picker and push the dialog sideways. */}
-          <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
-            <Field label="Repeat">
-              <RecurrenceEditor value={recurrence} onChange={setRecurrence} hasDeadline={Boolean(date)} className={field} />
-            </Field>
-            <Field label="Reminders">
-              <RemindersEditor
-                value={reminders}
-                onChange={setReminders}
-                hasDeadline={Boolean(date)}
-                draft={reminderDraft}
-                onDraftChange={(d) => {
-                  setReminderDraft(d)
-                  if (d.date !== reminderDraft.date) clearError('reminderDate')
-                  if (d.time !== reminderDraft.time) clearError('reminderTime')
-                }}
-                errors={{ date: fieldErrors.reminderDate, time: fieldErrors.reminderTime }}
-                errorIds={{ date: errorIds.reminderDate, time: errorIds.reminderTime }}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className={labelText}>Description</span>
+              <div className="flex gap-1" role="tablist">
+                <button type="button" role="tab" aria-selected={!preview} onClick={() => setPreview(false)} className={tab(!preview)}>
+                  Write
+                </button>
+                <button type="button" role="tab" aria-selected={preview} onClick={() => setPreview(true)} className={tab(preview)}>
+                  Preview
+                </button>
+              </div>
+            </div>
+            {preview ? (
+              <div className="min-h-24 rounded-lg bg-subtle px-3 py-2">
+                {description.trim() ? (
+                  <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+                    <Markdown text={description} />
+                  </Suspense>
+                ) : (
+                  <p className="text-sm text-muted">Nothing to preview.</p>
+                )}
+              </div>
+            ) : (
+              <textarea
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Markdown supported: **bold**, - lists, [links](https://…)"
+                aria-label="Description"
                 className={field}
               />
-            </Field>
+            )}
           </div>
 
           <Field label="Checklist">
             <ChecklistEditor value={checklist} onChange={setChecklist} draft={checklistDraft} onDraftChange={setChecklistDraft} />
           </Field>
 
-          <Field label="Attachments">
-            <AttachmentsEditor
-              existing={existingFiles}
-              removed={removedFiles}
-              onRemovedChange={setRemovedFiles}
-              pending={pendingFiles}
-              onPendingChange={setPendingFiles}
-              draft={linkDraft}
-              onDraftChange={(url) => {
-                setLinkDraft(url)
-                clearError('link')
-              }}
-              draftError={fieldErrors.link}
-            />
-          </Field>
+          <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
+            <Field label="Project">
+              <ProjectPicker
+                projects={projects}
+                value={projectId}
+                onChange={setProjectId}
+                draft={projectDraft}
+                onDraftChange={setProjectDraft}
+                className={field}
+              />
+            </Field>
+            <Field label="Tags">
+              <TagPicker tags={tags} value={tagIds} onChange={setTagIds} draft={tagDraft} onDraftChange={setTagDraft} />
+            </Field>
+          </div>
+
+          {/* The fields few tasks need wait behind one row. Closed, it says what's set behind it, so
+              nothing is out of sight; with nothing set, it names what's there. */}
+          <div>
+            <button
+              type="button"
+              aria-expanded={detailsOpen}
+              aria-controls={detailsId}
+              onClick={() => setDetailsOpen((o) => !o)}
+              data-details-toggle
+              className="-mx-3 flex min-h-11 w-[calc(100%+1.5rem)] items-center gap-x-2 rounded-lg px-3 py-2 text-left text-[13px] transition-colors duration-200 hover:bg-subtle"
+            >
+              <span className="shrink-0 font-semibold text-fg">More details</span>
+              {!detailsOpen && (
+                <span data-details-summary className={cn('min-w-0 tabular-nums', detailsSummary.length ? 'text-fg/80' : 'text-muted')}>
+                  {detailsSummary.length ? detailsSummary.join(' · ') : 'Status, effort, repeat, reminders, attachments'}
+                </span>
+              )}
+              <ChevronDown className={`ml-auto size-4 shrink-0 text-muted transition-transform duration-200 ${detailsOpen ? 'rotate-180' : ''}`} aria-hidden />
+            </button>
+
+            {/* Always in the DOM, so text typed into a hidden field still saves and its error can be focused. */}
+            <div id={detailsId} hidden={!detailsOpen} className="mt-2 animate-fade-up space-y-4">
+              {/* Side by side where "In Progress" fits whole, stacked on the narrowest phones. */}
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(9.25rem,1fr))] gap-3">
+                <Field label="Status">
+                  <select value={status} onChange={(e) => setStatus(e.target.value as Status)} aria-label="Status" className={field}>
+                    {STATUSES.map((s) => (
+                      <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Effort" error={fieldErrors.effort} errorId={errorIds.effort}>
+                  <input
+                    value={effort}
+                    onChange={(e) => {
+                      setEffort(e.target.value)
+                      clearError('effort')
+                    }}
+                    placeholder="e.g. 30m, 2h"
+                    aria-label="Effort"
+                    {...invalidProps(fieldErrors.effort, errorIds.effort)}
+                    className={cn(field, fieldErrors.effort && INVALID_FIELD)}
+                  />
+                </Field>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 [&>*]:min-w-0">
+                <Field label="Repeat">
+                  <RecurrenceEditor value={recurrence} onChange={setRecurrence} hasDeadline={Boolean(date)} className={field} />
+                </Field>
+                <Field label="Reminders">
+                  <RemindersEditor
+                    value={reminders}
+                    onChange={setReminders}
+                    hasDeadline={Boolean(date)}
+                    draft={reminderDraft}
+                    onDraftChange={(d) => {
+                      setReminderDraft(d)
+                      if (d.date !== reminderDraft.date) clearError('reminderDate')
+                      if (d.time !== reminderDraft.time) clearError('reminderTime')
+                    }}
+                    errors={{ date: fieldErrors.reminderDate, time: fieldErrors.reminderTime }}
+                    errorIds={{ date: errorIds.reminderDate, time: errorIds.reminderTime }}
+                    className={field}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Attachments">
+                <AttachmentsEditor
+                  existing={existingFiles}
+                  removed={removedFiles}
+                  onRemovedChange={setRemovedFiles}
+                  pending={pendingFiles}
+                  onPendingChange={setPendingFiles}
+                  draft={linkDraft}
+                  onDraftChange={(url) => {
+                    setLinkDraft(url)
+                    clearError('link')
+                  }}
+                  draftError={fieldErrors.link}
+                />
+              </Field>
+            </div>
+          </div>
 
           {task && (
             <p className="text-xs text-muted">

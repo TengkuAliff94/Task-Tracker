@@ -1,4 +1,4 @@
-import { expect, test } from './fixtures'
+import { expect, test, openMoreDetails } from './fixtures'
 
 test('create, edit and complete a task', async ({ app, page }) => {
   await page.getByRole('button', { name: 'New task' }).click()
@@ -12,6 +12,7 @@ test('create, edit and complete a task', async ({ app, page }) => {
   await app.taskRow('Write report').getByRole('button').click()
   const edit = page.getByRole('dialog', { name: 'Edit task' })
   await edit.getByLabel('Title').fill('Write quarterly report')
+  await openMoreDetails(edit)
   await edit.getByLabel('Status').selectOption('in_progress')
   await edit.getByRole('button', { name: 'Save' }).click()
   await expect(app.taskRow('Write quarterly report')).toContainText('In Progress')

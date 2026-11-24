@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24 (step 8). Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed). Still to do: pick the next follow-up.
+Last updated 2026-11-24 (step 9). Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed). Still to do: pick the next follow-up.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -26,10 +26,11 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 6 | `/impeccable harden src/components/TaskForm.tsx` | [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) re-critique P1: typed DD/MM/YYYY and 24-hour dates, picker behind a button | **done** (`63657c9`, closed) |
 | 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** (`af20632`) |
 | 8 | `/impeccable colorize` | [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) re-critique P2: colour has one job; priority as signal bars, ink toasts, neutral backup reminder | **done** (`f0f26d5`) |
+| 9 | `/impeccable distill` (editor) | [#32](https://github.com/TengkuAliff94/Task-Tracker/issues/32) re-critique P2: the editor leads with the common fields; Status, Effort, Repeat, Reminders, Attachments behind a closed More details with a summary | **done**, not committed yet |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** pick the next re-critique follow-up: P2 the 13-field editor (`/impeccable distill`); P3 quick-add help (`/impeccable onboard`).
+**To resume:** the last re-critique follow-up: P3 quick-add help (`/impeccable onboard`).
 
 **Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`). Three agents reviewed it (correctness, WCAG, layout); it was committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) and pushed. See "Typed dates in brief" below.
 
@@ -113,6 +114,15 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Editor fields in brief (step 9)
+
+The editor reads: Title; Deadline, Time and Priority on one row; Description; Checklist; Project beside Tags; then **More details** (Status, Effort, Repeat, Reminders, Attachments). It starts closed on every open, and closed it lists what's set ("In Progress · 30m · Repeats weekly · 1 reminder"), or names its fields in muted text when nothing is. Its fields stay mounted under `hidden`, so drafts typed there still save, and `RemindersEditor`'s own "specific time" choice survives a close. A Save with an error there (effort, reminder date/time, link) opens it in the same render, so focus reaches the field. Tests: `e2e/editor-details.spec.ts` (5, all failing on the old editor). 179 unit and 216 e2e passing.
+
+**Gotchas from this step:**
+- **Open More details before touching its fields.** In e2e call `openMoreDetails(dialog)` (in `e2e/fixtures.ts`); it also waits for the fade-up, so boxes measured after it are settled. Reopening a saved task closes it again.
+- **On phones, blur quick add before tapping a card.** Its panel shrinks when it loses focus, so a tap straight after `quickAdd` lands where the card was.
+- **Two flakes under full-suite load,** both passing alone: the phone More menu's 40px item height (39.99998) and "a new project name that already exists reuses that project on Save".
 
 ## Colour roles in brief (#31)
 

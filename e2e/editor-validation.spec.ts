@@ -2,7 +2,7 @@
 // the browser's "Please fill out this field." bubble), dates read DD/MM/YYYY and 24-hour whatever the
 // browser's locale, and text typed into an "add" field but not added is saved rather than dropped.
 import type { Page } from '@playwright/test'
-import { expect, test, type App } from './fixtures'
+import { expect, test, type App, openMoreDetails } from './fixtures'
 
 const newTaskEditor = (page: Page) => page.getByRole('dialog', { name: 'New task' })
 const editEditor = (page: Page) => page.getByRole('dialog', { name: 'Edit task' })
@@ -53,6 +53,7 @@ test('an effort that does not parse is flagged at the Effort field', async ({ ap
   void app
   const dialog = await openNewTask(page)
   await dialog.getByLabel('Title').fill('Paint the fence')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Effort').fill('a while')
   await dialog.getByRole('button', { name: 'Add task' }).click()
   await expect(dialog.getByLabel('Effort')).toBeFocused()
@@ -126,6 +127,7 @@ test.describe('in an en-US browser', () => {
   test('a reminder time reads DD/MM/YYYY and 24-hour before it is added', async ({ app, page }) => {
     void app
     const dialog = await openNewTask(page)
+    await openMoreDetails(dialog)
     await dialog.getByLabel('Add reminder').selectOption('absolute')
     await dialog.getByLabel('Reminder date').fill('12/3')
     await dialog.getByLabel('Reminder time').fill('1905')
@@ -140,6 +142,7 @@ test.describe('in an en-US browser', () => {
   test('a reminder date given with a time is split between the two fields on leaving', async ({ app, page }) => {
     void app
     const dialog = await openNewTask(page)
+    await openMoreDetails(dialog)
     await dialog.getByLabel('Add reminder').selectOption('absolute')
     const date = dialog.getByLabel('Reminder date')
     await date.fill('fri 9am')
@@ -155,6 +158,7 @@ test('Save adds what was typed into each "add" field instead of dropping it', as
   const dialog = await openTask(app, page, 'Water the plants')
 
   await dialog.getByLabel('New checklist item').fill('Fill the watering can')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add link').fill('example.com/plants')
   await dialog.getByLabel('Add tag').fill('garden')
   await dialog.getByRole('combobox').filter({ has: page.getByRole('option', { name: 'No project' }) }).selectOption('__new__')
@@ -170,6 +174,7 @@ test('Save adds what was typed into each "add" field instead of dropping it', as
   await expect(row).toContainText('Balcony')
 
   await openTask(app, page, 'Water the plants')
+  await openMoreDetails(dialog)
   await expect(dialog.getByLabel('Checklist item', { exact: true })).toHaveValue('Fill the watering can')
   await expect(dialog.getByRole('link', { name: 'https://example.com/plants' })).toBeVisible()
   await expect(dialog.getByRole('button', { name: 'Remove garden' })).toBeVisible()
@@ -195,6 +200,7 @@ test('a typed link that is not valid stops Save and says why at the link field',
   await app.quickAdd('Water the plants')
   const dialog = await openTask(app, page, 'Water the plants')
   await dialog.getByLabel('New checklist item').fill('Fill the watering can')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add link').fill('ftp://example.com/plants')
   await dialog.getByRole('button', { name: 'Save' }).click()
 
@@ -273,6 +279,7 @@ test('the date and time fields say their format to a screen reader until there i
   const dialog = await openNewTask(page)
   await expect(dialog.getByLabel('Deadline date')).toHaveAccessibleDescription('Day first, such as 25/04/2026. Words like “fri” also work.')
   await expect(dialog.getByLabel('Deadline time')).toHaveAccessibleDescription('24-hour clock, such as 17:30.')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add reminder').selectOption('absolute')
   const reminderDate = dialog.getByLabel('Reminder date')
   await expect(reminderDate).toHaveAccessibleDescription('Day first, such as 25/04/2026. Words like “fri” also work.')
@@ -285,6 +292,7 @@ test('the reminder date and time share a row where they fit, each with its error
   await page.setViewportSize({ width: 1280, height: 900 })
   const dialog = await openNewTask(page)
   await dialog.getByLabel('Title').fill('Renew the licence')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add reminder').selectOption('absolute')
   const date = dialog.getByLabel('Reminder date')
   const time = dialog.getByLabel('Reminder time')
@@ -321,6 +329,7 @@ test('clearing the date takes the error off the time field it disables', async (
 test('a half-typed reminder time stops Save instead of being dropped', async ({ app, page }) => {
   await app.quickAdd('Water the plants')
   const dialog = await openTask(app, page, 'Water the plants')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Add reminder').selectOption('absolute')
   await dialog.getByLabel('Reminder date').fill('12/03/2026')
   await expect(dialog.getByRole('button', { name: 'Add', exact: true })).toBeDisabled()
@@ -337,6 +346,7 @@ test('a half-typed reminder time stops Save instead of being dropped', async ({ 
   await dialog.getByRole('button', { name: 'Save' }).click()
   await expect(dialog).toBeHidden()
   await openTask(app, page, 'Water the plants')
+  await openMoreDetails(dialog)
   await expect(dialog.getByText('12/03/2026, 19:00', { exact: true })).toBeVisible()
 })
 
@@ -357,6 +367,7 @@ test('the first field with an error is focused clear of the sticky title bar and
   await page.setViewportSize({ width: 390, height: 640 })
   const dialog = await openNewTask(page)
   await dialog.getByLabel('Title').fill('Paint the fence')
+  await openMoreDetails(dialog)
   await dialog.getByLabel('Effort').fill('a while')
   // Scroll so the Effort field sits just under the sticky title bar: on screen as far as the browser
   // knows, so focusing it wouldn't scroll at all without a scroll margin.
