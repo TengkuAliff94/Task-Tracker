@@ -26,7 +26,7 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 6 | `/impeccable harden src/components/TaskForm.tsx` | [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) re-critique P1: typed DD/MM/YYYY and 24-hour dates, picker behind a button | **done** (`63657c9`, closed) |
 | 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** (`af20632`) |
 | 8 | `/impeccable colorize` | [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) re-critique P2: colour has one job; priority as signal bars, ink toasts, neutral backup reminder | **done** (`f0f26d5`) |
-| 9 | `/impeccable distill` (editor) | [#32](https://github.com/TengkuAliff94/Task-Tracker/issues/32) re-critique P2: the editor leads with the common fields; Status, Effort, Repeat, Reminders, Attachments behind a closed More details with a summary | **done**, not committed yet |
+| 9 | `/impeccable distill` (editor) | [#32](https://github.com/TengkuAliff94/Task-Tracker/issues/32) re-critique P2: the editor leads with the common fields; Status, Effort, Repeat, Reminders, Attachments behind a closed More details with a summary | **done** (`bdd1df8`) |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
