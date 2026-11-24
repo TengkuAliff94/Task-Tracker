@@ -7,6 +7,8 @@ interface Props {
   icon: LucideIcon
   title: string
   children: ReactNode
+  /** Something to try, right under the text and before the way out (the first-run quick-add example). */
+  example?: ReactNode
   /** The way out of the empty state, shown prominently under the text (e.g. "Load sample data"). */
   action?: ReactNode
 }
@@ -15,7 +17,7 @@ interface Props {
  * A friendly placeholder for an empty list: a big panel (a region named by its title) whose icon
  * tile floats gently up and down (decoration only; it keeps still under reduced motion).
  */
-export function EmptyState({ icon: Icon, title, children, action }: Props) {
+export function EmptyState({ icon: Icon, title, children, example, action }: Props) {
   const titleId = useId()
   return (
     <Reveal>
@@ -25,6 +27,7 @@ export function EmptyState({ icon: Icon, title, children, action }: Props) {
         </span>
         <h2 id={titleId} className="text-3xl font-extrabold tracking-tight">{title}</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted">{children}</p>
+        {example && <div className="mt-5 flex justify-center">{example}</div>}
         {action && <div className="mt-7 flex justify-center">{action}</div>}
       </section>
     </Reveal>

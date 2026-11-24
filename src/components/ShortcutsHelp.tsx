@@ -1,5 +1,6 @@
 import { SHORTCUTS } from '../hooks/useShortcuts'
 import { Dialog } from './Dialog'
+import { QuickAddSyntax } from './QuickAddSyntax'
 
 export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
   return (
@@ -23,6 +24,9 @@ export function ShortcutsHelp({ onClose }: { onClose: () => void }) {
         ))}
       </dl>
       <p className="mt-4 text-xs text-muted">Shortcuts are off while you type in a field or a window is open.</p>
+      {/* Power users look here first, so the quick-add syntax is here as well as behind the bar's ? button. */}
+      <h3 className="mt-8 mb-3 text-sm font-bold">Quick add syntax</h3>
+      <QuickAddSyntax />
     </Dialog>
   )
 }

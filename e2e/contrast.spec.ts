@@ -123,6 +123,13 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(await contrastProblems(page)).toEqual([])
     })
 
+    test(`the quick-add syntax popover is readable (${colorScheme})`, async ({ app, page }) => {
+      await page.getByRole('button', { name: 'Quick add syntax' }).click()
+      await expect(page.getByRole('heading', { name: 'Quick add syntax' })).toBeVisible()
+      expect(await contrastProblems(page)).toEqual([])
+      void app
+    })
+
     test(`a destructive confirmation and its solid Delete button are readable (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
       await page.getByRole('button', { name: 'Projects & tags' }).click()

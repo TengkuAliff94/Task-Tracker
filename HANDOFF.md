@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24 (step 9). Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed). Still to do: pick the next follow-up.
+Last updated 2026-11-24 (step 10). Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -27,10 +27,11 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** (`af20632`) |
 | 8 | `/impeccable colorize` | [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) re-critique P2: colour has one job; priority as signal bars, ink toasts, neutral backup reminder | **done** (`f0f26d5`) |
 | 9 | `/impeccable distill` (editor) | [#32](https://github.com/TengkuAliff94/Task-Tracker/issues/32) re-critique P2: the editor leads with the common fields; Status, Effort, Repeat, Reminders, Attachments behind a closed More details with a summary | **done** (`bdd1df8`) |
+| 10 | `/impeccable onboard` | [#33](https://github.com/TengkuAliff94/Task-Tracker/issues/33) re-critique P3: quick-add help. A `?` popover in the bar, the syntax in the shortcuts sheet, and a Try button on the first-run empty state | **done**, not yet committed |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** the last re-critique follow-up: P3 quick-add help (`/impeccable onboard`).
+**To resume:** every re-critique finding is addressed. Next: decide whether to re-run `/impeccable critique src` for a new score, or take on the persona red flags in the 2026-11-21 report.
 
 **Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`). Three agents reviewed it (correctness, WCAG, layout); it was committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) and pushed. See "Typed dates in brief" below.
 
@@ -114,6 +115,20 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Quick-add help in brief (step 10)
+
+Quick add's grammar is findable without reading the placeholder. `QUICK_ADD_SYNTAX` and `QUICK_ADD_EXAMPLE` in `src/lib/quickAdd.ts` are the single source; `QuickAddSyntax` (`src/components/QuickAddSyntax.tsx`) renders it as a token-chip list, and `quickAdd.test.ts` parses every token it shows.
+- **`?` in the bar** ("Quick add syntax", `btn.icon`, at every width) opens a `popover="auto"` hung under the quick-add *panel* with `placeBelow(form, …)`, so it keeps a 16px gutter on phones (anchoring to the button left it 2px from the edge at 320). Esc closes it with focus on the button. The `N` key cap sits beside it from `md` only; between `sm` and `md` it cut the example placeholder off.
+- **Shortcuts sheet** has the same list under a bold "Quick add syntax" heading.
+- **First-run empty state:** new copy ("Type one in the quick-add bar above. One line sets its tags, project, priority and deadline.") and a Well Stone **Try: Pay rent #finance …** button (`EmptyState`'s new `example` slot). It calls `QuickAddHandle.fill()` (a React 19 `ref` prop with `useImperativeHandle`; `flushSync`, then focus with the caret at the end). Nothing is saved until Enter (the user's choice over adding at once).
+- **Deadline row** leads with `fri 5pm`, not `tomorrow 5pm`: the long chip squeezed the text column. `next mon` is left out on purpose: from a Sunday chrono reads it as the next day.
+
+Tests: `e2e/quick-add-help.spec.ts` (10: Try fills without saving, popover + Esc, Tab order, shortcuts sheet, 320/390/1280 placement, placeholder fits at 640/768/1024) and a popover contrast check per theme in `contrast.spec.ts`. The 9 behaviour tests failed on the old source; the placeholder test was proved by putting `sm:pr-20` back. 193 unit and 228 e2e passing, build clean. Sidecar gained a Quick Add Syntax component; doctor clean, detector clean.
+
+**Gotchas from this step:**
+- **`getByRole('button', { name: 'Quick add syntax' })`** is the help; `getByLabel('Quick add task')` still finds only the field.
+- **Flaky unit test (pre-existing):** `storage.test.ts` "apply adds and removes in one go" fails about one full run in four and passes alone. Probably two attachments created in the same millisecond sorting either way. Not touched here.
 
 ## Editor fields in brief (step 9)
 

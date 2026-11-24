@@ -22,6 +22,25 @@ const PRIORITY_ALIASES: Record<string, Priority> = {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
+/** The one-line example the placeholder, the empty state's Try button and the help all use. */
+export const QUICK_ADD_EXAMPLE = 'Pay rent #finance @home !high ~30m tomorrow 5pm'
+
+/** What a token sets on the task, as `parseQuickAdd` returns it. */
+export type QuickAddField = 'tagNames' | 'projectName' | 'priority' | 'effortMinutes' | 'deadline'
+
+/**
+ * The quick-add help: each kind of token with the example's own token first, other forms after it,
+ * and a note. `quickAdd.test.ts` parses every token shown here, so the help can't promise a form the
+ * parser doesn't read.
+ */
+export const QUICK_ADD_SYNTAX: { field: QuickAddField; name: string; tokens: string[]; note?: string }[] = [
+  { field: 'tagNames', name: 'Tag', tokens: ['#finance'], note: 'Add as many as you like.' },
+  { field: 'projectName', name: 'Project', tokens: ['@home'], note: 'One per task.' },
+  { field: 'priority', name: 'Priority', tokens: ['!high', '!low', '!med', '!urgent'] },
+  { field: 'effortMinutes', name: 'Effort', tokens: ['~30m', '~2h', '~1h30m'] },
+  { field: 'deadline', name: 'Deadline', tokens: ['fri 5pm', 'tomorrow', 'in 3 days', '25/12 17:30'], note: 'Day first.' },
+]
+
 /**
  * Parses quick-add text such as `Pay rent #finance @home !high ~30m tomorrow 5pm`.
  *   #tag        a tag (repeatable)

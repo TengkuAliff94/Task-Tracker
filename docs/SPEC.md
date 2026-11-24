@@ -32,7 +32,7 @@ Multi-device sync for one person is coming. It isn't built and there is no backe
 ## Behaviour
 - **List view**: overdue first, then deadline ascending (no deadline last), then priority. The sort can be changed, and tasks grouped by project, priority or status. Completed tasks are hidden behind a "Show completed" toggle.
 - **Filters**: project, tag, priority, status, combined with one search box over title, description, tags and checklist items.
-- **Quick-add bar**: `Pay rent #finance @home !high ~30m tomorrow 5pm`. Tokens: `#tag`, `@project`, `!low|!med|!high|!urgent`, `~effort`; natural-language dates via chrono-node. The full form handles editing.
+- **Quick-add bar**: `Pay rent #finance @home !high ~30m tomorrow 5pm`. Tokens: `#tag`, `@project`, `!low|!med|!high|!urgent`, `~effort`; natural-language dates via chrono-node. The full form handles editing. Help is where people look for it: a `?` button in the bar opens the syntax, the keyboard shortcuts sheet lists it too, and the first-run empty state offers the example as a **Try** button that fills the bar (it doesn't save), so the preview shows what each token does.
 - **Recurrence**: completing a recurring task creates the next instance. It copies the description, tags, project, priority, effort, the checklist (all items reset to unchecked) and reminders (shifted to the new deadline). Attachments are not copied.
 - **Reminders**: browser notifications while the app is open or installed. On launch, a banner lists reminders that were missed.
 - **Complete**: a "Done" toast with Undo, which puts the task back to the status it had. For a recurring task it also says when the new copy is due, and Undo follows the reopen rule below.

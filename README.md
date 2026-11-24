@@ -22,7 +22,7 @@ The screenshots show the built-in sample data. To regenerate them after a UI cha
 
 ## Features
 
-- **Quick-add bar**: `Pay rent #finance @home !high ~30m tomorrow 5pm` becomes a task with a tag, a project, a priority, an effort estimate and a deadline. Dates are parsed in plain language with [chrono-node](https://github.com/wanasit/chrono).
+- **Quick-add bar**: `Pay rent #finance @home !high ~30m tomorrow 5pm` becomes a task with a tag, a project, a priority, an effort estimate and a deadline. Dates are parsed in plain language with [chrono-node](https://github.com/wanasit/chrono). The `?` in the bar (and the `?` shortcuts sheet) lists every token, and a new install offers the example line to try.
 - **Smart list**: overdue tasks first, then by deadline, then by priority. You can change the sort, group by project, priority or status, and filter by project, tag, priority or status. Search covers titles, descriptions, tags and checklist items.
 - **Rich tasks**: Markdown descriptions, checklists, links and file attachments (up to about 10 MB, stored in IndexedDB), and effort estimates.
 - **Time features**: up to 3 reminders per task, at a fixed time or a set time before the deadline. Reminders you missed while the app was closed are listed in a banner. Tasks can repeat daily, weekly, monthly or yearly, or every N days or weeks.

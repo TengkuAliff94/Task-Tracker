@@ -1,14 +1,18 @@
-import { useId, useMemo, useState, type FormEvent, type ReactNode } from 'react'
-import { Plus } from 'lucide-react'
+import { useEffect, useId, useImperativeHandle, useMemo, useRef, useState, type FormEvent, type ReactNode, type Ref } from 'react'
+import { flushSync } from 'react-dom'
+import { CircleHelp, Plus } from 'lucide-react'
 import { FieldError } from './FieldError'
 import { PHONE_QUERY, useMediaQuery } from '../hooks/useMediaQuery'
-import { card, PRIORITY_TONE } from '../ui'
+import { btn, card, PRIORITY_TONE } from '../ui'
+import { cn } from '../lib/utils'
+import { placeBelow } from './Menu'
+import { QuickAddSyntax } from './QuickAddSyntax'
 import { POP_FROM } from './motion/presets'
 import { Reveal } from './motion/Reveal'
 import { PriorityGlyph } from './PriorityGlyph'
 import { taskRepo } from '../db/tasks'
 import { projectRepo, tagRepo } from '../db/labels'
-import { parseQuickAdd } from '../lib/quickAdd'
+import { parseQuickAdd, QUICK_ADD_EXAMPLE } from '../lib/quickAdd'
 import { formatDeadline } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
 import { PRIORITY_LABEL, type Label } from '../types'
@@ -42,7 +46,13 @@ function shownName(labels: Label[], typed: string): string {
   return labels.find((l) => l.name.trim().toLowerCase() === key)?.name ?? typed
 }
 
-export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tags: Label[] }) {
+/** Lets the empty state's Try button put a line in the bar. */
+export interface QuickAddHandle {
+  /** Puts `text` in the field and focuses it with the caret at the end, so the preview shows what it reads. Nothing is saved. */
+  fill: (text: string) => void
+}
+
+export function QuickAdd({ projects, tags: knownTags, ref }: { projects: Label[]; tags: Label[]; ref?: Ref<QuickAddHandle> }) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
@@ -51,6 +61,33 @@ export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tag
   const phone = useMediaQuery(PHONE_QUERY)
   const hintId = useId()
   const errorId = useId()
+  const helpId = useId()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+  const helpRef = useRef<HTMLDivElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    fill(line) {
+      // Rendered at once, so the caret can go after the new text.
+      flushSync(() => {
+        setText(line)
+        setError(null)
+      })
+      const input = inputRef.current
+      if (!input) return
+      input.focus()
+      input.setSelectionRange(line.length, line.length)
+    },
+  }))
+
+  // The syntax hangs just under the panel, lined up with its right edge (so 16px from the screen's on phones).
+  useEffect(() => {
+    const help = helpRef.current
+    if (!help) return
+    const place = () => formRef.current && placeBelow(formRef.current, help)
+    help.addEventListener('beforetoggle', place)
+    return () => help.removeEventListener('beforetoggle', place)
+  }, [])
   const parsed = useMemo(() => (text.trim() ? parseQuickAdd(text) : null), [text])
   const deadlineLabel = parsed?.deadline && formatDeadline(parsed.deadline)
 
@@ -79,6 +116,7 @@ export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tag
   return (
     // The panel lifts and glows while you type in it (including after pressing N).
     <form
+      ref={formRef}
       onSubmit={handleSubmit}
       className={`${card} p-2 transition-[translate] duration-200 ease-out-soft focus-within:-translate-y-0.5 focus-within:shadow-[0_0_0_3px_var(--primary-soft),var(--shadow-pop)] sm:p-2.5`}
     >
@@ -87,6 +125,7 @@ export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tag
           <Plus className="size-4" strokeWidth={2.5} aria-hidden />
         </span>
         <input
+          ref={inputRef}
           id="quick-add"
           value={text}
           onChange={(e) => {
@@ -96,15 +135,37 @@ export function QuickAdd({ projects, tags: knownTags }: { projects: Label[]; tag
           onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder={phone ? 'Quick add a task' : 'Quick add: Pay rent #finance @home !high ~30m tomorrow 5pm'}
+          placeholder={phone ? 'Quick add a task' : `Quick add: ${QUICK_ADD_EXAMPLE}`}
           aria-label="Quick add task"
           aria-invalid={error ? true : undefined}
           aria-describedby={[phone && hintId, error && errorId].filter(Boolean).join(' ') || undefined}
-          className="w-full rounded-xl bg-transparent py-3.5 pr-12 pl-13 text-base placeholder:text-muted sm:py-4"
+          className="w-full rounded-xl bg-transparent py-3.5 pr-12 pl-13 text-base placeholder:text-muted sm:py-4 md:pr-20"
         />
-        <kbd className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 transition-opacity group-focus-within:opacity-0 max-sm:hidden" aria-hidden>
+        <kbd className="pointer-events-none absolute top-1/2 right-12 -translate-y-1/2 transition-opacity group-focus-within:opacity-0 max-md:hidden" aria-hidden>
           N
         </kbd>
+        {/* The full syntax, on demand: a popover (Esc or a tap elsewhere closes it), so it never covers the list. */}
+        <button
+          type="button"
+          popoverTarget={helpId}
+          aria-label="Quick add syntax"
+          title="Quick add syntax"
+          className={cn(btn.icon, 'absolute inset-y-0 right-1.5 my-auto sm:right-2')}
+        >
+          <CircleHelp className="size-4.5" aria-hidden />
+        </button>
+        <div
+          ref={helpRef}
+          id={helpId}
+          popover="auto"
+          aria-labelledby={`${helpId}-title`}
+          className="inset-auto m-0 w-80 max-w-[calc(100vw-2rem)] animate-fade-up rounded-panel border-0 bg-raised p-4 text-fg shadow-pop"
+        >
+          <h2 id={`${helpId}-title`} className="mb-3 text-sm font-bold">
+            Quick add syntax
+          </h2>
+          <QuickAddSyntax />
+        </div>
       </div>
       {parsed && (
         <div role="group" aria-label="Quick add preview" className="mt-1 flex animate-fade-up flex-wrap items-center gap-1.5 rounded-lg bg-subtle px-3 py-2 text-xs text-muted">

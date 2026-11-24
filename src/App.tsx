@@ -8,6 +8,7 @@ import { attachmentRepo } from './db/attachments'
 import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, withoutMissingLabels, type Filters, type Scope } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
 import { formatDeadline } from './lib/deadline'
+import { QUICK_ADD_EXAMPLE } from './lib/quickAdd'
 import { describeSaveError } from './lib/utils'
 import { useNow } from './hooks/useNow'
 import { useKeepStorage } from './hooks/useKeepStorage'
@@ -19,7 +20,7 @@ import { GroupHeading } from './components/GroupHeading'
 import { AnimatedList } from './components/motion/AnimatedList'
 import { BurstLayer, celebrate } from './components/motion/Burst'
 import { TaskForm } from './components/TaskForm'
-import { QuickAdd } from './components/QuickAdd'
+import { QuickAdd, type QuickAddHandle } from './components/QuickAdd'
 import { FilterBar } from './components/FilterBar'
 import { LabelManager } from './components/LabelManager'
 import { alertKey, MissedRemindersBanner, ReminderToast } from './components/ReminderAlerts'
@@ -62,17 +63,34 @@ function ListEmpty({
   filters,
   onShowAll,
   onClear,
+  onTryExample,
 }: {
   tasks: Task[]
   filters: Filters
   onShowAll: () => void
+  /** Puts the quick-add example in the bar, so its preview shows what one line can set. */
+  onTryExample: () => void
   /** Clears the search and every filter (Show completed stays as it is). */
   onClear: () => void
 }) {
   if (tasks.length === 0) {
     return (
-      <EmptyState icon={ClipboardList} title="No tasks yet" action={<SampleDataButton variant="brand" />}>
-        Type one in the quick-add bar above, or try the app with example tasks.
+      <EmptyState
+        icon={ClipboardList}
+        title="No tasks yet"
+        example={
+          // Fills the bar and focuses it; nothing is saved until Enter, so the preview teaches the syntax.
+          <button
+            type="button"
+            onClick={onTryExample}
+            className="max-w-full rounded-lg bg-subtle px-3 py-2 text-sm font-medium text-balance transition-colors duration-200 hover:bg-line"
+          >
+            <span className="text-muted">Try:</span> {QUICK_ADD_EXAMPLE}
+          </button>
+        }
+        action={<SampleDataButton variant="brand" />}
+      >
+        Type one in the quick-add bar above. One line sets its tags, project, priority and deadline.
       </EmptyState>
     )
   }
@@ -249,6 +267,7 @@ export default function App() {
 
   // Focus inside a toast goes back to where it came from when the toast goes, rather than to the page.
   const toastStack = useRef<HTMLDivElement>(null)
+  const quickAdd = useRef<QuickAddHandle>(null)
   const focusBeforeToasts = useRef<HTMLElement | null>(null)
   const releaseToastFocus = useCallback((ids: string[]) => {
     const inToast = document.activeElement?.closest<HTMLElement>('[data-toast-id]')
@@ -515,7 +534,7 @@ export default function App() {
 
           <div className="flex flex-col gap-3">
             <Reveal index={hasTasks ? 1 + OVERVIEW_TILE_COUNT : 1}>
-              <QuickAdd projects={projects} tags={tags} />
+              <QuickAdd ref={quickAdd} projects={projects} tags={tags} />
             </Reveal>
             {/* Nothing to filter yet on an empty list, so the empty state's way out stays in view. */}
             {hasTasks && (
@@ -549,6 +568,7 @@ export default function App() {
                 tasks={tasks}
                 filters={filters}
                 onShowAll={() => setScope(undefined)}
+                onTryExample={() => quickAdd.current?.fill(QUICK_ADD_EXAMPLE)}
                 onClear={() => {
                   setFilters((f) => ({ ...EMPTY_FILTERS, showCompleted: f.showCompleted }))
                   // The button goes with the empty state; the search field heads the controls that narrowed the list.
