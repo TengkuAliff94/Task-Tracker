@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24. Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7). Still to do: pick the next follow-up.
+Last updated 2026-11-24 (step 8). Step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed). Still to do: pick the next follow-up.
 
 **Branch:** `ui-revamp`. **Tracking issue:** [#19](https://github.com/TengkuAliff94/Task-Tracker/issues/19), with sub-issues #20–#27 (native GitHub sub-issues).
 
@@ -24,11 +24,12 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 4 | `/impeccable audit src`, then harden, adapt and clarify | [#26](https://github.com/TengkuAliff94/Task-Tracker/issues/26) WCAG 2.2 AA gaps | **done** (`391ccaf`, closed) |
 | 5 | `/impeccable polish src`, then `/impeccable critique src` | [#27](https://github.com/TengkuAliff94/Task-Tracker/issues/27) polish, README screenshots, SPEC alignment, re-score | **done**: 28/40 |
 | 6 | `/impeccable harden src/components/TaskForm.tsx` | [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) re-critique P1: typed DD/MM/YYYY and 24-hour dates, picker behind a button | **done** (`63657c9`, closed) |
-| 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** |
+| 7 | `/impeccable clarify` (header) | [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) re-critique P1: header buttons named, theme menu, labelled More menu on phones | **done** (`af20632`) |
+| 8 | `/impeccable colorize` | [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) re-critique P2: colour has one job; priority as signal bars, ink toasts, neutral backup reminder | **done** (`f0f26d5`) |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** pick the next re-critique follow-up: P2 colour meanings (`/impeccable colorize`); P2 the 13-field editor (`/impeccable distill`); P3 quick-add help (`/impeccable onboard`).
+**To resume:** pick the next re-critique follow-up: P2 the 13-field editor (`/impeccable distill`); P3 quick-add help (`/impeccable onboard`).
 
 **Re-critique P1 "deadline in two date formats": fixed** (2026-11-23/24, `/impeccable harden src/components/TaskForm.tsx`). Three agents reviewed it (correctness, WCAG, layout); it was committed for [#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29) and pushed. See "Typed dates in brief" below.
 
@@ -62,8 +63,8 @@ Each issue holds the full problem statement, file:line pointers and acceptance c
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 179 passing after #29
-npm run test:e2e                # e2e (Playwright, port 4173): 196 passing after #29
+npm test                        # unit (Vitest): 179 passing after #31
+npm run test:e2e                # e2e (Playwright, port 4173): 211 passing after #31
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -112,6 +113,12 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Colour roles in brief (#31)
+
+Colour means time and state, one job per hue: maroon overdue, mustard due soon (plus the hover light), violet open, sage done (DESIGN.md, the One Job Rule). Priority is `PriorityGlyph` (four signal bars, `data-priority-glyph="<lit>"`) plus its word, styled through `PRIORITY_TONE` in `ui.ts` (`badge`, `pressed`, `stripe`); `PRIORITY_PANEL` is gone. Badges and priority group tabs are Well Stone, pressed priority pills and chips are ink, and only High (ink) and Urgent (rust) cards have a stripe (`data-priority-stripe`). Urgent alone keeps a hue. New `panel.ink` (`bg-fg text-bg`) and `INVERTED_PANEL.ink`; `INVERTED_PANEL.info` is gone. Toasts are ink. The backup reminder is a neutral `bg-surface` panel with an ink Back up now (an ink slab was too loud, and white in dark mode). Tests: `e2e/colour.spec.ts` (8, all failed on the old source); 179 unit and 211 e2e passing. README screenshots regenerated. Review: a self-review plus rendered checks at 390 and 1280 in both themes (no three-lens agent review).
+
+**Gotcha:** a pill's colour eases over 200ms, so read a pressed pill's background with `expect.poll`.
 
 ## Header in brief (#30)
 
