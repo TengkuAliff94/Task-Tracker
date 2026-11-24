@@ -1,4 +1,4 @@
-import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Priority, type Status, type Task } from '../types'
+import { PRIORITY_LABEL, STATUS_LABEL, type Label, type OpenStatus, type Priority, type Task } from '../types'
 import { isOverdue, toDateInput } from './deadline'
 
 export const NO_PROJECT = '__none__'
@@ -33,9 +33,28 @@ export interface Filters {
   tagIds: string[]
   /** Empty = any. */
   priorities: Priority[]
-  /** Empty = any. */
-  statuses: Status[]
+  /** Empty = any. Only open statuses: done tasks are `showsCompleted`'s to admit. */
+  statuses: OpenStatus[]
+  /** The stored "Show completed" setting. Whether done tasks list is `showsCompleted`. */
   showCompleted: boolean
+}
+
+/**
+ * The one rule for completed tasks: they list when "Show completed" is on, or while the Completed
+ * tile is picked (which means "only completed"). The checkbox shows this, so it never reads off
+ * while done tasks are listed.
+ */
+export function showsCompleted(f: Filters): boolean {
+  return f.showCompleted || f.scope === 'done'
+}
+
+/**
+ * The filters after "Show completed" is ticked or unticked. Unticking it while the Completed tile is
+ * picked unpicks the tile too, since nothing would be left to list. The tile never writes the stored
+ * setting, so unpicking it puts the list back as it was.
+ */
+export function withShowCompleted(f: Filters, on: boolean): Filters {
+  return { ...f, showCompleted: on, scope: !on && f.scope === 'done' ? undefined : f.scope }
 }
 
 export const EMPTY_FILTERS: Filters = {
@@ -57,7 +76,7 @@ export function hasActiveFilters(f: Filters): boolean {
 export type FilterChip =
   | { kind: 'project'; key: string; label: string; color?: string; id: string }
   | { kind: 'priority'; key: string; label: string; value: Priority }
-  | { kind: 'status'; key: string; label: string; value: Status }
+  | { kind: 'status'; key: string; label: string; value: OpenStatus }
   | { kind: 'tag'; key: string; label: string; color: string; id: string }
 
 /** The panel's active filters, in the panel's order: project, priorities, statuses, tags. */
@@ -120,14 +139,13 @@ export function matchesQuery(task: Task, query: string, tagsById: Map<string, La
 
 export function applyFilters(tasks: Task[], f: Filters, tagsById: Map<string, Label>, now: Date = new Date()): Task[] {
   return tasks.filter((t) => {
-    // Picking "Done" in the status filter, or the Completed tile, shows completed tasks even with the toggle off.
-    if (!f.showCompleted && t.status === 'done' && !f.statuses.includes('done') && f.scope !== 'done') return false
+    if (t.status === 'done' && !showsCompleted(f)) return false
     if (f.scope && !matchesScope(t, f.scope, now)) return false
     if (f.projectId === NO_PROJECT && t.projectId) return false
     if (f.projectId && f.projectId !== NO_PROJECT && t.projectId !== f.projectId) return false
     if (f.tagIds.some((id) => !t.tagIds.includes(id))) return false
     if (f.priorities.length && !f.priorities.includes(t.priority)) return false
-    if (f.statuses.length && !f.statuses.includes(t.status)) return false
+    if (f.statuses.length && (t.status === 'done' || !f.statuses.includes(t.status))) return false
     return matchesQuery(t, f.query, tagsById)
   })
 }

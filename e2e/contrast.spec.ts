@@ -62,8 +62,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     test(`pressed filter pills are readable (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
       await app.openFilters()
-      // One of each kind: every priority and status colour, and a user-coloured tag.
-      for (const name of ['Low', 'Medium', 'High', 'Urgent', 'To Do', 'In Progress', 'Done', '#errand']) {
+      // One of each kind: every priority and open-status colour, and a user-coloured tag.
+      for (const name of ['Low', 'Medium', 'High', 'Urgent', 'To Do', 'In Progress', '#errand']) {
         await page.getByRole('button', { name, exact: true }).click()
       }
       await expect(page.getByRole('button', { name: '#errand', exact: true })).toHaveAttribute('aria-pressed', 'true')

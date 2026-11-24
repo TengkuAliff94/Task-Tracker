@@ -1,8 +1,18 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
-import { EMPTY_FILTERS, filterChips, hasActiveFilters, NO_PROJECT, removeChip, type FilterChip, type Filters } from '../lib/filter'
+import {
+  EMPTY_FILTERS,
+  filterChips,
+  hasActiveFilters,
+  NO_PROJECT,
+  removeChip,
+  showsCompleted,
+  withShowCompleted,
+  type FilterChip,
+  type Filters,
+} from '../lib/filter'
 import { GROUP_LABEL, SORT_LABEL, type GroupKey, type SortKey } from '../lib/sort'
-import { PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL, type Label } from '../types'
+import { OPEN_STATUSES, PRIORITIES, PRIORITY_LABEL, STATUS_LABEL, type Label } from '../types'
 import { labelTint } from '../lib/colors'
 import { card, hoverHighlight, labelText, panel, PRIORITY_TONE, STATUS_PANEL } from '../ui'
 import { PriorityGlyph } from './PriorityGlyph'
@@ -246,7 +256,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
                 ))}
               </Cluster>
               <Cluster label="Status">
-                {STATUSES.map((s) => (
+                {OPEN_STATUSES.map((s) => (
                   <Pill key={s} activeTone={STATUS_PANEL[s]} active={f.statuses.includes(s)} onClick={() => set({ statuses: toggle(f.statuses, s) })}>
                     {STATUS_LABEL[s]}
                   </Pill>
@@ -265,7 +275,8 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
 
             <div className="flex min-h-8 items-center justify-between gap-3 text-sm text-muted">
               <label className="flex items-center gap-2 font-medium tabular-nums">
-                <input type="checkbox" checked={f.showCompleted} onChange={(e) => set({ showCompleted: e.target.checked })} className="box-check" />
+                {/* Ticked whenever done tasks list, including while the Completed tile is picked (see showsCompleted). */}
+                <input type="checkbox" checked={showsCompleted(f)} onChange={(e) => onFilters(withShowCompleted(f, e.target.checked))} className="box-check" />
                 Show completed ({doneCount})
               </label>
               {clearButton}

@@ -1,7 +1,12 @@
 export type Status = 'todo' | 'in_progress' | 'done'
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 
+/** A status a task can hold while it isn't done. */
+export type OpenStatus = Exclude<Status, 'done'>
+
 export const STATUSES: Status[] = ['todo', 'in_progress', 'done']
+/** The status filter's choices. Done isn't one: "Show completed" alone lets done tasks into the list. */
+export const OPEN_STATUSES: OpenStatus[] = ['todo', 'in_progress']
 export const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'urgent']
 
 export const STATUS_LABEL: Record<Status, string> = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyFilters, EMPTY_FILTERS, filterChips, hasActiveFilters, matchesScope, NO_PROJECT, removeChip, withoutMissingLabels, type Filters } from './filter'
+import { applyFilters, EMPTY_FILTERS, filterChips, hasActiveFilters, matchesScope, NO_PROJECT, removeChip, showsCompleted, withShowCompleted, withoutMissingLabels, type Filters } from './filter'
 import type { Label, Task } from '../types'
 
 const tags: Label[] = [
@@ -34,7 +34,14 @@ describe('applyFilters', () => {
   it('hides completed tasks unless asked', () => {
     expect(run({})).toEqual(['rent', 'taxes', 'groceries'])
     expect(run({ showCompleted: true })).toContain('old')
-    expect(run({ statuses: ['done'] })).toEqual(['old'])
+  })
+
+  it('filters by open status, and a status filter never lets a done task in', () => {
+    const mixed = [task('a'), task('b', { status: 'in_progress' }), task('c', { status: 'done' })]
+    const pick = (f: Partial<Filters>) => applyFilters(mixed, { ...EMPTY_FILTERS, ...f }, tagsById).map((t) => t.id)
+    expect(pick({ statuses: ['in_progress'] })).toEqual(['b'])
+    expect(pick({ statuses: ['todo', 'in_progress'], showCompleted: true })).toEqual(['a', 'b'])
+    expect(pick({ statuses: [], showCompleted: true })).toEqual(['a', 'b', 'c'])
   })
 
   it('filters by project and by "no project"', () => {
@@ -88,6 +95,32 @@ describe('scope (the Overview tiles as filters)', () => {
 
   it('done: completed tasks, even with "Show completed" off', () => {
     expect(ids('done')).toEqual(['finished'])
+  })
+
+  it('picking Completed reads as "Show completed" on without writing the setting', () => {
+    expect(showsCompleted({ ...EMPTY_FILTERS, scope: 'done' })).toBe(true)
+    expect(showsCompleted({ ...EMPTY_FILTERS, scope: 'open' })).toBe(false)
+    expect(showsCompleted({ ...EMPTY_FILTERS, showCompleted: true })).toBe(true)
+    expect(showsCompleted(EMPTY_FILTERS)).toBe(false)
+  })
+
+  it('unticking "Show completed" unpicks Completed, and leaves any other tile picked', () => {
+    expect(withShowCompleted({ ...EMPTY_FILTERS, scope: 'done' }, false)).toEqual(EMPTY_FILTERS)
+    expect(withShowCompleted({ ...EMPTY_FILTERS, scope: 'done', showCompleted: true }, false)).toEqual(EMPTY_FILTERS)
+    expect(withShowCompleted({ ...EMPTY_FILTERS, scope: 'overdue', showCompleted: true }, false)).toEqual({ ...EMPTY_FILTERS, scope: 'overdue' })
+    expect(withShowCompleted(EMPTY_FILTERS, true)).toEqual({ ...EMPTY_FILTERS, showCompleted: true })
+  })
+
+  it('no combination lists a done task while "Show completed" reads off', () => {
+    const scopes: Filters['scope'][] = [undefined, 'overdue', 'today', 'open', 'done']
+    const statusSets: Filters['statuses'][] = [[], ['todo'], ['in_progress'], ['todo', 'in_progress']]
+    for (const scope of scopes)
+      for (const statuses of statusSets)
+        for (const showCompleted of [false, true]) {
+          const f = { ...EMPTY_FILTERS, scope, statuses, showCompleted }
+          const listsDone = applyFilters(scoped, f, tagsById, now).some((t) => t.status === 'done')
+          if (listsDone) expect(showsCompleted(f), JSON.stringify(f)).toBe(true)
+        }
   })
 
   it('combines with the other filters and counts as an active filter', () => {

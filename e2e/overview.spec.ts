@@ -82,7 +82,7 @@ test('a tile left picked when the list empties is dropped, so the next task show
   await expect(tile(page, 'Overdue')).toHaveAttribute('aria-pressed', 'false')
 })
 
-test('the Completed tile shows completed tasks even with "Show completed" off, and Clear filters resets it', async ({ app, page }) => {
+test('the Completed tile shows only completed tasks, and Clear filters resets it', async ({ app, page }) => {
   await app.loadSampleData()
   await tile(page, 'Completed').click()
   await expect(app.taskCards()).toHaveCount(2)
