@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-25 (fourth critique). **Latest: a fourth `/impeccable critique src` scored 30/40 (Good)** (trend 24 → 28 → 31 → 30): 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-25T13-37-03Z__src.md` (local only; its content is also in "Fourth critique" below). For the third critique (31/40), the user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–15 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37), `200d7cb` [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38)). Step 16 is done (`db05a6d`, [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39), closed): the fourth critique scored **30/40 (Good)**. The user chose to take on **everything**, with the P1 fixed by taking the ink off High. Steps 17–21 are that plan. **Step 17 is done** (`153bd6b`, [#40](https://github.com/TengkuAliff94/Task-Tracker/issues/40), closed); resume at step 18.
+Last updated 2026-11-25 (fourth critique). **Latest: a fourth `/impeccable critique src` scored 30/40 (Good)** (trend 24 → 28 → 31 → 30): 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-25T13-37-03Z__src.md` (local only; its content is also in "Fourth critique" below). For the third critique (31/40), the user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–15 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37), `200d7cb` [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38)). Step 16 is done (`db05a6d`, [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39), closed): the fourth critique scored **30/40 (Good)**. The user chose to take on **everything**, with the P1 fixed by taking the ink off High. Steps 17–21 are that plan. **Step 17 is done** (`153bd6b`, [#40](https://github.com/TengkuAliff94/Task-Tracker/issues/40), closed), and so is **step 18** (`2f56ff9`, [#41](https://github.com/TengkuAliff94/Task-Tracker/issues/41), closed); resume at step 19.
 
 History: step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
@@ -37,14 +37,14 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 15 | `/impeccable polish src/components/TaskForm.tsx` | [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38) third critique P3: tag prompt, Added without seconds, late deadline tone, Field Label in the ramp, Trash copy | **done** (`200d7cb`) |
 | 16 | `/impeccable polish src`, then `/impeccable critique src` | [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39) final pass: lone Clear filters, Trash slot, preview chips, solid title bar, Save on the discard bar; README screenshots; re-score | **done** (`db05a6d`): 30/40 |
 | 17 | `/impeccable polish src/components/TaskCard.tsx` | fourth critique P1: selection vs High. High loses its ink stripe (glyph and word stay, Urgent keeps rust); the gutter marker stays the only ink bar | **done** (`153bd6b`, #40) |
-| 18 | `/impeccable colorize` | fourth critique P2: done checkbox in sage, not brand orange; one brand button on first run | to do |
+| 18 | `/impeccable colorize` | fourth critique P2: done checkbox in sage, not brand orange; one brand button on first run | **done** (`2f56ff9`, #41) |
 | 19 | `/impeccable clarify src/components/FilterBar.tsx` | fourth critique P2: visible Priority / Status / Tags labels; the list stays in view on phones with the panel open | to do |
 | 20 | `/impeccable harden src/components/Backup.tsx` | fourth critique P2: restore safety net (download first in the confirm, automatic snapshot with Undo, warning when the backup has fewer tasks) | to do |
 | 21 | `/impeccable polish src`, then `/impeccable critique src` | fourth critique P3 + minors: More details into view, Delete shortcut, Trash toast straggler, Restore toast, sigils in Projects & tags, then re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 18. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Fourth critique" below for the details of each item.
+**To resume:** step 19. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Fourth critique" below for the details of each item.
 
 ## Fourth critique (2026-11-25, 30/40): open findings
 
@@ -109,8 +109,8 @@ Dual-agent run (design review + detector/browser). Scores: H3 user control 4; ev
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 198 passing after #40
-npm run test:e2e                # e2e (Playwright, port 4173): 261 after #40 (flakes listed below; the old "266" was a miscount, the chromium project had 259)
+npm test                        # unit (Vitest): 198 passing after #41
+npm run test:e2e                # e2e (Playwright, port 4173): 267 after #41 (flakes listed below; the old "266" was a miscount, the chromium project had 259 before #40)
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -160,6 +160,18 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Sage checkboxes and one brand button in brief (step 18, #41)
+
+- **Checkboxes:** `.task-check` and `.box-check` fill Lichen Sage when ticked, with an ink tick (`--on-panel-sage`, 7.2:1) and a `--done-edge` rim; hover turns the border `--done-edge` with a `--done-soft` halo. `--done-edge` is #4a7266 by day (Lichen Sage alone is about 2.5:1 on the card; this is 5.2:1 on surface, 4.3:1 on subtle) and Lichen Sage at night (about 7:1). The native fallback `accent-color` is `--done-edge` too. No checkbox uses `--primary` any more.
+- **First run:** Load sample data is the new `btn.ink` (the brand button's shape in `bg-fg`/`text-bg`, dims to 85% on hover); `SampleDataButton`'s `brand` variant became `ink`. New task is the one brand-orange button.
+- **Left for step 21:** the checklist progress bar in the editor is still orange (it's a meter, and step 21 already lists "checklist bar reads as a rule").
+
+Tests: `e2e/done-colour.spec.ts` (6, per theme: ticked fill/rim/tick contrast for the round box and Show completed, the hover preview, one brand button on first run plus the ink button's 4.5:1); all 6 failed on the old source. Renders: first run at 390 (dark) and 1280 (light), ticked boxes and hover at 1280, the editor checklist in dark. DESIGN.md (Burnt Orange, Lichen Sage, both checkboxes, first run), MASTER.md and the sidecar (checkbox CSS in Task Card and Square Checkbox) updated; detector shows only the known dialog spring, doctor clean.
+
+**Gotcha:** the doctor reports `design-sidecar-stale` when DESIGN.md is saved after `.impeccable/design.json`, even with a later `generatedAt`. Write the sidecar last, with `generatedAt` set to the real current time.
+
+**Load flakes this run (3/3 alone each):** the phone More menu test in `header.spec.ts` (known) and `polish.spec.ts` "Trash: titles aren't struck through…".
 
 ## High without a stripe in brief (step 17, #40)
 
