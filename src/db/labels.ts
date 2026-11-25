@@ -18,19 +18,26 @@ function labelTable(table: EntityTable<Label, 'id'>) {
   return {
     list: () => table.orderBy('name').toArray(),
 
-    async create(name: string, color?: string): Promise<Label> {
-      const clean = name.trim()
-      if (!clean) throw new Error('Name is required')
-      const all = await assertUnique(clean)
-      const item: Label = { id: crypto.randomUUID(), name: clean, color: color ?? nextColor(all.map((x) => x.color)) }
-      await table.add(item)
-      return item
+    // Check and write share one read-write transaction. IndexedDB runs overlapping read-write
+    // transactions one after another, so labels created at the same time (quick add's tags) each
+    // see the others: different colours, and no duplicate for a name given twice.
+    create(name: string, color?: string): Promise<Label> {
+      return table.db.transaction('rw', table, async () => {
+        const clean = name.trim()
+        if (!clean) throw new Error('Name is required')
+        const all = await assertUnique(clean)
+        const item: Label = { id: crypto.randomUUID(), name: clean, color: color ?? nextColor(all.map((x) => x.color)) }
+        await table.add(item)
+        return item
+      })
     },
 
     /** Case-insensitive lookup; creates the label if it doesn't exist. */
-    async findOrCreate(name: string): Promise<Label> {
-      const found = (await table.toArray()).find((x) => norm(x.name) === norm(name))
-      return found ?? this.create(name)
+    findOrCreate(name: string): Promise<Label> {
+      return table.db.transaction('rw', table, async () => {
+        const found = (await table.toArray()).find((x) => norm(x.name) === norm(name))
+        return found ?? this.create(name)
+      })
     },
 
     async update(id: string, patch: Partial<Omit<Label, 'id'>>): Promise<void> {

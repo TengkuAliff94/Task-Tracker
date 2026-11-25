@@ -34,3 +34,14 @@ test('quick-add parses tokens, shows the task and keeps it after a reload', asyn
   await page.reload()
   await expectRow()
 })
+
+test('new tags on one quick-add line each get their own colour (#46)', async ({ app }) => {
+  await app.quickAdd('Plan trip #flights #hotel #visa')
+  const card = app.taskRow('Plan trip')
+  const dots = ['flights', 'hotel', 'visa'].map((n) =>
+    // The chip (outlined pill) named "#<tag>", and its colour dot.
+    card.locator('span.ring-1', { hasText: new RegExp(`^#${n}$`) }).locator('> span[aria-hidden]'),
+  )
+  const colours = await Promise.all(dots.map((d) => d.evaluate((el) => getComputedStyle(el).backgroundColor)))
+  expect(new Set(colours).size).toBe(3)
+})

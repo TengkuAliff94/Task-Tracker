@@ -26,6 +26,14 @@ describe('labels', () => {
     expect(await labels.projects.list()).toHaveLength(1)
   })
 
+  it('labels created at the same time still get different colours, and a name twice makes one label (#46)', async () => {
+    // Quick add creates a line's tags together; each create used to read the list before the others wrote.
+    const made = await Promise.all(['a', 'b', 'c', 'B'].map((n) => labels.tags.findOrCreate(n)))
+    expect(new Set(made.slice(0, 3).map((t) => t.color)).size).toBe(3)
+    expect(made[3].id).toBe(made[1].id)
+    expect(await labels.tags.list()).toHaveLength(3)
+  })
+
   it('gives new labels different colors', async () => {
     const a = await labels.tags.create('a')
     const b = await labels.tags.create('b')
