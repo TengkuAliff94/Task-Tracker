@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11 and 12 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35)); resume at step 13.
+Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–13 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36)); resume at step 14.
 
 History: step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
@@ -32,14 +32,14 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 10 | `/impeccable onboard` | [#33](https://github.com/TengkuAliff94/Task-Tracker/issues/33) re-critique P3: quick-add help. A `?` popover in the bar, the syntax in the shortcuts sheet, and a Try button on the first-run empty state | **done** (`74e5dfd`) |
 | 11 | `/impeccable distill src/components/FilterBar.tsx` | [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34) third critique P1: one rule for completed tasks (Done pill, Show completed, Completed tile) | **done** (`cd0cdca`) |
 | 12 | `/impeccable clarify src/components/Overview.tsx` | [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35) third critique P2: the tiles double-counted; Due today is now what's still to come today | **done** (`5f0cd43`) |
-| 13 | `/impeccable polish src/components/TaskCard.tsx` | third critique P2: selection, overdue and High share one dark-line language | to do |
+| 13 | `/impeccable polish src/components/TaskCard.tsx` | [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36) third critique P2: one dark-line language; selection is now a gutter marker and lift | **done** (`b27a0b7`) |
 | 14 | `/impeccable onboard` | third critique P2: positioning on the first screen; explore New task focusing quick add; optional storage-status chip | to do |
 | 15 | `/impeccable polish src/components/TaskForm.tsx` | third critique P3 + minors: Tags placeholder, HH:MM "Added", overdue tone, 13px literal, copy nits | to do |
 | 16 | `/impeccable polish src`, then `/impeccable critique src` | final pass, README screenshots, re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 13. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
+**To resume:** step 14. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
 
 ## Third critique (2026-11-24, 31/40): pending items
 
@@ -90,7 +90,7 @@ Dual-agent run (design review + detector/browser). Scores: H3 user control 4; ev
 ```bash
 npx tsc -b                      # types
 npm test                        # unit (Vitest): 198 passing after #35
-npm run test:e2e                # e2e (Playwright, port 4173): 234 after #35 (2 load flakes, both pass alone)
+npm run test:e2e                # e2e (Playwright, port 4173): 242 after #36 (load flakes listed below pass alone)
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -140,6 +140,16 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## Card marks in brief (step 13, #36)
+
+The user chose the **margin marker**. Each card mark has one form (DESIGN.md's new One Form Rule): High/Urgent keep the left-edge stripe, overdue keeps a 2px ring, and selection is the pop shadow plus a 4px ink bar (`data-selection-marker`) 7px left of the card in the gutter (grows in over 200ms; instant under reduced motion). Selection no longer draws a ring, so a selected overdue card keeps its outline. The ring colour is the new `--alert-outline` token (`ring-alert-outline`): `--panel-maroon` in light, `--danger` in dark (was about 1.5:1, now 7.5:1). `li[aria-current] [data-card-edit]:focus-visible` drops the title's outline *and* the halo (the halo alone drew a box). To let the marker out, the card no longer has `overflow-hidden`; the stripe sits in its own clipped `rounded-[inherit]` layer. `SELECTED_OUTLINE` now serves only the picked Overview tile.
+
+Tests: `e2e/card-marks.spec.ts` (8; all failed on the old source), the selection test in `task-cards.spec.ts` rewritten for the marker, and `focus.spec.ts` now treats a transparent outline as missing (except a selected card's title). Renders at 320, 768 and 1280 in both themes. DESIGN.md, MASTER.md and the sidecar (Task Card) updated; doctor clean, detector shows only the known findings.
+
+**Gotchas from this step:**
+- **Only keyboard focus selects a card** (`:focus-visible` in App's `onFocus`). `locator.focus()` alone doesn't select; press a key first (`select()` in `card-marks.spec.ts`).
+- **Don't put `overflow-hidden` back on the card,** or the marker is clipped away.
 
 ## Exclusive tiles in brief (step 12, #35)
 
