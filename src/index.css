@@ -3,6 +3,12 @@
 /* Dark mode follows the `dark` class on <html>, which src/lib/theme.ts manages. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Screens without hover (touch) never show a `title` tooltip, so a bare glyph has no visible name
+   there; `touch:` gives such controls their words or moves them into a labelled menu. `mouse:` is
+   its opposite, for what only makes sense where a pointer can hover. */
+@custom-variant touch (@media (hover: none));
+@custom-variant mouse (@media (hover: hover));
+
 /*
  * Design tokens: flat, saturated colour panels on a plain canvas, after the Sill template
  * (see issue #9). Colour and spacing do the separating, not borders or heavy shadows.

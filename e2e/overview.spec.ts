@@ -67,6 +67,24 @@ test('Due today with nothing still to come points to Overdue', async ({ app, pag
   await expect(page.getByText('Anything already late is under Overdue.')).toBeVisible()
 })
 
+test('Due today goes calm at 0, like Overdue, and wears mustard only while it counts (#49)', async ({ app, page }) => {
+  await app.loadSampleData()
+  const bg = () => tile(page, 'Due today').evaluate((el) => getComputedStyle(el).backgroundColor)
+  const token = (name: string) =>
+    page.evaluate((v) => {
+      const probe = document.createElement('span')
+      probe.style.color = getComputedStyle(document.documentElement).getPropertyValue(v)
+      document.body.append(probe)
+      const out = getComputedStyle(probe).color
+      probe.remove()
+      return out
+    }, name)
+  expect(await bg()).toBe(await token('--panel-mustard'))
+  await page.getByLabel('Mark "Reply to recruiter email" as done').click()
+  await expect(tile(page, 'Due today')).toHaveAccessibleName(/^Due today\s*0/)
+  await expect.poll(bg).toBe(await token('--panel-taupe'))
+})
+
 test('the new count is announced as a status after picking a tile', async ({ app, page }) => {
   await app.loadSampleData()
   await tile(page, 'Overdue').click()

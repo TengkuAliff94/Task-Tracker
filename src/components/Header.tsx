@@ -81,14 +81,17 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
       <div className="flex shrink-0 items-center gap-2">
         {/* Labels appear as the width allows: Backup and Trash from md, Projects & tags from lg. Below sm,
             the tray keeps the bell and Trash and moves the rest into a labelled More menu, since phones
-            have no hover tooltips to name a bare icon. Accessible names don't change with the width. */}
+            have no hover tooltips to name a bare icon. Touch screens (`touch:`, no hover) keep that
+            pattern up to lg, with Trash's word from sm; from lg, Theme shows its word there too, and the
+            shortcuts button isn't offered on touch at all (? still opens the sheet from a keyboard).
+            Accessible names don't change with the width or the pointer. */}
         <div className="flex items-center gap-0.5 rounded-panel bg-surface p-1 shadow-card">
           <NotificationButton />
           <button
             onClick={onLabels}
             aria-label="Projects & tags"
             title="Projects & tags"
-            className={cn(btn.headerIcon, 'max-sm:hidden lg:w-auto lg:px-2.5')}
+            className={cn(btn.headerIcon, 'max-sm:hidden touch:max-lg:hidden lg:w-auto lg:px-2.5')}
           >
             <Tags className="size-5" aria-hidden /> <span className="max-lg:hidden">Projects & tags</span>
           </button>
@@ -96,7 +99,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             onClick={onBackup}
             aria-label="Backup & restore"
             title="Backup & restore"
-            className={cn(btn.headerIcon, 'max-sm:hidden md:w-auto md:px-2.5')}
+            className={cn(btn.headerIcon, 'max-sm:hidden touch:max-lg:hidden md:w-auto md:px-2.5')}
           >
             <DatabaseBackup className="size-5" aria-hidden /> <span className="max-md:hidden">Backup</span>
           </button>
@@ -107,10 +110,10 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             aria-pressed={view === 'trash'}
             className={cn(
               btn.headerIcon,
-              'relative max-sm:size-8 md:w-auto md:px-2.5 aria-pressed:bg-panel-mustard aria-pressed:text-on-panel-mustard',
+              'relative max-sm:size-8 md:w-auto md:px-2.5 sm:touch:w-auto sm:touch:px-2.5 aria-pressed:bg-panel-mustard aria-pressed:text-on-panel-mustard',
             )}
           >
-            <Trash2 className="size-5" aria-hidden /> <span className="max-md:hidden">Trash</span>
+            <Trash2 className="size-5" aria-hidden /> <span className="hidden md:inline sm:touch:inline">Trash</span>
             {trashCount > 0 && (
               // Keyed on the count, so each change remounts it and it pops in again. A corner badge on the
               // bare icon; an inline count beside the word once the label shows.
@@ -120,21 +123,26 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
                 initial={reduce ? false : { scale: 0.4 }}
                 animate={{ scale: 1 }}
                 transition={SPRING.pop}
-                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface md:static md:ring-0 ${panel.danger}`}
+                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface md:static md:ring-0 sm:touch:static sm:touch:ring-0 ${panel.danger}`}
               >
                 {trashCount}
               </motion.span>
             )}
           </button>
-          <Menu label={`Theme: ${themeLabel}`} title="Theme" triggerClassName={cn(btn.headerIcon, 'max-sm:hidden')} entries={[themeEntry]}>
-            <ThemeIcon className="size-5" aria-hidden />
+          <Menu
+            label={`Theme: ${themeLabel}`}
+            title="Theme"
+            triggerClassName={cn(btn.headerIcon, 'max-sm:hidden touch:max-lg:hidden touch:w-auto touch:px-2.5')}
+            entries={[themeEntry]}
+          >
+            <ThemeIcon className="size-5" aria-hidden /> <span className="hidden touch:inline">Theme</span>
           </Menu>
-          <button onClick={onShortcuts} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.headerIcon} max-sm:hidden`}>
+          <button onClick={onShortcuts} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className={`${btn.headerIcon} max-sm:hidden touch:hidden`}>
             <Keyboard className="size-5" aria-hidden />
           </button>
           <Menu
             label="More"
-            triggerClassName={cn(btn.headerIcon, 'h-8 w-auto px-2.5 sm:hidden')}
+            triggerClassName={cn(btn.headerIcon, 'h-8 w-auto px-2.5 sm:h-9 sm:mouse:hidden lg:hidden')}
             entries={[
               { kind: 'action', label: 'Projects & tags', icon: Tags, onSelect: onLabels },
               { kind: 'action', label: 'Backup & restore', icon: DatabaseBackup, onSelect: onBackup },

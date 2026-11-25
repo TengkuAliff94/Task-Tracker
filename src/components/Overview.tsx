@@ -47,12 +47,13 @@ interface Props {
 export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
   const count = (s: Scope) => tasks.filter((t) => matchesScope(t, s, now)).length
   const overdue = count('overdue')
+  const today = count('today')
   const done = count('done')
 
   const stats: Stat[] = [
-    // The alarm colour only when something is late; calm otherwise.
+    // The alarm and attention colours only while they count something; calm (taupe) at 0.
     { scope: 'overdue', label: 'Overdue', value: overdue, icon: AlertCircle, tone: overdue ? panel.critical : panel.neutral, fill: overdue ? 'var(--panel-maroon)' : 'var(--panel-taupe)', alert: overdue > 0 },
-    { scope: 'today', label: 'Due today', value: count('today'), icon: CalendarClock, tone: panel.warning, fill: 'var(--panel-mustard)' },
+    { scope: 'today', label: 'Due today', value: today, icon: CalendarClock, tone: today ? panel.warning : panel.neutral, fill: today ? 'var(--panel-mustard)' : 'var(--panel-taupe)' },
     { scope: 'open', label: 'Open', value: count('open'), icon: CircleDashed, tone: panel.info, fill: 'var(--panel-violet)' },
     {
       scope: 'done',
