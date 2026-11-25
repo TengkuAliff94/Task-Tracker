@@ -85,8 +85,26 @@ describe('scope (the Overview tiles as filters)', () => {
     expect(scoped.filter((t) => matchesScope(t, 'overdue', now)).map((t) => t.id)).toEqual(['late', 'this-morning'])
   })
 
-  it('today: open tasks due today, including one already overdue this morning', () => {
-    expect(ids('today')).toEqual(['this-morning', 'tonight'])
+  it('today: open tasks still to come today; one already late this morning is Overdue only', () => {
+    expect(ids('today')).toEqual(['tonight'])
+  })
+
+  it('no task counts under both Overdue and Due today, whatever the hour', () => {
+    const day = [
+      task('no-time', { deadline: { date: '2026-03-10' } }),
+      task('early', { deadline: { date: '2026-03-10', time: '00:30' } }),
+      task('noon', { deadline: { date: '2026-03-10', time: '12:00' } }),
+      task('late-night', { deadline: { date: '2026-03-10', time: '23:59' } }),
+    ]
+    for (let h = 0; h < 24; h++) {
+      const at = new Date(2026, 2, 10, h, 15)
+      for (const t of day) {
+        const both = matchesScope(t, 'overdue', at) && matchesScope(t, 'today', at)
+        expect(both, `${t.id} at ${h}:15`).toBe(false)
+        // Every open task due today is in exactly one of the two.
+        expect(matchesScope(t, 'overdue', at) || matchesScope(t, 'today', at), `${t.id} at ${h}:15`).toBe(true)
+      }
+    }
   })
 
   it('open: everything not done, even with "Show completed" on', () => {

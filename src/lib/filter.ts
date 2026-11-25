@@ -5,6 +5,8 @@ export const NO_PROJECT = '__none__'
 
 /**
  * One of the Overview tiles, used as a filter: overdue, due today, all open, or completed.
+ * Overdue and Due today never overlap: Due today is what's still to come today, and a task due
+ * this morning that has passed is Overdue only. Open includes both.
  * The tiles count all tasks with `matchesScope`; picking one applies the same test to the list,
  * on top of any other filters.
  */
@@ -15,7 +17,7 @@ export function matchesScope(task: Task, scope: Scope, now: Date): boolean {
     case 'overdue':
       return isOverdue(task, now)
     case 'today':
-      return task.status !== 'done' && task.deadline?.date === toDateInput(now)
+      return task.deadline?.date === toDateInput(now) && task.status !== 'done' && !isOverdue(task, now)
     case 'open':
       return task.status !== 'done'
     case 'done':

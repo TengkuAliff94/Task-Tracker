@@ -8,7 +8,8 @@ const overview = (page: Page) => page.getByRole('region', { name: 'Overview' })
 const tile = (page: Page, label: string) => overview(page).getByRole('button', { name: new RegExp(`^${label}\\b`) })
 
 // At FIXED_NOW (Tue 10 Mar, 09:00) the sample set has 8 open tasks. Overdue: "Renew car insurance"
-// (2 days ago) and "Morning run" (07:00). Due today: "Morning run" and "Reply to recruiter email" (18:00).
+// (2 days ago) and "Morning run" (07:00, already passed). Due today, still to come: "Reply to recruiter
+// email" (18:00). The two never overlap.
 
 test('the heading says what is most urgent', async ({ app, page }) => {
   await app.loadSampleData()
@@ -38,13 +39,32 @@ test('picking a tile filters the list to what it counts, and picking it again cl
   await today.click()
   await expect(overdue).toHaveAttribute('aria-pressed', 'false')
   await expect(today).toHaveAttribute('aria-pressed', 'true')
-  await expect(app.taskCards()).toHaveCount(2)
+  await expect(app.taskCards()).toHaveCount(1)
   await expect(app.taskRow('Reply to recruiter email')).toBeVisible()
-  await expect(page.getByText('2 tasks due today', { exact: true })).toBeVisible()
+  await expect(page.getByText('1 task due today', { exact: true })).toBeVisible()
 
   await today.click()
   await expect(today).toHaveAttribute('aria-pressed', 'false')
   await expect(app.taskCards()).toHaveCount(8)
+})
+
+test('Overdue and Due today never count the same task', async ({ app, page }) => {
+  await app.loadSampleData()
+  await expect(tile(page, 'Overdue')).toHaveAccessibleName(/^Overdue\s*2/)
+  await expect(tile(page, 'Due today')).toHaveAccessibleName(/^Due today\s*1/)
+
+  // "Morning run" was due at 07:00 and it's 09:00: overdue, so not under Due today.
+  await tile(page, 'Due today').click()
+  await expect(app.taskRow('Reply to recruiter email')).toBeVisible()
+  await expect(app.taskRow('Morning run')).toHaveCount(0)
+})
+
+test('Due today with nothing still to come points to Overdue', async ({ app, page }) => {
+  await app.loadSampleData()
+  await page.getByLabel('Mark "Reply to recruiter email" as done').click()
+  await tile(page, 'Due today').click()
+  await expect(page.getByRole('heading', { name: 'Nothing due today' })).toBeVisible()
+  await expect(page.getByText('Anything already late is under Overdue.')).toBeVisible()
 })
 
 test('the new count is announced as a status after picking a tile', async ({ app, page }) => {

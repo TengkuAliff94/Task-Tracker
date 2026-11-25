@@ -48,7 +48,7 @@ const SCOPE_ADJECTIVE: Record<Exclude<Scope, 'today'>, string> = { overdue: 'ove
 /** What a picked Overview tile says when it has nothing to show. */
 const EMPTY_SCOPE: Record<Scope, { title: string; body: string }> = {
   overdue: { title: 'Nothing overdue', body: 'Everything is on time.' },
-  today: { title: 'Nothing due today', body: 'No task has a deadline today.' },
+  today: { title: 'Nothing due today', body: 'Nothing else falls due later today. Anything already late is under Overdue.' },
   open: { title: 'All clear', body: 'Nothing left to do.' },
   done: { title: 'Nothing completed yet', body: 'Tasks you finish will show here.' },
 }
