@@ -60,8 +60,9 @@
   --danger: #b42318; /* 5.3:1 on subtle */
   --danger-hover: #971d14;
   --on-danger: #ffffff; /* 6.6:1, the solid button in a confirmation */
-  /* The overdue card's outline, drawn on the canvas: maroon by day (12:1 on bg). */
-  --alert-outline: var(--panel-maroon);
+  /* The overdue card's outline: the same red as its overdue date, so overdue is one colour on the
+     card, as at night (5.8:1 on bg, 6.3:1 on surface). The Overdue tile stays maroon. */
+  --alert-outline: var(--danger);
   /* A ticked checkbox's edge and hover border: sage means done. Lichen Sage is only about 2.5:1 on
      the card by day, so the edge is a deeper sage (5.2:1 on surface, 4.3:1 on subtle). */
   --done-edge: #4a7266;

@@ -20,6 +20,8 @@ interface Props {
   onToggleDone: (from: HTMLInputElement) => void
   /** Position in its list, for a short staggered entrance. */
   index?: number
+  /** Leaves out the `@project` chip, when the list is grouped by project and the heading already says it. */
+  hideProject?: boolean
 }
 
 const meta = 'inline-flex items-center gap-1 text-muted'
@@ -48,10 +50,10 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
  * has a rust stripe down its left edge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
-export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, onToggleDone, index = 0 }: Props) {
+export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, onToggleDone, index = 0, hideProject = false }: Props) {
   const overdue = isOverdue(task, now)
   const done = task.status === 'done'
-  const project = task.projectId ? projectsById.get(task.projectId) : undefined
+  const project = task.projectId && !hideProject ? projectsById.get(task.projectId) : undefined
   const checked = task.checklist.filter((c) => c.done).length
   // Three tags at most, so a well-tagged task stays one line of labels; "+N" names the rest.
   const tags = task.tagIds.flatMap((id) => tagsById.get(id) ?? [])

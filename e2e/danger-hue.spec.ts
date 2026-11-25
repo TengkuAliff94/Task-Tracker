@@ -96,9 +96,9 @@ test.describe('dark', () => {
 test.describe('light', () => {
   test.use({ colorScheme: 'light' })
 
-  test('the day reds are unchanged', async ({ page, app }) => {
+  test('the day red is unchanged, and the overdue ring uses it (step 27)', async ({ page, app }) => {
     void app
     expect(await tokenColour(page, '--danger')).toBe('rgb(180, 35, 24)')
-    expect(await tokenColour(page, '--alert-outline')).toBe('rgb(110, 17, 22)')
+    expect(await tokenColour(page, '--alert-outline')).toBe('rgb(180, 35, 24)')
   })
 })

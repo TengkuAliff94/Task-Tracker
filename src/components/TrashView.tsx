@@ -83,7 +83,7 @@ export function TrashView({ onRestore }: { onRestore: (task: Task) => Promise<vo
     return (
       <>
         <EmptyState icon={Trash2} title="Nothing in Trash">
-          Trash is empty. Deleted tasks wait here for {TRASH_RETENTION_DAYS} days before they go for good.
+          Deleted tasks wait here for {TRASH_RETENTION_DAYS} days before they go for good.
         </EmptyState>
         {confirmDialog}
       </>

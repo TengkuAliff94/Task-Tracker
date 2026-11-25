@@ -61,7 +61,7 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 - `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well, pressed pills are ink (`panel.ink`), and only Urgent cards get a stripe (rust). High has none, so the selection marker is the only ink bar on a card (#40). Urgent alone keeps a hue: rust.
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
 - `panel.ink` (fg on canvas): toasts, Back up now, pressed priority pills. The backup reminder itself is a neutral surface panel.
-- Overdue: maroon badge plus an outline in `--alert-outline` (`ALERT_OUTLINE`; maroon by day, rose danger at night).
+- Overdue: an outline in `--alert-outline` (`ALERT_OUTLINE`) and the deadline, both in `--danger` (#b42318 by day, rose at night). The Overdue tile is maroon.
 - Selected: lift plus the ink margin marker (`data-selection-marker`), never a ring.
 - Anything that carries meaning by colour uses one of these panels, never a raw hue.
 - User-picked project and tag colours stay as they are. They show as a dot, a tint and a ring

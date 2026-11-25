@@ -634,7 +634,8 @@ export default function App() {
               <div className="mb-3 flex items-center justify-between px-1 text-sm">
                 {/* A status region, so a screen reader hears the new count after a filter changes. */}
                 <p role="status" className="font-medium text-muted">{countLabel(visible.length, filters.scope)}</p>
-                <p className="hidden items-center gap-1.5 text-xs text-muted sm:flex">
+                {/* A keyboard hint: only where a pointer can hover, so not on touch screens. */}
+                <p className="hidden items-center gap-1.5 text-xs text-muted sm:mouse:flex">
                   Press <kbd>?</kbd> for shortcuts
                 </p>
               </div>
@@ -682,6 +683,7 @@ export default function App() {
                           tagsById={tagsById}
                           attachmentCount={attachmentCounts?.get(task.id) ?? 0}
                           selected={task.id === selectedId}
+                          hideProject={group === 'project'}
                           onEdit={() => {
                             setSelectedId(task.id)
                             setEditing({ mode: 'edit', task })

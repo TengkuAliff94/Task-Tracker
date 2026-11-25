@@ -57,13 +57,8 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
       className="hide-on-scroll sticky top-0 z-40 -mx-4 mb-6 flex items-center justify-between gap-2 bg-bg px-4 py-4 sm:py-5"
     >
       {view === 'trash' ? (
+        // Two ways back, both named: Back to tasks in New task's slot, and the pressed Trash button.
         <div className="flex min-w-0 items-center gap-2">
-          {/* A pointer shortcut beside the title; the named Back to tasks button sits in New task's slot.
-              Out of the tab order and the accessibility tree, so there is one control, not two. Phones
-              leave it out, giving the subtitle the room. */}
-          <button onClick={onBack} tabIndex={-1} aria-hidden className={cn(btn.headerIcon, 'max-sm:hidden')}>
-            <ArrowLeft className="size-5" />
-          </button>
           <div className="min-w-0">
             <h1 id="page-heading" tabIndex={-1} className="truncate text-xl font-bold tracking-tight sm:text-2xl">Trash</h1>
             <p className="truncate text-xs text-muted">Restore or permanently delete</p>
@@ -110,20 +105,21 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             aria-pressed={view === 'trash'}
             className={cn(
               btn.headerIcon,
-              'relative max-sm:size-8 md:w-auto md:px-2.5 sm:touch:w-auto sm:touch:px-2.5 aria-pressed:bg-panel-mustard aria-pressed:text-on-panel-mustard',
+              // With its word showing, 18px on the right keeps the corner badge clear of the word, count or not.
+              'relative max-sm:size-8 md:w-auto md:pr-4.5 md:pl-2.5 sm:touch:w-auto sm:touch:pr-4.5 sm:touch:pl-2.5 aria-pressed:bg-panel-mustard aria-pressed:text-on-panel-mustard',
             )}
           >
             <Trash2 className="size-5" aria-hidden /> <span className="hidden md:inline sm:touch:inline">Trash</span>
             {trashCount > 0 && (
-              // Keyed on the count, so each change remounts it and it pops in again. A corner badge on the
-              // bare icon; an inline count beside the word once the label shows.
+              // Keyed on the count, so each change remounts it and it pops in again. A corner badge at every
+              // width, so the button never widens as the count comes and goes and the tray holds still.
               <motion.span
                 key={trashCount}
                 aria-hidden
                 initial={reduce ? false : { scale: 0.4 }}
                 animate={{ scale: 1 }}
                 transition={SPRING.pop}
-                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface md:static md:ring-0 sm:touch:static sm:touch:ring-0 ${panel.danger}`}
+                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface ${panel.danger}`}
               >
                 {trashCount}
               </motion.span>

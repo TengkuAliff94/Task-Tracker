@@ -50,7 +50,7 @@ test('delete with undo, then restore from Trash', async ({ app, page }) => {
   await expect(trashed).toContainText('30 days left')
 
   await trashed.getByRole('button', { name: 'Restore "Old errand"' }).click()
-  await expect(page.getByText('Trash is empty.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Nothing in Trash' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Trash (0)' })).toBeVisible()
   await page.getByRole('button', { name: 'Back to tasks' }).click()
   await expect(app.taskRow('Old errand')).toBeVisible()

@@ -171,14 +171,20 @@ function fingerprint(s: Snapshot): string {
   return JSON.stringify([byId(s.tasks), byId(s.projects), byId(s.tags), byId(files)])
 }
 
+/** What a person sees when a file can't be restored: what's wrong, and which file to pick instead. */
+export const NOT_A_BACKUP = 'This file isn’t a Task Tracker backup. Choose a file you downloaded from Backup & restore.'
+export const NEWER_BACKUP = 'This backup comes from a newer version of Task Tracker. Reload the app to update it, then try again.'
+
 function validate(raw: unknown): BackupFile {
-  const fail = (why: string): never => {
-    throw new Error(`This isn't a valid Task Tracker backup (${why})`)
+  // The specific reason stays on `cause` for debugging; the message stays in the person's words.
+  const fail = (why: string, message = NOT_A_BACKUP): never => {
+    throw new Error(message, { cause: why })
   }
   if (!raw || typeof raw !== 'object') fail('not a JSON object')
   const d = raw as Partial<BackupFile>
   if (d.app !== BACKUP_APP) fail('wrong app')
-  if (typeof d.version !== 'number' || d.version > BACKUP_VERSION) fail(`unsupported version ${String(d.version)}`)
+  if (typeof d.version !== 'number') fail('no version')
+  if (d.version! > BACKUP_VERSION) fail(`unsupported version ${String(d.version)}`, NEWER_BACKUP)
   for (const key of ['tasks', 'projects', 'tags', 'attachments'] as const) {
     if (!Array.isArray(d[key])) fail(`missing ${key}`)
   }

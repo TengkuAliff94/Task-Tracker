@@ -1,8 +1,8 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { DatabaseBackup, Download, TriangleAlert, Undo2, Upload } from 'lucide-react'
+import { CircleAlert, DatabaseBackup, Download, TriangleAlert, Undo2, Upload } from 'lucide-react'
 import { taskRepo } from '../db/tasks'
-import { backup, backupNudge, NUDGE_GRACE_DAYS, type Snapshot } from '../db/backup'
+import { backup, backupNudge, NOT_A_BACKUP, NUDGE_GRACE_DAYS, type Snapshot } from '../db/backup'
 import { persistence, type StorageProtection } from '../db/persistence'
 import { usage } from '../db/usage'
 import { formatDateTime, toDateInput } from '../lib/deadline'
@@ -67,7 +67,9 @@ function DownloadFirst() {
  */
 function MessageLine({ message, className = '' }: { message: Message; className?: string }) {
   return (
-    <p role="status" className={`empty:sr-only ${message?.ok === false ? 'text-danger' : 'text-primary'} ${className}`}>
+    // Ink for a result, danger with an icon for a problem: the brand orange stays for actions.
+    <p role="status" className={`empty:sr-only ${message?.ok === false ? 'flex items-start gap-1.5 font-medium text-danger' : 'text-fg'} ${className}`}>
+      {message?.ok === false && <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />}
       {message?.text}
     </p>
   )
@@ -200,7 +202,8 @@ export function BackupDialog({ onClose, canUndo, onRestored, onUndo }: DialogPro
       try {
         parsed = JSON.parse(await file.text())
       } catch {
-        throw new Error('That file isn’t valid JSON.')
+        // Not "JSON": what matters to the person is that it isn't a backup, and which file to pick instead.
+        throw new Error(NOT_A_BACKUP)
       }
       // A file that isn't a backup is turned away here, before anyone is asked to replace their data with it.
       const incoming = backup.inspect(parsed)
@@ -248,7 +251,9 @@ export function BackupDialog({ onClose, canUndo, onRestored, onUndo }: DialogPro
       const before = await backup.snapshot()
       const result = await backup.importData(parsed)
       onRestored({ before, after: await backup.snapshot() })
-      setMessage({ ok: true, text: `Restored ${plural(result.tasks, 'task')} and ${plural(result.attachments, 'attachment')}.` })
+      // A zero attachment count says nothing worth reading.
+      const files = result.attachments ? ` and ${plural(result.attachments, 'attachment')}` : ''
+      setMessage({ ok: true, text: `Restored ${plural(result.tasks, 'task')}${files}.` })
     } catch (err) {
       setMessage({ ok: false, text: err instanceof Error ? err.message : String(err) })
     } finally {

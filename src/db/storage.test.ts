@@ -170,8 +170,10 @@ describe('backup', () => {
   it('rejects files that are not backups, leaving data untouched', async () => {
     await tasks.create({ title: 'keep me' })
     const b = createBackup(db)
-    await expect(b.importData({ hello: 'world' })).rejects.toThrow('valid Task Tracker backup')
-    await expect(b.importData({ app: 'task-tracker', version: 99 })).rejects.toThrow('unsupported version')
+    // Plain words for the person, with what to do; the specific reason rides on `cause`.
+    await expect(b.importData({ hello: 'world' })).rejects.toThrow('This file isn’t a Task Tracker backup.')
+    await expect(b.importData({ app: 'task-tracker', version: 99 })).rejects.toThrow('newer version of Task Tracker')
+    await expect(b.importData({ app: 'task-tracker', version: 99 })).rejects.toMatchObject({ cause: 'unsupported version 99' })
     expect(await tasks.list()).toHaveLength(1)
   })
 })

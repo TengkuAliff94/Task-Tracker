@@ -707,7 +707,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
                 Discard
               </button>
               {/* Saves and closes, as the footer's Save would. A problem with a field focuses it, which puts the bar away. */}
-              <button type="submit" data-bar-save disabled={saving} className={`${attentionQuiet} min-h-9`}>
+              {/* A resting tint sets Save apart from Discard: the two quiet buttons otherwise read the same. */}
+              <button type="submit" data-bar-save disabled={saving} className={`${attentionQuiet} min-h-9 bg-current/10`}>
                 {task ? 'Save' : 'Add task'}
               </button>
               <button type="button" ref={keepEditingRef} onClick={keepEditing} className={`${attentionAction} ${INVERTED_PANEL.warning} min-h-9`}>
