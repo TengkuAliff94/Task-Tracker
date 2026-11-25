@@ -42,11 +42,13 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(await bgOf(urgent)).toBe(await tokenColour(page, '--panel-rust'))
     })
 
-    test('only High and Urgent cards carry a stripe, in ink and rust', async ({ app, page }) => {
+    test('only Urgent cards carry a stripe, in rust (High has none, #40)', async ({ app, page }) => {
       await app.loadSampleData()
       await expect(app.taskRow('Reply to recruiter email').locator('[data-priority-stripe]')).toHaveCount(0)
       await expect(app.taskRow('Grocery run').locator('[data-priority-stripe]')).toHaveCount(0)
-      expect(await bgOf(app.taskRow('Pay rent').locator('[data-priority-stripe]'))).toBe(await tokenColour(page, '--fg'))
+      // High keeps its glyph and word; an ink stripe would read as the selection marker.
+      await expect(app.taskRow('Pay rent').locator('[data-priority-stripe]')).toHaveCount(0)
+      await expect(app.taskRow('Pay rent').locator('[data-priority="high"] [data-priority-glyph="3"]')).toHaveCount(1)
       expect(await bgOf(app.taskRow('Renew car insurance').locator('[data-priority-stripe]'))).toBe(await tokenColour(page, '--panel-rust'))
     })
 

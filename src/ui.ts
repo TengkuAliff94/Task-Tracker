@@ -69,12 +69,13 @@ export const INVERTED_PANEL = {
  * colour is left to time and state, except Urgent, which keeps the rust panel.
  * - `badge`: the card badge, the quick-add preview and priority group tabs (a neutral well).
  * - `pressed`: a pressed priority filter pill and its collapsed chip (ink, so it reads as on).
- * - `stripe`: the card's left edge, only where priority should catch the eye (High, Urgent).
+ * - `stripe`: the card's left edge, Urgent only. High has none: an ink stripe read as the
+ *   selection marker, which must stay the only ink bar on the list (the One Form Rule).
  */
 export const PRIORITY_TONE: Record<Priority, { badge: string; pressed: string; stripe?: string }> = {
   low: { badge: 'bg-subtle text-fg', pressed: panel.ink },
   medium: { badge: 'bg-subtle text-fg', pressed: panel.ink },
-  high: { badge: 'bg-subtle text-fg', pressed: panel.ink, stripe: 'bg-fg' },
+  high: { badge: 'bg-subtle text-fg', pressed: panel.ink },
   urgent: { badge: panel.danger, pressed: panel.danger, stripe: 'bg-panel-rust' },
 }
 

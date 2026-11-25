@@ -42,8 +42,8 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
 }
 
 /**
- * One task as a card in an `AnimatedList`. Each kind of mark has its own form: a High or Urgent
- * task has a stripe down its left edge (ink, rust), an overdue card a maroon outline as well as its
+ * One task as a card in an `AnimatedList`. Each kind of mark has its own form: an Urgent task
+ * has a rust stripe down its left edge, an overdue card a maroon outline as well as its
  * badge, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */

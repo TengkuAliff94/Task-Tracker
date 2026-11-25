@@ -246,7 +246,7 @@ A warm, earthy palette of eight saturated panels over a neutral canvas that inve
 - **Weathered Grey** (muted / muted-dark): metadata, placeholders, secondary text. It still meets 6:1 on the lowest surface it sits on.
 - **Seam** (line, line-strong): the few hairlines that remain: kbd keys, the task checkbox's outline, Markdown quotes, scrollbars. Nothing else draws a rule: the editor footer, the Markdown preview and the Backup dialog are set apart by tone and space.
 - **Panel Inks** (ink-on-light-panel, ink-on-dark-panel): near-black on orange, mustard, sage, taupe and mauve; off-white on maroon, rust and violet.
-- **Ink Panel** (`panel.ink`: fg on canvas, so it inverts with the theme): word from the app itself that has no state to colour. Toasts, the **Back up now** button, a pressed priority filter, and the High stripe.
+- **Ink Panel** (`panel.ink`: fg on canvas, so it inverts with the theme): word from the app itself that has no state to colour. Toasts, the **Back up now** button, and a pressed priority filter. Never a card stripe: on a card, ink belongs to the selection marker alone.
 
 ### Named Rules
 **The Panel Means Something Rule.** Anything that carries meaning by colour (status, counts, notices) uses a panel with its paired ink. Never a raw hue, never a Tailwind palette colour.
@@ -306,7 +306,7 @@ The system is **flat at rest**. Depth comes from tonal layering: canvas < surfac
 ### Named Rules
 **The Flat-at-Rest Rule.** Nothing casts a shadow just for existing. If a shadow appears, something was hovered, focused or opened.
 
-**The One Form Rule.** On a card, each mark takes its own shape: an edge stripe for priority, a ring for overdue, a gutter marker for selection. Never reuse one form for two meanings; two dark lines that mean different things read as one.
+**The One Form Rule.** On a card, each mark takes its own shape: an edge stripe for Urgent, a ring for overdue, a gutter marker for selection. Never reuse one form for two meanings; two dark lines that mean different things read as one.
 
 **The Empty Shadow Rule.** A "no shadow" token is `0 0 #0000`, never `none`. Tailwind merges shadows and rings into one list, and `none` would void the overdue ring and the picked tile's outline.
 
@@ -345,9 +345,9 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 - **Corner Style:** the panel radius (16px).
 - **Background:** Card Linen, with Lifted White for dialogs.
 - **Shadow Strategy:** flat at rest; pop on hover (see Elevation & Depth).
-- **Border:** none. A High task has a 6px ink stripe down the card's left edge, an Urgent one a rust stripe; Low and Medium have none, so the stripe only shows where priority should catch the eye.
+- **Border:** none. An Urgent task has a 6px rust stripe down the card's left edge; Low, Medium and High have none. High reads by its glyph and word: an ink stripe looked like the selection marker beside it, so the marker stays the only ink bar on the list.
 - **Internal Padding:** 16px, with 20px on the stripe side.
-- **States:** hover takes the hover tone plus a pop shadow and a 3px lift (mouse only). Each card mark has its own form, so no two read as the same line (the One Form Rule): the High/Urgent **stripe** runs down the left edge, **overdue** is a 2px ring around the card in `--alert-outline` (maroon by day, the danger red at night, 3:1 or more on the canvas), and **selection** is a lift (the pop shadow) plus a 4px ink **marker** in the gutter 7px left of the card, which grows in over 200ms. Selection never draws a ring, so a selected overdue card shows both.
+- **States:** hover takes the hover tone plus a pop shadow and a 3px lift (mouse only). Each card mark has its own form, so no two read as the same line (the One Form Rule): the Urgent **stripe** runs down the left edge, **overdue** is a 2px ring around the card in `--alert-outline` (maroon by day, the danger red at night, 3:1 or more on the canvas), and **selection** is a lift (the pop shadow) plus a 4px ink **marker** in the gutter 7px left of the card, which grows in over 200ms. Selection never draws a ring, so a selected overdue card shows both.
 - **Selection is focus:** J and K move real focus with the selection (to the title button, or the checkbox if that's where focus was), and Tabbing to a card selects it, so a screen reader hears the card and E and X act on what's in focus. While its card is selected, the title button's own focus ring and halo step aside (the marker shows where focus is); every other control in the card keeps its ring.
 - **When a card leaves** (ticked off, deleted, completed with X), focus moves to the same control on the card that takes its place, or to the empty state when none does. It never drops to the page.
 

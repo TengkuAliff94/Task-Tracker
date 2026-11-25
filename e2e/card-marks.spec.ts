@@ -1,4 +1,4 @@
-// Each mark on a task card has its own form (#36): the High/Urgent stripe down the left edge, the
+// Each mark on a task card has its own form (#36): the Urgent stripe down the left edge (#40), the
 // overdue outline around the card, and selection as a lift plus an ink marker in the gutter.
 // Selection never draws a ring, never hides the overdue outline, and the title's own focus ring
 // steps aside while its card is selected.
@@ -67,6 +67,27 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await select(page, card)
       await expect(marker(card)).toHaveCSS('opacity', '1')
       expect(await rings(card)).toEqual(before)
+    })
+
+    test(`a selected High card's marker is the only ink bar on the list (${colorScheme}, #40)`, async ({ app, page }) => {
+      await app.loadSampleData()
+      const card = app.taskRow('Pay rent')
+      await select(page, card)
+      // Every bar-shaped mark on any card (stripe or marker) whose colour is the ink token.
+      const inkBars = await page.locator('[data-task-id]').evaluateAll((cards) => {
+        const probe = document.createElement('span')
+        probe.style.color = 'var(--fg)'
+        document.body.append(probe)
+        const ink = getComputedStyle(probe).color
+        probe.remove()
+        return cards.flatMap((c) =>
+          [...c.querySelectorAll<HTMLElement>('[data-priority-stripe], [data-selection-marker]')]
+            .filter((el) => getComputedStyle(el).backgroundColor === ink && getComputedStyle(el).opacity !== '0')
+            .map((el) => `${c.getAttribute('data-task-id')}:${el.hasAttribute('data-selection-marker') ? 'marker' : 'stripe'}`),
+        )
+      })
+      expect(inkBars).toHaveLength(1)
+      expect(inkBars[0]).toMatch(/:marker$/)
     })
 
     test(`the title's own focus ring steps aside while its card is selected (${colorScheme})`, async ({ app, page }) => {

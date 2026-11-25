@@ -58,7 +58,7 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 
 - Overview tiles, most urgent first, each a filter: Overdue → maroon (taupe at zero), Due today → mustard, Open → violet, Completed → sage.
 - Colour means time and state, one job per hue (DESIGN.md, the One Job Rule).
-- `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well, pressed pills are ink (`panel.ink`), and only High (ink) and Urgent (rust) cards get a stripe. Urgent alone keeps a hue: rust.
+- `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well, pressed pills are ink (`panel.ink`), and only Urgent cards get a stripe (rust). High has none, so the selection marker is the only ink bar on a card (#40). Urgent alone keeps a hue: rust.
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
 - `panel.ink` (fg on canvas): toasts, Back up now, pressed priority pills. The backup reminder itself is a neutral surface panel.
 - Overdue: maroon badge plus an outline in `--alert-outline` (`ALERT_OUTLINE`; maroon by day, danger red at night).
@@ -118,7 +118,7 @@ Reuse these before building anything new.
 | Dialog | `Dialog` / `useModalDialog` on native `<dialog>`, with `DialogTitleBar` |
 | Toast | `ToastPanel` inside `AnimatePresence` |
 | Empty state | `EmptyState`: a big panel named by its title, with a floating icon tile |
-| Task | `TaskCard`: a priority stripe on the left edge, badges, metadata chips |
+| Task | `TaskCard`: an Urgent stripe on the left edge, badges, metadata chips |
 | Group heading | `GroupHeading`: a coloured tab with a count |
 | Labels | `LabelChip` |
 | Selection | Cards: the margin marker and lift (`TaskCard`). Overview tiles: `SELECTED_OUTLINE` plus the check |
