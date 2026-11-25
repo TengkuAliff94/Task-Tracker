@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–15 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37), `200d7cb` [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38)). Step 16's polish and README screenshots are done (`db05a6d`, [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39), still open); **resume with `/impeccable critique src`** to re-score, then close #39.
+Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–15 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37), `200d7cb` [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38)). Step 16 is done (`db05a6d`, [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39), closed): the fourth critique scored **30/40 (Good)**. The plan for its findings waits on the user's choices; see "Fourth critique" below.
 
 History: step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
@@ -35,11 +35,26 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 13 | `/impeccable polish src/components/TaskCard.tsx` | [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36) third critique P2: one dark-line language; selection is now a gutter marker and lift | **done** (`b27a0b7`) |
 | 14 | `/impeccable onboard` | [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37) third critique P2: first-run positioning line; New task → quick add and a storage chip explored, declined | **done** (`a149ad1`) |
 | 15 | `/impeccable polish src/components/TaskForm.tsx` | [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38) third critique P3: tag prompt, Added without seconds, late deadline tone, Field Label in the ramp, Trash copy | **done** (`200d7cb`) |
-| 16 | `/impeccable polish src`, then `/impeccable critique src` | [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39) final pass: lone Clear filters, Trash slot, preview chips, solid title bar, Save on the discard bar; README screenshots; re-score | polish **done** (`db05a6d`); critique to do |
+| 16 | `/impeccable polish src`, then `/impeccable critique src` | [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39) final pass: lone Clear filters, Trash slot, preview chips, solid title bar, Save on the discard bar; README screenshots; re-score | **done** (`db05a6d`): 30/40 |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 16's critique (`/impeccable critique src`). For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
+**To resume:** pick from the fourth critique's findings below (the user is choosing scope). For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
+
+## Fourth critique (2026-11-25, 30/40): open findings
+
+Dual-agent run; report `.impeccable/critique/2026-11-25T13-37-03Z__src.md` (local only). Trend 24 → 28 → 31 → 30; every heuristic scored 3. The third critique's items no longer appear. 0 P0, 1 P1, 3 P2, 1 P3:
+1. **[P1] Selection marker and the High stripe read as the same ink bar** (`TaskCard.tsx:67–79`, `ui.ts:77`), and the marker is ambiguous in the two-column gap. Step 13's form, so the One Form Rule isn't met on screen. Options: marker outside the grid's edge, High without ink, or an inset ring.
+2. **[P2] Restore has the weakest safety net** (`Backup.tsx:157–170`): no download in the confirm, no automatic snapshot, no warning when the backup has fewer tasks.
+3. **[P2] The open filter panel has no visible group labels** (`FilterBar.tsx:107`, `247–262`); at 390 it pushes the list off screen.
+4. **[P2] Colour contradictions:** the done checkbox fills Burnt Orange (`index.css:305–309`), and first run shows two brand buttons (`Header.tsx:154`, `App.tsx:91`).
+5. **[P3] More details opens out of view** at 1280×900 (`TaskForm.tsx:584`); no Delete shortcut.
+
+Minor: Trash toast leaves "Trash" alone on a line (detector `straggler`, `Toast.tsx:71`, add `text-wrap: pretty`); no toast on Trash Restore; Projects & tags drops sigils; "Medium" on most cards; no hint that done tasks are hidden; "Clear filters" under search vs the empty state's "Clear search"; checklist bar reads as a rule; textarea crops mid-line; preview syntax vs card icons.
+
+Detector: 2 advisory, both documented (dialog spring, `#000` fixture); overlay false positives `cream-palette`, `icon-tile-stack`.
+
+**Critique run gotcha:** both assessments ran their own probe specs on separate `E2E_PORT`s (4311, 4312) instead of the shared Playwright MCP browser, which keeps one current tab for everyone.
 
 ## Third critique (2026-11-24, 31/40): pending items
 
