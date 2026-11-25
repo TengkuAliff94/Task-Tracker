@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–13 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36)); resume at step 14.
+Last updated 2026-11-24 (third critique). **Latest: a third `/impeccable critique src` scored 31/40 (Good)**, up from 28 and 24: 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-24T14-25-52Z__src.md` (local only; its content is also in "Third critique" below). The user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–14 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37)); resume at step 15.
 
 History: step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
@@ -33,13 +33,13 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 11 | `/impeccable distill src/components/FilterBar.tsx` | [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34) third critique P1: one rule for completed tasks (Done pill, Show completed, Completed tile) | **done** (`cd0cdca`) |
 | 12 | `/impeccable clarify src/components/Overview.tsx` | [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35) third critique P2: the tiles double-counted; Due today is now what's still to come today | **done** (`5f0cd43`) |
 | 13 | `/impeccable polish src/components/TaskCard.tsx` | [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36) third critique P2: one dark-line language; selection is now a gutter marker and lift | **done** (`b27a0b7`) |
-| 14 | `/impeccable onboard` | third critique P2: positioning on the first screen; explore New task focusing quick add; optional storage-status chip | to do |
+| 14 | `/impeccable onboard` | [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37) third critique P2: first-run positioning line; New task → quick add and a storage chip explored, declined | **done** (`a149ad1`) |
 | 15 | `/impeccable polish src/components/TaskForm.tsx` | third critique P3 + minors: Tags placeholder, HH:MM "Added", overdue tone, 13px literal, copy nits | to do |
 | 16 | `/impeccable polish src`, then `/impeccable critique src` | final pass, README screenshots, re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 14. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
+**To resume:** step 15. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Third critique" below for the details of each item.
 
 ## Third critique (2026-11-24, 31/40): pending items
 
@@ -90,7 +90,7 @@ Dual-agent run (design review + detector/browser). Scores: H3 user control 4; ev
 ```bash
 npx tsc -b                      # types
 npm test                        # unit (Vitest): 198 passing after #35
-npm run test:e2e                # e2e (Playwright, port 4173): 242 after #36 (load flakes listed below pass alone)
+npm run test:e2e                # e2e (Playwright, port 4173): 246 after #37 (load flakes listed below pass alone)
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
@@ -140,6 +140,12 @@ npm run build                   # production build + PWA
 - **Popovers take Esc.** The blocked-notifications popover (`popover="auto"`) closes on Esc, and `useShortcuts` stands aside while any `:popover-open` exists. Fake the blocked state with `Object.defineProperty(Notification, 'permission', { get: () => 'denied' })` in `addInitScript`.
 - **The page heading is a focus target.** `#page-heading` (`tabIndex=-1`) is the fallback when a focused toast goes and focus has nowhere better to return to.
 - **Mind `@` in GitHub text.** Quick-add syntax like `@home` pings real GitHub users in issue or PR text, so keep it in backticks.
+
+## First-run positioning in brief (step 14, #37)
+
+"No tasks yet" ends with a muted 12px line and a `HardDrive` icon: "Stored only in this browser. No account, works offline." (`EmptyState`'s new `note` slot, `data-first-run-note`). First run only. **Declined with the user:** New task focusing quick add (it stays the direct route to the full editor; quick add is already under the heading with `N`) and a header storage chip (the phone header is full; the slot waits for sync). Tests: `e2e/first-run.spec.ts` (4: shows on first run, gone with tasks and in No matches, contrast and fit at 320 per theme; 3 failed without the line, the 4th is a guard). DESIGN.md (Empty states), SPEC (decisions) and the sidecar (which also gained step 13's One Form Rule) updated; detector and doctor clean.
+
+**New load flake:** `confirm.spec.ts` "deleting a project says how many tasks move…" failed once in the full run and passed 3/3 alone.
 
 ## Card marks in brief (step 13, #36)
 
