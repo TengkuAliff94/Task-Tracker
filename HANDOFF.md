@@ -1,6 +1,6 @@
 # Handoff: UI critique follow-ups
 
-Last updated 2026-11-25 (fourth critique). **Latest: a fourth `/impeccable critique src` scored 30/40 (Good)** (trend 24 → 28 → 31 → 30): 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-25T13-37-03Z__src.md` (local only; its content is also in "Fourth critique" below). For the third critique (31/40), the user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–15 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37), `200d7cb` [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38)). Step 16 is done (`db05a6d`, [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39), closed): the fourth critique scored **30/40 (Good)**. The user chose to take on **everything**, with the P1 fixed by taking the ink off High. Steps 17–21 are that plan. **Step 17 is done** (`153bd6b`, [#40](https://github.com/TengkuAliff94/Task-Tracker/issues/40), closed), and so is **step 18** (`2f56ff9`, [#41](https://github.com/TengkuAliff94/Task-Tracker/issues/41), closed), and so is **step 19** (`5382950`, [#42](https://github.com/TengkuAliff94/Task-Tracker/issues/42), closed), and so is **step 20** (`208c70b`, [#43](https://github.com/TengkuAliff94/Task-Tracker/issues/43), closed); resume at step 21.
+Last updated 2026-11-25 (fifth critique). **Latest: steps 17–21 are all done, and a fifth `/impeccable critique src` scored 30/40 (Good)** (trend 24 → 28 → 31 → 30 → 30): 0 P0, 1 P1, 3 P2, 1 P3, every fourth-critique item gone. The report is `.impeccable/critique/2026-11-25T15-01-45Z__src.md` (local only; summary in "Fifth critique" below). The user hasn't yet chosen what to take on from it. Before that: a fourth `/impeccable critique src` scored 30/40 (Good): 0 P0, 1 P1, 3 P2, 1 P3. The report is `.impeccable/critique/2026-11-25T13-37-03Z__src.md` (local only; its content is also in "Fourth critique" below). For the third critique (31/40), the user chose to start with list-state truth, take on **all five** issues, and explore whether New task should focus quick add. Steps 11–16 in the table are that plan. **Steps 11–15 are done** (`cd0cdca` [#34](https://github.com/TengkuAliff94/Task-Tracker/issues/34), `5f0cd43` [#35](https://github.com/TengkuAliff94/Task-Tracker/issues/35), `b27a0b7` [#36](https://github.com/TengkuAliff94/Task-Tracker/issues/36), `a149ad1` [#37](https://github.com/TengkuAliff94/Task-Tracker/issues/37), `200d7cb` [#38](https://github.com/TengkuAliff94/Task-Tracker/issues/38)). Step 16 is done (`db05a6d`, [#39](https://github.com/TengkuAliff94/Task-Tracker/issues/39), closed): the fourth critique scored **30/40 (Good)**. The user chose to take on **everything**, with the P1 fixed by taking the ink off High. Steps 17–21 are that plan. **Step 17 is done** (`153bd6b`, [#40](https://github.com/TengkuAliff94/Task-Tracker/issues/40), closed), and so is **step 18** (`2f56ff9`, [#41](https://github.com/TengkuAliff94/Task-Tracker/issues/41), closed), and so is **step 19** (`5382950`, [#42](https://github.com/TengkuAliff94/Task-Tracker/issues/42), closed), and so is **step 20** (`208c70b`, [#43](https://github.com/TengkuAliff94/Task-Tracker/issues/43), closed); resume at step 21.
 
 History: step 5 is done: polish pushed (`426f55f`), and the re-critique scored **28/40 (Good)**, up from 24/40. 0 P0, 2 P1 (icon-only header; the deadline in two date formats), 2 P2 (panel colours carry several meanings; the 13-field editor), 1 P3 (quick-add grammar help). The report is `.impeccable/critique/2026-11-21T17-02-11Z__src.md` (local only). The date-format P1 is fixed, reviewed and pushed as `63657c9` ([#29](https://github.com/TengkuAliff94/Task-Tracker/issues/29), closed, now a sub-issue of #19 as step 6). #27 records 28/40 and is closed. The other P1, the icon-only header, is fixed for [#30](https://github.com/TengkuAliff94/Task-Tracker/issues/30) (step 7, `af20632`, closed). The colour P2 is fixed for [#31](https://github.com/TengkuAliff94/Task-Tracker/issues/31) (step 8, `f0f26d5`, closed), the editor P2 for #32 (step 9), and the quick-add help P3 in step 10. Every re-critique finding is now addressed.
 
@@ -40,13 +40,38 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 18 | `/impeccable colorize` | fourth critique P2: done checkbox in sage, not brand orange; one brand button on first run | **done** (`2f56ff9`, #41) |
 | 19 | `/impeccable clarify src/components/FilterBar.tsx` | fourth critique P2: visible Priority / Status / Tags labels; the list stays in view on phones with the panel open | **done** (`5382950`, #42) |
 | 20 | `/impeccable harden src/components/Backup.tsx` | fourth critique P2: restore safety net (download first in the confirm, automatic snapshot with Undo, warning when the backup has fewer tasks) | **done** (`208c70b`, #43) |
-| 21 | `/impeccable polish src`, then `/impeccable critique src` | fourth critique P3 + minors: More details into view, Delete shortcut, Trash toast straggler, Restore toast, sigils in Projects & tags, then re-score | to do |
+| 21 | `/impeccable polish src`, then `/impeccable critique src` | fourth critique P3 + minors: More details into view, Delete shortcut, Trash toast straggler, Restore toast, sigils in Projects & tags, then re-score | **done** (`e62e1a4`, #44): 30/40 |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 21. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Fourth critique" below for the details of each item.
+**To resume:** ask which fifth-critique findings to take on (below), then plan steps 22+ as before. For each step open an issue first (keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Fourth critique" below for the details of each item.
 
-## Fourth critique (2026-11-25, 30/40): open findings
+## Fifth critique (2026-11-25, 30/40): open findings
+
+Dual-agent run (A and B on E2E_PORTs 4311/4312, probes deleted). Every heuristic scored 3. All fourth-critique items are gone.
+1. **[P1] Undo restore vanishes silently when Backup & restore closes** (`Backup.tsx:157`, button `btn.small` 278–284). Step 20's choice. Fix: app-level snapshot for the session, a sticky post-close toast with Undo, a secondary-size button, a harder stop for a 0-task file.
+2. **[P2] Dark mode: overdue ring/date and danger read as brand orange** (`index.css:85–95`). Rose dark `--danger`, night outline from it or a lightened maroon.
+3. **[P2] Card metadata row has no hierarchy** (`TaskCard.tsx:98–138`): hide Medium, one overdue mark, when → what → labels, tags capped at 3 with +N.
+4. **[P2] Quick add gives a line's new tags the same colour** (confirmed: `QuickAdd.tsx:116` `Promise.all` → `findOrCreate` → `nextColor` all read the same list). Create them one after another.
+5. **[P3] Due today mustard at 0** (`Overview.tsx:55`); 640–1023px header glyphs unlabelled on touch.
+
+Minor: Trash's three ways back and doubled empty copy; tray shift with the Trash count; "0 attachments" in the restore line; bad-file error copy; repeated @project chip when grouped by project; two reds for overdue in light; selection marker beside the Urgent stripe; mustard's many jobs; Discard and Save look identical on the discard bar.
+
+Detector: 2 advisory, both known; overlay false positives `cream-palette`, `icon-tile-stack`.
+
+## Final touches in brief (step 21, #44)
+
+- **More details** scrolls its fields into view when opened by hand (`scrollIntoView({ block: 'nearest' })` on its wrapper, `scroll-mt-22 scroll-mb-20`; instant under reduced motion). A Save error opening it doesn't scroll (it focuses the field instead).
+- **`Delete`** moves the selected task to Trash with the Undo toast (`!e.repeat`), in `SHORTCUTS`, README and SPEC.
+- **Toasts** wrap pretty (`text-pretty`).
+- **Trash Restore** goes through `restoreFromTrash` in App: a toast “X” restored / “It’s back in your tasks.”, or a save-error toast. `TrashView` takes `onRestore`.
+- **Projects & tags** shows a muted `@`/`#` (`data-sigil`) inside the name well, padding per sigil (26px after @, 21px after #) so the name sits right against it.
+- **Checklist bar** is a 6px rounded meter filling `--done-edge` (new Tailwind colour `done-edge`), `data-checklist-bar`.
+- README screenshots regenerated (they also needed steps 17–18).
+
+Tests: `e2e/final-touches.spec.ts` (9: 8 failed on the old source; the toast-wrap test was also proved alone by removing `text-pretty`; the search-field Delete test is a guard). 200 unit, 285/286 e2e (known More menu flake).
+
+## Fourth critique (2026-11-25, 30/40): all addressed in steps 17–21
 
 Dual-agent run; report `.impeccable/critique/2026-11-25T13-37-03Z__src.md` (local only). Trend 24 → 28 → 31 → 30; every heuristic scored 3. The third critique's items no longer appear. 0 P0, 1 P1, 3 P2, 1 P3:
 1. **[P1] Selection marker and the High stripe read as the same ink bar** (`TaskCard.tsx:67–79`, `ui.ts:77`), and the marker is ambiguous in the two-column gap. Step 13's form, so the One Form Rule isn't met on screen. Options: marker outside the grid's edge, High without ink, or an inset ring.
@@ -109,8 +134,8 @@ Dual-agent run (design review + detector/browser). Scores: H3 user control 4; ev
 
 ```bash
 npx tsc -b                      # types
-npm test                        # unit (Vitest): 200 passing after #43
-npm run test:e2e                # e2e (Playwright, port 4173): 278 after #43 (flakes listed below; the old "266" was a miscount, the chromium project had 259 before #40)
+npm test                        # unit (Vitest): 200 passing after #44
+npm run test:e2e                # e2e (Playwright, port 4173): 286 after #44 (flakes listed below; the old "266" was a miscount, the chromium project had 259 before #40)
 npm run build                   # production build + PWA
 "<impeccable skill dir>/scripts/impeccable" detect --json --changed   # skill dir: the impeccable plugin (v4.9.2) in the Claude plugin cache
 "<impeccable skill dir>/scripts/impeccable" doctor
