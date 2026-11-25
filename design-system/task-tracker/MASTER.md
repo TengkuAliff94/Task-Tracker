@@ -61,7 +61,8 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 - `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well, pressed pills are ink (`panel.ink`), and only High (ink) and Urgent (rust) cards get a stripe. Urgent alone keeps a hue: rust.
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
 - `panel.ink` (fg on canvas): toasts, Back up now, pressed priority pills. The backup reminder itself is a neutral surface panel.
-- Overdue: maroon badge plus a maroon outline (`ALERT_OUTLINE`).
+- Overdue: maroon badge plus an outline in `--alert-outline` (`ALERT_OUTLINE`; maroon by day, danger red at night).
+- Selected: lift plus the ink margin marker (`data-selection-marker`), never a ring.
 - Anything that carries meaning by colour uses one of these panels, never a raw hue.
 - User-picked project and tag colours stay as they are. They show as a dot, a tint and a ring
   (`labelTint` in `src/lib/colors.ts`) with body-coloured text, never as the text colour itself.
@@ -100,7 +101,7 @@ Shadows mark elevation, not separation.
 | `--shadow-modal` | Dialogs |
 
 `--shadow-card` is an empty shadow (`0 0 #0000`), never `none`. Tailwind combines shadows and
-rings into one list, and `none` would void the selection and overdue rings.
+rings into one list, and `none` would void the overdue ring and the picked tile's outline.
 
 ---
 
@@ -120,7 +121,7 @@ Reuse these before building anything new.
 | Task | `TaskCard`: a priority stripe on the left edge, badges, metadata chips |
 | Group heading | `GroupHeading`: a coloured tab with a count |
 | Labels | `LabelChip` |
-| Selection | `SELECTED_OUTLINE` (an outline ring, not colour alone) |
+| Selection | Cards: the margin marker and lift (`TaskCard`). Overview tiles: `SELECTED_OUTLINE` plus the check |
 | Hover | `hoverHighlight` (Sill's mustard hover) |
 
 ---

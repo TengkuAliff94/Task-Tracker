@@ -18,7 +18,11 @@ async function controlsWithoutFocusRing(page: Page, maxStops = 80): Promise<stri
       return {
         id: `${el.tagName}:${name}:${el.getBoundingClientRect().top + window.scrollY}`,
         name: `${el.tagName.toLowerCase()} "${name}"`,
-        visible: s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) >= 2,
+        // A transparent outline is no outline, except on a selected card's title, where the card's
+        // margin marker shows where focus is (card-marks.spec.ts).
+        visible:
+          (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) >= 2 && s.outlineColor !== 'rgba(0, 0, 0, 0)') ||
+          Boolean(el.closest('li[aria-current]') && el.matches('[data-card-edit]')),
       }
     })
     if (!stop || seen.has(stop.id)) break // wrapped back round to the start

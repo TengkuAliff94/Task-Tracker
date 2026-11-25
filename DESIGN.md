@@ -299,7 +299,9 @@ The system is **flat at rest**. Depth comes from tonal layering: canvas < surfac
 ### Named Rules
 **The Flat-at-Rest Rule.** Nothing casts a shadow just for existing. If a shadow appears, something was hovered, focused or opened.
 
-**The Empty Shadow Rule.** A "no shadow" token is `0 0 #0000`, never `none`. Tailwind merges shadows and rings into one list, and `none` would void the selection and overdue rings.
+**The One Form Rule.** On a card, each mark takes its own shape: an edge stripe for priority, a ring for overdue, a gutter marker for selection. Never reuse one form for two meanings; two dark lines that mean different things read as one.
+
+**The Empty Shadow Rule.** A "no shadow" token is `0 0 #0000`, never `none`. Tailwind merges shadows and rings into one list, and `none` would void the overdue ring and the picked tile's outline.
 
 ## Shapes
 
@@ -338,8 +340,8 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 - **Shadow Strategy:** flat at rest; pop on hover (see Elevation & Depth).
 - **Border:** none. A High task has a 6px ink stripe down the card's left edge, an Urgent one a rust stripe; Low and Medium have none, so the stripe only shows where priority should catch the eye.
 - **Internal Padding:** 16px, with 20px on the stripe side.
-- **States:** hover takes the hover tone plus a pop shadow and a 3px lift (mouse only). Keyboard selection gets a 2px outline ring in the text colour, offset 2px. Overdue cards get a 2px maroon ring.
-- **Selection is focus:** J and K move real focus with the selection (to the title button, or the checkbox if that's where focus was), and Tabbing to a card selects it, so a screen reader hears the card and E and X act on what's in focus. The title button is rounded (8px), so its focus ring sits inside the selection ring as a second soft rectangle.
+- **States:** hover takes the hover tone plus a pop shadow and a 3px lift (mouse only). Each card mark has its own form, so no two read as the same line (the One Form Rule): the High/Urgent **stripe** runs down the left edge, **overdue** is a 2px ring around the card in `--alert-outline` (maroon by day, the danger red at night, 3:1 or more on the canvas), and **selection** is a lift (the pop shadow) plus a 4px ink **marker** in the gutter 7px left of the card, which grows in over 200ms. Selection never draws a ring, so a selected overdue card shows both.
+- **Selection is focus:** J and K move real focus with the selection (to the title button, or the checkbox if that's where focus was), and Tabbing to a card selects it, so a screen reader hears the card and E and X act on what's in focus. While its card is selected, the title button's own focus ring and halo step aside (the marker shows where focus is); every other control in the card keeps its ring.
 - **When a card leaves** (ticked off, deleted, completed with X), focus moves to the same control on the card that takes its place, or to the empty state when none does. It never drops to the page.
 
 ### Inputs / Fields
@@ -402,7 +404,7 @@ Timing comes only from `src/components/motion/presets.ts`: 180ms for exits and s
 - **Do** carry meaning with a `panel.*` colour and its paired ink, and prove new pairs at 4.5:1 in both themes.
 - **Do** keep panels flat and separated by 12px gutters; reserve shadows for hover, focus and open dialogs.
 - **Do** use `rounded-panel` (16px) on every panel, and the inner steps (12 / 8 / 6 / 4px) only inside them.
-- **Do** show selection with an outline ring, not colour alone, and keep the two-tone focus ring visible on every control.
+- **Do** show selection with a shape (the margin marker on cards, the outline and check on tiles), not colour alone, and keep the two-tone focus ring visible on every control.
 - **Do** keep exactly one brand-orange button per screen.
 - **Do** ask through `useConfirm`, never the browser's `confirm()`, and check fields in the app (`FieldError`), never with the browser's validation bubble.
 - **Do** light up coloured controls Noon Mustard on hover (`hoverHighlight`).

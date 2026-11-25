@@ -32,17 +32,16 @@ for (const colorScheme of ['light', 'dark'] as const) {
   test.describe(colorScheme, () => {
     test.use({ colorScheme })
 
-    test(`the selected card is outlined, not just tinted (${colorScheme})`, async ({ app, page }) => {
+    test(`the selected card is marked, not just tinted (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
       const card = app.taskCards().first()
-      const outline = () => card.evaluate((el) => getComputedStyle(el).boxShadow)
-      const before = await outline()
+      const marker = card.locator('[data-selection-marker]')
+      await expect(marker).toHaveCSS('opacity', '0')
 
       await page.keyboard.press('j')
       await expect(card).toHaveAttribute('aria-current', 'true')
-      // The outline is drawn as a ring (a box-shadow), so the card's shadow must change and be real.
-      await expect.poll(outline).not.toBe(before)
-      expect(await outline()).not.toBe('none')
+      // A shape in the gutter, not a colour change (see card-marks.spec.ts).
+      await expect.poll(() => marker.evaluate((el) => getComputedStyle(el).opacity)).toBe('1')
     })
   })
 }

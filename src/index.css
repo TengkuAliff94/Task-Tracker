@@ -54,6 +54,8 @@
   --danger: #b42318; /* 5.3:1 on subtle */
   --danger-hover: #971d14;
   --on-danger: #ffffff; /* 6.6:1, the solid button in a confirmation */
+  /* The overdue card's outline, drawn on the canvas: maroon by day (12:1 on bg). */
+  --alert-outline: var(--panel-maroon);
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(20 17 16 / 0.06);
@@ -85,6 +87,8 @@
   --danger: #f0866a; /* 6.8:1 on raised */
   --danger-hover: #f49c84;
   --on-danger: #0b0a0a; /* 7.8:1 */
+  /* Maroon is about 1.5:1 on the night canvas; the danger red is 7.5:1. */
+  --alert-outline: var(--danger);
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -115,6 +119,7 @@
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
+  --color-alert-outline: var(--alert-outline);
   --color-danger-hover: var(--danger-hover);
   --color-on-danger: var(--on-danger);
   --color-panel-orange: var(--panel-orange);
@@ -230,6 +235,12 @@ body {
   :focus-visible {
     box-shadow: 0 0 0 2px var(--bg);
   }
+}
+/* A selected card's title button: the margin marker and lift already say where you are, so its
+   own ring would be a third dark line. Tabbing to a card selects it, so this is never the only cue. */
+li[aria-current] [data-card-edit]:focus-visible {
+  outline-color: transparent;
+  box-shadow: none;
 }
 
 button:not(:disabled),

@@ -85,10 +85,13 @@ export const STATUS_PANEL: Record<Status, string> = {
   done: panel.calm,
 }
 
-/** The keyboard-selected card: an outline (not colour alone) that reads in any theme and on any card. */
+/** A picked Overview tile: an outline (not colour alone) that reads on every panel colour. */
 export const SELECTED_OUTLINE = 'ring-2 ring-fg ring-offset-2 ring-offset-bg'
-/** Something that needs attention now, e.g. an overdue card: outlined in the `critical` colour. */
-export const ALERT_OUTLINE = 'ring-2 ring-panel-maroon'
+/**
+ * An overdue card: outlined in `--alert-outline` (maroon by day, the danger red at night, 3:1 or
+ * more on the canvas either way). The only line around a card; selection is the margin marker.
+ */
+export const ALERT_OUTLINE = 'ring-2 ring-alert-outline'
 
 /**
  * Buttons inside an attention panel (the missed-reminders banner, the backup reminder). The main
