@@ -111,7 +111,7 @@ Reuse these before building anything new.
 
 | Need | Use |
 |------|-----|
-| Buttons | `btn.primary / secondary / ghost / danger / small / icon`; `btn.brand` for the single most prominent action (orange, turns mustard on hover); `btn.headerIcon` in the header panel |
+| Buttons | `btn.primary / secondary / ghost / danger / small / icon`; `btn.brand` for the single most prominent action (orange, turns mustard on hover); `btn.ink` for a view's main action when New task already holds the brand (Load sample data on the first run); `btn.headerIcon` in the header panel |
 | Inputs | `field`: a flat filled well, with a border and soft glow on hover and focus |
 | Neutral panel | `card` (`rounded-panel bg-surface shadow-card`) |
 | Colour panel | `panel.*`, plus `INVERTED_PANEL` for a solid button sitting on that panel |
@@ -222,7 +222,7 @@ Every animation takes its timing from here, never from ad-hoc numbers. CSS durat
 - Roles and accessible names used by the e2e fixture are a contract: don't rename them.
 - Dialogs stay native `<dialog>`, which gives Escape, focus trapping and focus return.
 - No checkbox keeps the browser's own look: `.task-check` (round) completes a task, `.box-check`
-  (square) is everything else. Both have a hover halo and the orange fill.
+  (square) is everything else. Both have a sage hover halo and fill sage when ticked (`--done-edge` rim, ink tick); never orange (#41).
 
 ---
 

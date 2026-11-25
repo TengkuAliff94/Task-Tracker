@@ -9,7 +9,7 @@ import { btn } from '../ui'
 /**
  * Adds the demo projects, tags and tasks. When tasks already exist it asks first,
  * since the sample set is added alongside them and never replaces anything.
- * `variant`: `brand` for the first-run empty state, where it's the main action; `ghost` in Backup & restore,
+ * `variant`: `ink` for the first-run empty state, where it's the main action (New task keeps the one brand button); `ghost` in Backup & restore,
  * where it must not read as a peer of Restore.
  */
 export function SampleDataButton({
@@ -17,7 +17,7 @@ export function SampleDataButton({
   variant = 'secondary',
 }: {
   onLoaded?: (count: number) => void
-  variant?: 'brand' | 'secondary' | 'ghost'
+  variant?: 'ink' | 'secondary' | 'ghost'
 }) {
   const [busy, setBusy] = useState(false)
   const [confirmDialog, ask] = useConfirm()

@@ -88,7 +88,7 @@ function ListEmpty({
             <span className="text-muted">Try:</span> {QUICK_ADD_EXAMPLE}
           </button>
         }
-        action={<SampleDataButton variant="brand" />}
+        action={<SampleDataButton variant="ink" />}
         note={
           // The positioning, where people land: what's different about this app (PRODUCT.md).
           <span data-first-run-note>

@@ -56,6 +56,10 @@
   --on-danger: #ffffff; /* 6.6:1, the solid button in a confirmation */
   /* The overdue card's outline, drawn on the canvas: maroon by day (12:1 on bg). */
   --alert-outline: var(--panel-maroon);
+  /* A ticked checkbox's edge and hover border: sage means done. Lichen Sage is only about 2.5:1 on
+     the card by day, so the edge is a deeper sage (5.2:1 on surface, 4.3:1 on subtle). */
+  --done-edge: #4a7266;
+  --done-soft: #4a72661f;
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(20 17 16 / 0.06);
@@ -89,6 +93,9 @@
   --on-danger: #0b0a0a; /* 7.8:1 */
   /* Maroon is about 1.5:1 on the night canvas; the danger red is 7.5:1. */
   --alert-outline: var(--danger);
+  /* Lichen Sage itself is about 7:1 on the night card. */
+  --done-edge: var(--panel-sage);
+  --done-soft: #80a89b29;
   --ring: var(--fg);
 
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -266,9 +273,9 @@ select option {
   color: var(--fg);
 }
 
-/* Any checkbox left native takes the brand colour. */
+/* Any checkbox left native ticks in sage, like ours: a checkbox's colour means done, not the brand. */
 input[type='checkbox'] {
-  accent-color: var(--primary);
+  accent-color: var(--done-edge);
 }
 
 /* The round "complete" control on each task row. Still a native checkbox for a11y. */
@@ -289,7 +296,7 @@ input[type='checkbox'] {
   content: '';
   width: 0.7rem;
   height: 0.7rem;
-  background: var(--on-primary);
+  background: var(--on-panel-sage);
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
     center / contain no-repeat;
   transform: scale(0);
@@ -299,13 +306,15 @@ input[type='checkbox'] {
 label:hover > .task-check,
 .box-check:hover,
 label:hover > .box-check {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px var(--primary-soft);
+  border-color: var(--done-edge);
+  box-shadow: 0 0 0 4px var(--done-soft);
 }
+/* Sage means done (the One Job Rule): the fill is Lichen Sage with an ink tick (7.2:1), and the
+   edge is --done-edge, so the ticked box still meets 3:1 on the card in both themes. */
 .task-check:checked,
 .box-check:checked {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--panel-sage);
+  border-color: var(--done-edge);
 }
 .task-check:checked::after,
 .box-check:checked::after {
@@ -314,7 +323,7 @@ label:hover > .box-check {
 
 /*
  * The square sibling of the task checkbox, for everything that isn't completing a task ("Show
- * completed", checklist items): the same tick, fill and hover halo, with a 4px corner so a round
+ * completed", checklist items): the same sage tick, fill and hover halo, with a 4px corner so a round
  * control still only ever means "done". Its border is Weathered Grey, so the box itself meets 3:1.
  */
 .box-check {

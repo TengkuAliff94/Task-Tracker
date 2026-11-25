@@ -15,6 +15,11 @@ export const btn = {
   icon: `${btnBase} size-9 shrink-0 text-muted hover:bg-subtle hover:text-fg`,
   /** The most prominent action (New task): the orange brand panel, lighting up mustard on hover as in Sill. */
   brand: `${btnBase} rounded-xl bg-panel-orange px-4 py-2.5 font-semibold text-on-panel-orange hover:bg-panel-mustard hover:text-on-panel-mustard active:translate-y-px`,
+  /**
+   * A view's main action where New task already holds the one brand button (Load sample data on the
+   * first run): the brand button's shape in ink, inverting with the theme; it dims a little on hover.
+   */
+  ink: `${btnBase} rounded-xl bg-fg px-4 py-2.5 font-semibold text-bg hover:opacity-85 active:translate-y-px`,
   /** An icon button in the header's panel: a square tile that lights up mustard on hover. */
   headerIcon: `${btnBase} size-9 shrink-0 rounded-xl text-fg/80 hover:bg-panel-mustard hover:text-on-panel-mustard`,
 }
