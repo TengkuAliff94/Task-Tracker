@@ -143,6 +143,22 @@ describe('backup', () => {
     expect(await tasks.list()).toHaveLength(1)
   })
 
+  it('tells whether anything changed since a snapshot, so Undo restore can ask first (#45)', async () => {
+    const t = await tasks.create({ title: 'Mine' })
+    await attachments.addFile(t.id, new Blob([new Uint8Array([1, 2])], { type: 'image/png' }), 'a.png')
+    const b = createBackup(db)
+    const snap = await b.snapshot()
+    // Read back fresh (new Blob objects, same files) is still unchanged; Last backup doesn't count.
+    await b.exportData(new Date(5000))
+    expect(await b.unchangedSince(snap)).toBe(true)
+    await tasks.update(t.id, { title: 'Renamed' })
+    expect(await b.unchangedSince(snap)).toBe(false)
+    await b.restoreSnapshot(snap)
+    expect(await b.unchangedSince(snap)).toBe(true)
+    await createLabelRepo(db).tags.create('new')
+    expect(await b.unchangedSince(snap)).toBe(false)
+  })
+
   it('remembers when the backup nudge was snoozed until', async () => {
     const b = createBackup(db)
     expect(await b.nudgeSnoozedUntil()).toBeUndefined()

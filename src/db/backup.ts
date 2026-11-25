@@ -148,12 +148,27 @@ export function createBackup(db: TaskTrackerDB = defaultDb) {
       })
     },
 
+    /**
+     * Whether the tasks, projects, tags and attachments are still exactly as in the snapshot, so
+     * putting an older one back would lose nothing made since. Files compare by name, type and size.
+     */
+    async unchangedSince(s: Snapshot): Promise<boolean> {
+      return fingerprint(await this.snapshot()) === fingerprint(s)
+    },
+
     lastBackupAt: () => meta.get<number>(LAST_BACKUP_KEY),
 
     /** The backup nudge stays hidden until this time. */
     nudgeSnoozedUntil: () => meta.get<number>(NUDGE_SNOOZED_KEY),
     snoozeNudge: (until: number) => meta.set(NUDGE_SNOOZED_KEY, until),
   }
+}
+
+/** The snapshot's rows as one string, in id order, with each file reduced to its type and size. */
+function fingerprint(s: Snapshot): string {
+  const byId = <T extends { id: string }>(rows: T[]) => [...rows].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  const files = s.attachments.map(({ blob, ...rest }) => ({ ...rest, blob: blob ? [blob.type, blob.size] : null }))
+  return JSON.stringify([byId(s.tasks), byId(s.projects), byId(s.tags), byId(files)])
 }
 
 function validate(raw: unknown): BackupFile {

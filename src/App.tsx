@@ -26,7 +26,9 @@ import { LabelManager } from './components/LabelManager'
 import { alertKey, MissedRemindersBanner, ReminderToast } from './components/ReminderAlerts'
 import { Header, type View } from './components/Header'
 import { TrashView } from './components/TrashView'
-import { BackupDialog, BackupNudge } from './components/Backup'
+import { BackupDialog, BackupNudge, type RestoreUndo } from './components/Backup'
+import { backup } from './db/backup'
+import { useConfirm } from './hooks/useConfirm'
 import { SampleDataButton } from './components/SampleDataButton'
 import { Overview, OVERVIEW_TILE_COUNT } from './components/Overview'
 import { HeadingPanel } from './components/HeadingPanel'
@@ -356,6 +358,61 @@ export default function App() {
           void taskRepo.restore(task.id).catch((err) => showSaveError(`“${toastTitle(task.title)}” couldn’t be restored.`, err)),
       },
     })
+  }
+
+  /**
+   * A restore made this session, kept in memory so it can be undone after Backup & restore closes
+   * (a reload ends it). One level: a second restore replaces it with what that one replaced.
+   */
+  const [restoreUndo, setRestoreUndo] = useState<RestoreUndo | null>(null)
+  const [confirmDialog, ask] = useConfirm()
+
+  /** Puts back what the restore replaced, asking first if anything changed since. False if called off. */
+  async function undoRestore(): Promise<boolean> {
+    if (!restoreUndo) return false
+    if (!(await backup.unchangedSince(restoreUndo.after))) {
+      const ok = await ask({
+        title: 'Undo the restore?',
+        body: (
+          <p>
+            Your data goes back to how it was before the restore. Changes you’ve made since then will be lost too.
+          </p>
+        ),
+        confirmLabel: 'Undo restore',
+        danger: true,
+      })
+      if (!ok) return false
+    }
+    await backup.restoreSnapshot(restoreUndo.before)
+    setRestoreUndo(null)
+    removeToasts((t) => t.slot === 'restore')
+    return true
+  }
+
+  function showRestoreToast() {
+    showToast({
+      slot: 'restore',
+      sticky: true,
+      message: 'Backup restored',
+      detail: 'You can undo it until you reload the app.',
+      action: {
+        label: 'Undo restore',
+        run: () =>
+          void undoRestore().then(
+            (done) =>
+              done
+                ? showToast({ message: 'Restore undone', detail: 'Your tasks are back as they were.' })
+                : showRestoreToast(), // called off: Undo stays on offer
+            (err) => showSaveError('The restore couldn’t be undone.', err),
+          ),
+      },
+    })
+  }
+
+  function closeBackup() {
+    setModal(null)
+    // Undo restore lived in the window; closing it moves the offer to a toast rather than ending it unsaid.
+    if (restoreUndo) showRestoreToast()
   }
 
   /** Trash's Restore: puts the task back and says so, since it leaves the screen you're on. */
@@ -690,7 +747,18 @@ export default function App() {
         />
       )}
       {modal === 'labels' && <LabelManager projects={projects} tags={tags} onClose={() => setModal(null)} />}
-      {modal === 'backup' && <BackupDialog onClose={() => setModal(null)} />}
+      {modal === 'backup' && (
+        <BackupDialog
+          onClose={closeBackup}
+          canUndo={Boolean(restoreUndo)}
+          onRestored={(u) => {
+            setRestoreUndo(u)
+            removeToasts((t) => t.slot === 'restore')
+          }}
+          onUndo={undoRestore}
+        />
+      )}
+      {confirmDialog}
       {modal === 'shortcuts' && <ShortcutsHelp onClose={() => setModal(null)} />}
     </div>
   )

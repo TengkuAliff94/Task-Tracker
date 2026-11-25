@@ -148,14 +148,27 @@ function StorageStatus() {
   )
 }
 
-export function BackupDialog({ onClose }: { onClose: () => void }) {
+/** A restore that can still be undone: what it replaced, and what it left, so a later Undo can tell if anything changed since. */
+export interface RestoreUndo {
+  before: Snapshot
+  after: Snapshot
+}
+
+interface DialogProps {
+  onClose: () => void
+  /** Whether a restore made this session can still be undone (App holds the snapshot, so it outlives this window). */
+  canUndo: boolean
+  onRestored: (undo: RestoreUndo) => void
+  /** Puts the data back as it was before the restore. Resolves false if that was called off; throws if it failed. */
+  onUndo: () => Promise<boolean>
+}
+
+export function BackupDialog({ onClose, canUndo, onRestored, onUndo }: DialogProps) {
   const last = useLastBackup()
   const fileInput = useRef<HTMLInputElement>(null)
   const [message, setMessage] = useState<Message>(null)
   const [sampleMessage, setSampleMessage] = useState<Message>(null)
   const [busy, setBusy] = useState(false)
-  /** What a restore replaced, while Backup & restore is open: Undo restore puts it back. */
-  const [undo, setUndo] = useState<Snapshot | null>(null)
   const restoreButton = useRef<HTMLButtonElement>(null)
   /** Set by Undo: its button is about to go, so focus moves to Restore from file… in the same commit. */
   const focusRestore = useRef(false)
@@ -166,7 +179,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
     if (!focusRestore.current || busy) return
     focusRestore.current = false
     restoreButton.current?.focus()
-  }, [busy, undo])
+  }, [busy, canUndo])
 
   async function exportNow() {
     setBusy(true)
@@ -193,9 +206,11 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
       const incoming = backup.inspect(parsed)
       const current = await taskRepo.countAll()
       const fewer = current - incoming.tasks
+      // A file with no tasks at all would empty the app: most likely the wrong file, so it gets its own question.
+      const empty = incoming.tasks === 0 && current > 0
       setMessage(null)
       const ok = await ask({
-        title: 'Replace everything with this backup?',
+        title: empty ? 'This backup has no tasks' : 'Replace everything with this backup?',
         body: (
           <>
             <CountList
@@ -204,7 +219,12 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
                 ['Backup', `${plural(incoming.tasks, 'task')}, ${plural(incoming.attachments, 'attachment')}`],
               ]}
             />
-            {fewer > 0 && (
+            {empty ? (
+              <p className="flex gap-2 font-medium text-danger">
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+                Restoring it deletes all {plural(current, 'task')} you have now. Check it’s the file you meant.
+              </p>
+            ) : fewer > 0 && (
               // An old file is the usual way to lose recent work, so say so in words, not by colour alone.
               <p className="flex gap-2 font-medium text-danger">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -212,13 +232,13 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
               </p>
             )}
             <p>
-              Your current data will be replaced. You can undo this until you close Backup &amp; restore; to keep a copy for
-              later, download it first.
+              Your current data will be replaced. You can undo this until you reload the app; to keep a copy for later,
+              download it first.
             </p>
             <DownloadFirst />
           </>
         ),
-        confirmLabel: 'Replace everything',
+        confirmLabel: empty ? 'Replace with an empty backup' : 'Replace everything',
         danger: true,
       })
       if (!ok) return
@@ -227,7 +247,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
       // Taken first, so Undo restore can put everything back. A failed import changes nothing (one transaction).
       const before = await backup.snapshot()
       const result = await backup.importData(parsed)
-      setUndo(before)
+      onRestored({ before, after: await backup.snapshot() })
       setMessage({ ok: true, text: `Restored ${plural(result.tasks, 'task')} and ${plural(result.attachments, 'attachment')}.` })
     } catch (err) {
       setMessage({ ok: false, text: err instanceof Error ? err.message : String(err) })
@@ -238,11 +258,10 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
   }
 
   async function undoRestore() {
-    if (!undo || busy) return
+    if (!canUndo || busy) return
     setBusy(true)
     try {
-      await backup.restoreSnapshot(undo)
-      setUndo(null)
+      if (!(await onUndo())) return
       focusRestore.current = true
       setMessage({ ok: true, text: 'Restore undone. Your tasks are back as they were.' })
     } catch (err) {
@@ -276,10 +295,13 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
           </div>
           <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <MessageLine message={message} />
-            {undo && (
-              <button type="button" onClick={undoRestore} className={btn.small}>
-                <Undo2 className="size-3.5" aria-hidden /> Undo restore
+            {/* Reopened later in the session, the window still says why Undo restore is there. */}
+            <MessageLine
+              message={message ?? (canUndo ? { ok: true, text: 'You restored a backup this session. Undo puts back what was here before.' } : null)}
+            />
+            {canUndo && (
+              <button type="button" onClick={undoRestore} className={btn.secondary}>
+                <Undo2 className="size-4" aria-hidden /> Undo restore
               </button>
             )}
           </div>

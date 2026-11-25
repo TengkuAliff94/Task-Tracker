@@ -65,7 +65,7 @@ test('restoring a backup shows both counts, defaults to Cancel, and Esc keeps ev
   await expect(ask).toBeVisible()
   await expect(ask.locator('dt')).toHaveText(['Now', 'Backup'])
   await expect(ask.locator('dd')).toHaveText(['3 tasks, including any in Trash', '1 task, 0 attachments'])
-  await expect(ask).toContainText('Your current data will be replaced. You can undo this until you close Backup & restore')
+  await expect(ask).toContainText('Your current data will be replaced. You can undo this until you reload the app')
   await expect(ask.getByRole('button', { name: 'Cancel' })).toBeFocused()
 
   // Esc closes only the question; the Backup & restore window stays open behind it.

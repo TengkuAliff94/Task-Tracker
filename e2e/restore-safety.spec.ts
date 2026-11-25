@@ -87,3 +87,80 @@ test('Undo restore puts back every task and the last backup date', async ({ app,
   await expect(app.taskRow('Pay rent')).toBeVisible()
   await expect(app.taskRow('From the file')).toHaveCount(0)
 })
+
+// Fifth critique P1 (#45): Undo restore outlives the window, for the rest of the session.
+
+/** Restores the file and closes Backup & restore, returning the toast that takes over Undo. */
+async function restoreAndClose(page: Page, file: string) {
+  const { dialog, question } = await chooseFile(page, file)
+  await question.getByRole('button', { name: /^Replace/ }).click()
+  await expect(dialog.getByRole('status').filter({ hasText: 'Restored' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  await expect(dialog).toBeHidden()
+  return page.getByRole('status').filter({ hasText: 'Backup restored' })
+}
+
+test('closing Backup & restore after a restore leaves a toast with Undo that stays', async ({ app, page }, info) => {
+  await app.loadSampleData()
+  const toast = await restoreAndClose(page, backupFile(info, ['From the file']))
+  await expect(toast).toBeVisible()
+  await expect(toast).toContainText('You can undo it until you reload the app.')
+  // Well past a normal toast's 6 seconds.
+  await page.waitForTimeout(7000)
+  await expect(toast).toBeVisible()
+
+  await toast.getByRole('button', { name: 'Undo restore' }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Restore undone' })).toBeVisible()
+  await expect(app.taskRow('Pay rent')).toBeVisible()
+  await expect(app.taskRow('From the file')).toHaveCount(0)
+})
+
+test('Undo after changes made since the restore asks first, and Cancel keeps them', async ({ app, page }, info) => {
+  await app.loadSampleData()
+  const toast = await restoreAndClose(page, backupFile(info, ['From the file']))
+  await app.quickAdd('Added after the restore')
+  await app.quickAddInput.blur()
+
+  await toast.getByRole('button', { name: 'Undo restore' }).click()
+  const ask = page.getByRole('alertdialog', { name: 'Undo the restore?' })
+  await expect(ask).toContainText('Changes you’ve made since then will be lost too.')
+  await expect(ask.getByRole('button', { name: 'Cancel' })).toBeFocused()
+  await ask.getByRole('button', { name: 'Cancel' }).click()
+  await expect(app.taskRow('Added after the restore')).toBeVisible()
+  // Called off, so Undo is still on offer.
+  await expect(toast.getByRole('button', { name: 'Undo restore' })).toBeVisible()
+
+  await toast.getByRole('button', { name: 'Undo restore' }).click()
+  await ask.getByRole('button', { name: 'Undo restore' }).click()
+  await expect(app.taskRow('Pay rent')).toBeVisible()
+  await expect(app.taskRow('Added after the restore')).toHaveCount(0)
+})
+
+test('reopening Backup & restore still offers Undo restore, at full button size', async ({ app, page }, info) => {
+  await app.loadSampleData()
+  const toast = await restoreAndClose(page, backupFile(info, ['From the file']))
+  await toast.getByRole('button', { name: 'Dismiss' }).click()
+  const dialog = await openBackup(page)
+  await expect(dialog.getByText('You restored a backup this session.')).toBeVisible()
+  const undo = dialog.getByRole('button', { name: 'Undo restore' })
+  expect((await undo.boundingBox())!.height).toBeGreaterThanOrEqual(36)
+  await undo.click()
+  await expect(dialog.getByRole('status').filter({ hasText: 'Restore undone.' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close' }).click()
+  // Nothing left to undo, so no toast takes over.
+  await expect(page.getByRole('status').filter({ hasText: 'Backup restored' })).toHaveCount(0)
+  await expect(app.taskRow('Pay rent')).toBeVisible()
+})
+
+test('a backup with no tasks gets its own question', async ({ app, page }, info) => {
+  await app.loadSampleData()
+  const dialog = await openBackup(page)
+  const chooser = page.waitForEvent('filechooser')
+  await dialog.getByRole('button', { name: 'Restore from file…' }).click()
+  await (await chooser).setFiles(backupFile(info, []))
+  const question = page.getByRole('alertdialog', { name: 'This backup has no tasks' })
+  await expect(question).toBeVisible()
+  await expect(question).toContainText(/Restoring it deletes all \d+ tasks you have now\./)
+  await expect(question.getByRole('button', { name: 'Cancel' })).toBeFocused()
+  await expect(question.getByRole('button', { name: 'Replace with an empty backup' })).toBeVisible()
+})

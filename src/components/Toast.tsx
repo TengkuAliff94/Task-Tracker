@@ -17,6 +17,8 @@ export interface ToastData {
   taskId?: string
   /** Something failed: announced at once (`role="alert"`) instead of politely, and it stays until dismissed. */
   urgent?: boolean
+  /** Not a failure, but it stays until dismissed: its action is still good long after 6 seconds (Undo restore). */
+  sticky?: boolean
 }
 
 const AUTO_DISMISS_MS = 6000
@@ -38,6 +40,7 @@ interface Props {
  * toast, while focus is inside it, and while it's `paused` (a dialog is open over it), so its action
  * can't vanish while someone is reaching for it; it starts again from 6 seconds after each wait. An
  * urgent toast (a failure) has no countdown: it stays until dismissed, so its advice can be read.
+ * Neither has a sticky one, whose action stays good for the whole session.
  *
  * Only an urgent toast announces itself (`role="alert"`). The others are read out through the app's
  * always-present live region (`ToastAnnouncer`), which screen readers pick up more reliably than a
@@ -46,7 +49,7 @@ interface Props {
 export function Toast({ toast, onDismiss, onAction, shortcut, paused = false }: Props) {
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
-  const held = hovered || focused || paused || Boolean(toast.urgent)
+  const held = hovered || focused || paused || Boolean(toast.urgent || toast.sticky)
 
   useEffect(() => {
     if (held) return
