@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-25T14:13:44.000Z",
+  "generatedAt": "2026-11-25T14:23:07.000Z",
   "title": "Design System: Task Tracker",
   "extensions": {
     "colorMeta": {
@@ -495,7 +495,7 @@
       "name": "Filters Toggle",
       "kind": "button",
       "refersTo": "filter-chip",
-      "description": "The disclosure beside search that holds the filter panel: a 36px well-stone button with a count badge of active filters and a chevron that turns over when open.",
+      "description": "The disclosure beside search that holds the filter panel: a 36px well-stone button with a count badge of active filters and a chevron that turns over when open. Inside, the pill groups carry visible names (Priority, Status, Tags) that also label each group; opening it on a short screen scrolls just enough to keep the list's start in view.",
       "html": "<button class=\"ds-ftoggle\" aria-expanded=\"false\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10 5H3\"/><path d=\"M12 19H3\"/><path d=\"M14 3v4\"/><path d=\"M16 17v4\"/><path d=\"M21 12h-9\"/><path d=\"M21 19h-5\"/><path d=\"M21 5h-7\"/><path d=\"M8 10v4\"/><path d=\"M8 12H3\"/></svg>Filters<span class=\"ds-ftoggle-count\">2</span><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
       "css": ".ds-ftoggle{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border:0;border-radius:8px;background:var(--subtle,#ebe5df);color:var(--fg,#141110);font:500 14px 'Inter Variable',ui-sans-serif,system-ui,sans-serif;cursor:pointer;transition:background-color 200ms,color 200ms;}.ds-ftoggle:hover{background:var(--panel-mustard,#e3b867);color:var(--on-panel-mustard,#141110);}.ds-ftoggle[aria-expanded=true] svg:last-child{transform:rotate(180deg);}.ds-ftoggle svg:last-child{transition:transform 200ms;}.ds-ftoggle-count{padding:1px 8px;border-radius:9999px;background:color-mix(in srgb,currentColor 15%,transparent);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;}.ds-ftoggle:focus-visible{outline:2px solid var(--ring,#141110);outline-offset:2px;box-shadow:0 0 0 2px var(--bg,#f4f1ee);}"
     },

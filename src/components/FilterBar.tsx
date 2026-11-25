@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useReducedMotionConfig } from 'motion/react'
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   EMPTY_FILTERS,
@@ -102,12 +103,27 @@ function Chip({ chip, onRemove }: { chip: FilterChip; onRemove: () => void }) {
   )
 }
 
-/** A cluster of related pills; clusters are set apart by space, not a rule. */
-const Cluster = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
-    {children}
-  </div>
-)
+/**
+ * A cluster of related pills under its visible name, which also names the group. On phones the name
+ * is a narrow column to the left (no extra row); from sm it sits above, like the selects' labels.
+ */
+function Cluster({ label, children }: { label: string; children: ReactNode }) {
+  const id = useId()
+  return (
+    <div role="group" aria-labelledby={id} className="grid grid-cols-[4rem_minmax(0,1fr)] items-start gap-x-2 sm:flex sm:flex-col sm:gap-1">
+      {/* pt centres the name on the first row of 32px pills. */}
+      <span id={id} className={`${labelText} max-sm:pt-1.5`}>
+        {label}
+      </span>
+      <div className="flex flex-wrap items-center gap-1.5">{children}</div>
+    </div>
+  )
+}
+
+/** Room to leave under the open panel for the list: its count line and about one and a half cards. */
+const LIST_PEEK = 240
+/** How close to the top of the screen the scroll may bring the bar. */
+const TOP_GAP = 12
 
 /** A select with its name above it. */
 const Field = ({ label, className = '', children }: { label: string; className?: string; children: ReactNode }) => (
@@ -125,7 +141,11 @@ const Field = ({ label, className = '', children }: { label: string; className?:
 export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup, projects, tags, doneCount }: Props) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
+  const barRef = useRef<HTMLDivElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
+  /** Set by the toggle's click, so only opening it by hand scrolls, never a re-render. */
+  const justOpened = useRef(false)
+  const reduce = useReducedMotionConfig()
   const chipRowRef = useRef<HTMLDivElement>(null)
   /** Where focus goes once a chip or Clear filters has gone: the chip now at that index, or the toggle. */
   const refocus = useRef<number | 'toggle' | null>(null)
@@ -147,6 +167,18 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
     ;(next ?? toggleRef.current)?.focus()
   })
 
+  // On a short screen (a phone) the open panel can push the whole list below the fold, so a pick
+  // would change something out of sight. Scroll just enough to show the list's start under the
+  // panel, never lifting the bar past the top of the screen; where the list already shows, nothing moves.
+  useLayoutEffect(() => {
+    if (!open || !justOpened.current) return
+    justOpened.current = false
+    const bar = barRef.current?.getBoundingClientRect()
+    if (!bar) return
+    const by = Math.min(bar.top - TOP_GAP, bar.bottom + LIST_PEEK - window.innerHeight)
+    if (by > 0) window.scrollBy({ top: by, behavior: reduce ? 'instant' : 'smooth' })
+  }, [open, reduce])
+
   const clear = () => {
     refocus.current = 'toggle'
     onFilters({ ...EMPTY_FILTERS, showCompleted: f.showCompleted })
@@ -160,7 +192,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
   )
 
   return (
-    <div data-filter-bar className={`${card} p-3 sm:p-4`}>
+    <div ref={barRef} data-filter-bar className={`${card} p-3 sm:p-4`}>
       <div className="flex gap-2">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
@@ -183,7 +215,10 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => {
+            justOpened.current = !open
+            setOpen(!open)
+          }}
           className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-subtle px-3 text-sm font-medium text-fg transition-colors duration-200 ${hoverHighlight}`}
         >
           <SlidersHorizontal className="size-4" aria-hidden />
@@ -245,8 +280,8 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
               </Field>
             </div>
 
-            {/* 12px between clusters against 6px inside one, so wrapped clusters still read apart. */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            {/* Stacked on phones (each name in its own column); from sm, side by side and wrapping, 16px apart. */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-4">
               <Cluster label="Priority">
                 {PRIORITIES.map((p) => (
                   <Pill key={p} activeTone={PRIORITY_TONE[p].pressed} active={f.priorities.includes(p)} onClick={() => set({ priorities: toggle(f.priorities, p) })}>
