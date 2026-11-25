@@ -1,8 +1,8 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { DatabaseBackup, Download, Upload } from 'lucide-react'
+import { DatabaseBackup, Download, TriangleAlert, Undo2, Upload } from 'lucide-react'
 import { taskRepo } from '../db/tasks'
-import { backup, backupNudge, NUDGE_GRACE_DAYS } from '../db/backup'
+import { backup, backupNudge, NUDGE_GRACE_DAYS, type Snapshot } from '../db/backup'
 import { persistence, type StorageProtection } from '../db/persistence'
 import { usage } from '../db/usage'
 import { formatDateTime, toDateInput } from '../lib/deadline'
@@ -31,6 +31,35 @@ function useLastBackup() {
 }
 
 type Message = { ok: boolean; text: string } | null
+
+/**
+ * Inside the restore question: saves what's here now without closing the question, so "download
+ * first" is one click away rather than advice to leave and come back.
+ */
+function DownloadFirst() {
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | Error>('idle')
+  async function download() {
+    if (state === 'busy') return
+    setState('busy')
+    try {
+      await downloadBackup()
+      setState('done')
+    } catch (err) {
+      setState(err instanceof Error ? err : new Error(String(err)))
+    }
+  }
+  return (
+    <div className="space-y-2">
+      {/* Not disabled while busy: that would drop focus inside the question. The state guards a second click. */}
+      <button type="button" onClick={download} aria-busy={state === 'busy'} className={btn.secondary}>
+        <Download className="size-4" aria-hidden /> Download current data
+      </button>
+      <p role="status" className={`empty:sr-only ${state instanceof Error ? 'text-danger' : 'text-muted'}`}>
+        {state === 'done' ? 'Downloaded. You can replace everything now.' : state instanceof Error ? state.message : ''}
+      </p>
+    </div>
+  )
+}
 
 /**
  * A result line that screen readers announce. While empty it's visually hidden but stays in the
@@ -125,8 +154,19 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState<Message>(null)
   const [sampleMessage, setSampleMessage] = useState<Message>(null)
   const [busy, setBusy] = useState(false)
+  /** What a restore replaced, while Backup & restore is open: Undo restore puts it back. */
+  const [undo, setUndo] = useState<Snapshot | null>(null)
+  const restoreButton = useRef<HTMLButtonElement>(null)
+  /** Set by Undo: its button is about to go, so focus moves to Restore from file… in the same commit. */
+  const focusRestore = useRef(false)
   const [confirmDialog, ask] = useConfirm()
   const tryHeading = useId()
+
+  useLayoutEffect(() => {
+    if (!focusRestore.current || busy) return
+    focusRestore.current = false
+    restoreButton.current?.focus()
+  }, [busy, undo])
 
   async function exportNow() {
     setBusy(true)
@@ -152,6 +192,7 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
       // A file that isn't a backup is turned away here, before anyone is asked to replace their data with it.
       const incoming = backup.inspect(parsed)
       const current = await taskRepo.countAll()
+      const fewer = current - incoming.tasks
       setMessage(null)
       const ok = await ask({
         title: 'Replace everything with this backup?',
@@ -163,7 +204,18 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
                 ['Backup', `${plural(incoming.tasks, 'task')}, ${plural(incoming.attachments, 'attachment')}`],
               ]}
             />
-            <p>Your current data will be lost. Download a backup first if you might need it.</p>
+            {fewer > 0 && (
+              // An old file is the usual way to lose recent work, so say so in words, not by colour alone.
+              <p className="flex gap-2 font-medium text-danger">
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+                This backup has {fewer} fewer {fewer === 1 ? 'task' : 'tasks'} than you have now.
+              </p>
+            )}
+            <p>
+              Your current data will be replaced. You can undo this until you close Backup &amp; restore; to keep a copy for
+              later, download it first.
+            </p>
+            <DownloadFirst />
           </>
         ),
         confirmLabel: 'Replace everything',
@@ -172,13 +224,31 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
       if (!ok) return
       // Busy only now: disabling the focused Restore button any sooner would leave the question nowhere to return focus.
       setBusy(true)
+      // Taken first, so Undo restore can put everything back. A failed import changes nothing (one transaction).
+      const before = await backup.snapshot()
       const result = await backup.importData(parsed)
+      setUndo(before)
       setMessage({ ok: true, text: `Restored ${plural(result.tasks, 'task')} and ${plural(result.attachments, 'attachment')}.` })
     } catch (err) {
       setMessage({ ok: false, text: err instanceof Error ? err.message : String(err) })
     } finally {
       setBusy(false)
       if (fileInput.current) fileInput.current.value = ''
+    }
+  }
+
+  async function undoRestore() {
+    if (!undo || busy) return
+    setBusy(true)
+    try {
+      await backup.restoreSnapshot(undo)
+      setUndo(null)
+      focusRestore.current = true
+      setMessage({ ok: true, text: 'Restore undone. Your tasks are back as they were.' })
+    } catch (err) {
+      setMessage({ ok: false, text: `Couldn’t undo the restore: ${err instanceof Error ? err.message : String(err)}` })
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -199,13 +269,20 @@ export function BackupDialog({ onClose }: { onClose: () => void }) {
             <button onClick={exportNow} disabled={busy} className={btn.primary}>
               <Download className="size-4" /> Download backup
             </button>
-            <button onClick={() => fileInput.current?.click()} disabled={busy} className={btn.secondary}>
+            <button ref={restoreButton} onClick={() => fileInput.current?.click()} disabled={busy} className={btn.secondary}>
               <Upload className="size-4" /> Restore from file…
             </button>
             <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => importFile(e.target.files?.[0])} />
           </div>
           <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
-          <MessageLine message={message} />
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <MessageLine message={message} />
+            {undo && (
+              <button type="button" onClick={undoRestore} className={btn.small}>
+                <Undo2 className="size-3.5" aria-hidden /> Undo restore
+              </button>
+            )}
+          </div>
         </div>
         {/* Demo content, kept apart from backup and restore (extra space and its own heading, no rule) so it never reads as a way to restore data. */}
         <section aria-labelledby={tryHeading} className="space-y-2 pt-3">

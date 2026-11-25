@@ -107,6 +107,42 @@ describe('backup', () => {
     expect(a.blob!.type).toBe('application/octet-stream')
   })
 
+  it('a snapshot puts everything back after a restore, file contents and Last backup included (#43)', async () => {
+    const labels = createLabelRepo(db)
+    const p = await labels.projects.create('Home')
+    const t = await tasks.create({ title: 'Mine', projectId: p.id })
+    await attachments.addFile(t.id, new Blob([new Uint8Array([9, 8, 7])], { type: 'image/png' }), 'a.png')
+    const b = createBackup(db)
+    await b.exportData(new Date(5000))
+
+    const snap = await b.snapshot()
+    // Taking one isn't a backup: Last backup stays where it was.
+    expect(await b.lastBackupAt()).toBe(5000)
+
+    const file = { app: 'task-tracker', version: 1, exportedAt: new Date(7000).toISOString(), tasks: [], projects: [], tags: [], attachments: [] }
+    await b.importData(file, 9000)
+    expect(await tasks.list()).toHaveLength(0)
+    expect(await b.lastBackupAt()).toBe(7000)
+
+    await b.restoreSnapshot(snap)
+    expect((await tasks.list()).map((x) => x.title)).toEqual(['Mine'])
+    expect((await labels.projects.list()).map((x) => x.name)).toEqual(['Home'])
+    const [a] = await attachments.listForTask(t.id)
+    expect(new Uint8Array(await a.blob!.arrayBuffer())).toEqual(new Uint8Array([9, 8, 7]))
+    expect(await b.lastBackupAt()).toBe(5000)
+  })
+
+  it('restoring a snapshot taken before any backup leaves Last backup empty again', async () => {
+    await tasks.create({ title: 'Mine' })
+    const b = createBackup(db)
+    const snap = await b.snapshot()
+    await b.importData({ app: 'task-tracker', version: 1, exportedAt: new Date(7000).toISOString(), tasks: [], projects: [], tags: [], attachments: [] }, 9000)
+    expect(await b.lastBackupAt()).toBe(7000)
+    await b.restoreSnapshot(snap)
+    expect(await b.lastBackupAt()).toBeUndefined()
+    expect(await tasks.list()).toHaveLength(1)
+  })
+
   it('remembers when the backup nudge was snoozed until', async () => {
     const b = createBackup(db)
     expect(await b.nudgeSnoozedUntil()).toBeUndefined()

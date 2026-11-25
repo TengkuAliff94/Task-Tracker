@@ -46,6 +46,15 @@ export interface BackupFile {
   attachments: StoredAttachment[]
 }
 
+/** The data a restore replaces, as stored, plus when the last backup was; see `snapshot()`. */
+export interface Snapshot {
+  tasks: Task[]
+  projects: Label[]
+  tags: Label[]
+  attachments: Attachment[]
+  lastBackupAt?: number
+}
+
 async function blobToBase64(blob: Blob): Promise<string> {
   const bytes = new Uint8Array(await blob.arrayBuffer())
   let binary = ''
@@ -109,6 +118,34 @@ export function createBackup(db: TaskTrackerDB = defaultDb) {
         if (data.tasks.length) await usage.noteUse(now)
       })
       return { tasks: data.tasks.length, attachments: attachments.length }
+    },
+
+    /**
+     * Everything a restore would replace, held in memory as it is (files stay Blobs), so a restore
+     * can be undone. Not a backup: it doesn't move "Last backup", and it's gone with the page.
+     */
+    async snapshot(): Promise<Snapshot> {
+      const [tasks, projects, tags, attachments, lastBackupAt] = await Promise.all([
+        db.tasks.toArray(),
+        db.projects.toArray(),
+        db.tags.toArray(),
+        db.attachments.toArray(),
+        meta.get<number>(LAST_BACKUP_KEY),
+      ])
+      return { tasks, projects, tags, attachments, lastBackupAt }
+    },
+
+    /** Puts a snapshot back exactly, "Last backup" included (cleared if there was none then). */
+    async restoreSnapshot(s: Snapshot): Promise<void> {
+      await db.transaction('rw', [db.tasks, db.projects, db.tags, db.attachments, db.meta], async () => {
+        await Promise.all([db.tasks.clear(), db.projects.clear(), db.tags.clear(), db.attachments.clear()])
+        await db.tasks.bulkAdd(s.tasks)
+        await db.projects.bulkAdd(s.projects)
+        await db.tags.bulkAdd(s.tags)
+        await db.attachments.bulkAdd(s.attachments)
+        if (s.lastBackupAt === undefined) await db.meta.delete(LAST_BACKUP_KEY)
+        else await meta.set(LAST_BACKUP_KEY, s.lastBackupAt)
+      })
     },
 
     lastBackupAt: () => meta.get<number>(LAST_BACKUP_KEY),
