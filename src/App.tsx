@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { AnimatePresence } from 'motion/react'
-import { ClipboardList, PartyPopper, SearchX } from 'lucide-react'
+import { ClipboardList, HardDrive, PartyPopper, SearchX } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from './db/tasks'
 import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
@@ -89,6 +89,13 @@ function ListEmpty({
           </button>
         }
         action={<SampleDataButton variant="brand" />}
+        note={
+          // The positioning, where people land: what's different about this app (PRODUCT.md).
+          <span data-first-run-note>
+            <HardDrive className="mr-1.5 mb-px inline size-3.5 align-middle" aria-hidden />
+            Stored only in this browser. No account, works offline.
+          </span>
+        }
       >
         Type one in the quick-add bar above. One line sets its tags, project, priority and deadline.
       </EmptyState>

@@ -622,7 +622,12 @@
       },
       {
         "name": "The Empty Shadow Rule",
-        "body": "A \"no shadow\" token is `0 0 #0000`, never `none`. Tailwind merges shadows and rings into one list, and `none` would void the selection and overdue rings.",
+        "body": "A \"no shadow\" token is `0 0 #0000`, never `none`. Tailwind merges shadows and rings into one list, and `none` would void the overdue ring and the picked tile's outline.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Form Rule",
+        "body": "On a card, each mark takes its own shape: an edge stripe for priority, a ring for overdue, a gutter marker for selection. Never reuse one form for two meanings.",
         "section": "elevation"
       },
       {

@@ -11,13 +11,15 @@ interface Props {
   example?: ReactNode
   /** The way out of the empty state, shown prominently under the text (e.g. "Load sample data"). */
   action?: ReactNode
+  /** A quiet closing line under everything else (first run: where the data lives). */
+  note?: ReactNode
 }
 
 /**
  * A friendly placeholder for an empty list: a big panel (a region named by its title) whose icon
  * tile floats gently up and down (decoration only; it keeps still under reduced motion).
  */
-export function EmptyState({ icon: Icon, title, children, example, action }: Props) {
+export function EmptyState({ icon: Icon, title, children, example, action, note }: Props) {
   const titleId = useId()
   return (
     <Reveal>
@@ -29,6 +31,7 @@ export function EmptyState({ icon: Icon, title, children, example, action }: Pro
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted">{children}</p>
         {example && <div className="mt-5 flex justify-center">{example}</div>}
         {action && <div className="mt-7 flex justify-center">{action}</div>}
+        {note && <p className="mx-auto mt-8 max-w-sm text-xs text-balance text-muted">{note}</p>}
       </section>
     </Reveal>
   )
