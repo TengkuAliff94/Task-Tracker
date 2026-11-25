@@ -5,7 +5,7 @@ import { DialogTitleBar } from './Dialog'
 import { taskRepo } from '../db/tasks'
 import { projectRepo, tagRepo } from '../db/labels'
 import { attachmentRepo, normaliseUrl, type PendingAttachment } from '../db/attachments'
-import { describeDeadline } from '../lib/deadline'
+import { describeDeadline, formatDateTime, isOverdue } from '../lib/deadline'
 import { formatDateText, readDateText, readTimeText } from '../lib/dateInput'
 import { formatEffort, parseEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
@@ -501,7 +501,13 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
                 />
               </Field>
               {date && (
-                <p id={deadlineHintId} data-testid="deadline-readout" className="col-span-full -mt-2 text-xs text-muted tabular-nums">
+                // Passed while still open: the danger tone the card uses, so a late deadline reads as late here too.
+                <p
+                  id={deadlineHintId}
+                  data-testid="deadline-readout"
+                  data-overdue={isOverdue({ status, deadline: { date, time: time || undefined } }) || undefined}
+                  className="col-span-full -mt-2 text-xs text-muted tabular-nums data-overdue:font-medium data-overdue:text-danger"
+                >
                   Due {describeDeadline({ date, time: time || undefined })}
                 </p>
               )}
@@ -657,8 +663,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
 
           {task && (
             <p className="text-xs text-muted">
-              Added {new Date(task.createdAt).toLocaleString('en-GB', { hour12: false })}
-              {task.completedAt && ` · Completed ${new Date(task.completedAt).toLocaleString('en-GB', { hour12: false })}`}
+              Added {formatDateTime(new Date(task.createdAt))}
+              {task.completedAt && ` · Completed ${formatDateTime(new Date(task.completedAt))}`}
             </p>
           )}
 

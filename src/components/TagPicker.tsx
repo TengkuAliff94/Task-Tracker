@@ -51,9 +51,9 @@ export function TagPicker({ tags, value, onChange, draft, onDraftChange }: Props
             onChange(value.slice(0, -1))
           }
         }}
-        placeholder={value.length ? '' : 'Add tags…'}
+        placeholder={value.length ? 'Add another…' : 'Add tags…'}
         aria-label="Add tag"
-        className="min-w-24 flex-1 bg-transparent text-sm placeholder:text-muted"
+        className="min-w-28 flex-1 bg-transparent text-sm placeholder:text-muted"
       />
       <datalist id="tag-suggestions">
         {available.map((t) => (

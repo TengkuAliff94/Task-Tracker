@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-24T23:00:00.000Z",
+  "generatedAt": "2026-11-25T13:00:51.000Z",
   "title": "Design System: Task Tracker",
   "extensions": {
     "colorMeta": {
@@ -265,6 +265,10 @@
       "body": {
         "displayName": "Body",
         "purpose": "Descriptions, dialog text, rendered Markdown."
+      },
+      "field-label": {
+        "displayName": "Field Label",
+        "purpose": "Form field labels (labelText) and the editor's More details row, 13px medium: between Body and Label."
       },
       "label": {
         "displayName": "Label",

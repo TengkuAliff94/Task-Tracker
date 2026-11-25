@@ -105,7 +105,7 @@ test('Empty trash says how many tasks go for good, and Cancel keeps them', async
 
   await page.getByRole('button', { name: 'Empty trash' }).click()
   const ask = question(page, 'Empty Trash?')
-  await expect(ask).toContainText('This permanently deletes 2 tasks and their attachments. It can’t be undone.')
+  await expect(ask).toContainText('This permanently deletes 2 tasks, with any attachments. It can’t be undone.')
   await expect(ask.getByRole('button', { name: 'Cancel' })).toBeFocused()
   await ask.getByRole('button', { name: 'Cancel' }).click()
   await expect(page.getByRole('list', { name: 'Trashed tasks' }).getByRole('listitem')).toHaveCount(2)
@@ -128,7 +128,7 @@ test('Delete forever names the task, and focus moves to the next card after', as
 
   await page.getByRole('button', { name: `Delete "${firstTitle}" forever` }).click()
   const ask = question(page, 'Delete this task forever?')
-  await expect(ask).toContainText(`“${firstTitle}” and its attachments will be deleted for good.`)
+  await expect(ask).toContainText(`“${firstTitle}” will be deleted for good, with any attachments.`)
   await expect(ask.getByRole('button', { name: 'Cancel' })).toBeFocused()
   await ask.getByRole('button', { name: 'Delete forever' }).click()
 

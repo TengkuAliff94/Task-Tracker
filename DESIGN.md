@@ -74,6 +74,12 @@ typography:
     fontWeight: 400
     lineHeight: 1.43
     fontFeature: "'cv11', 'ss01', 'ss03'"
+  field-label:
+    fontFamily: "'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+    fontSize: "13px"
+    fontWeight: 500
+    lineHeight: "18px"
+    fontFeature: "'cv11', 'ss01', 'ss03'"
   label:
     fontFamily: "'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
     fontSize: "0.75rem"
@@ -264,7 +270,8 @@ A warm, earthy palette of eight saturated panels over a neutral canvas that inve
 - **Headline** (700, 1.25rem, tight tracking): dialog titles and the Trash page title. All `h1`–`h3` use Gabarito. The wordmark "Task Tracker" is Gabarito 700 at 1.125rem, and group tabs are 1rem bold.
 - **Title** (Inter 500, 15px, 20px line): task titles, clamped to two lines.
 - **Body** (Inter 400, 14px): descriptions, dialog text and rendered Markdown (relaxed leading). The quick-add input steps up to 16px so phones don't zoom on focus.
-- **Label** (Inter 600, 12px): filter chips, badges, metadata, counts, `kbd` keys and the Trash count badge. Form labels are 13px medium. Nothing is set below 12px.
+- **Label** (Inter 600, 12px): filter chips, badges, metadata, counts, `kbd` keys and the Trash count badge. Nothing is set below 12px.
+- **Field Label** (Inter 500, 13px): form field labels (`labelText`) and the editor's More details row. It sits between Body and Label, so a label reads quieter than the text typed under it.
 
 ### Named Rules
 **The Heavy Headline Rule.** Gabarito is for headings, the wordmark and big numbers only, and always at bold or extra-bold. Anything you read in sentences is Inter.

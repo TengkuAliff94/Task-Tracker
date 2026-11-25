@@ -47,7 +47,7 @@ export function TrashView() {
     if (!trashed?.length) return
     const ok = await ask({
       title: 'Empty Trash?',
-      body: <p>This permanently deletes {plural(trashed.length, 'task')} and their attachments. It can’t be undone.</p>,
+      body: <p>This permanently deletes {plural(trashed.length, 'task')}, with any attachments. It can’t be undone.</p>,
       confirmLabel: 'Delete forever',
       danger: true,
     })
@@ -63,7 +63,7 @@ export function TrashView() {
       title: 'Delete this task forever?',
       body: (
         <p>
-          <strong className="font-semibold">“{task.title}”</strong> and its attachments will be deleted for good. This can’t be
+          <strong className="font-semibold">“{task.title}”</strong> will be deleted for good, with any attachments. This can’t be
           undone.
         </p>
       ),
