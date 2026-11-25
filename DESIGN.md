@@ -21,8 +21,8 @@ colors:
   danger: "#b42318"
   danger-hover: "#971d14"
   on-danger: "#ffffff"
-  danger-dark: "#f0866a"
-  danger-hover-dark: "#f49c84"
+  danger-dark: "#f27a8f"
+  danger-hover-dark: "#f58ca0"
   on-danger-dark: "#0b0a0a"
   canvas: "#f4f1ee"
   surface: "#fbfaf8"
@@ -231,7 +231,7 @@ A warm, earthy palette of eight saturated panels over a neutral canvas that inve
 - **Twilight Violet** (panel-violet): open and in-progress work. Nothing else.
 
 ### Tertiary
-- **Dusk Maroon** (panel-maroon): the strongest alarm, overdue, wherever it appears: the outline round the card and the Overdue tile. On a card, overdue is said once: the ring plus the deadline in danger red (no badge).
+- **Dusk Maroon** (panel-maroon): the strongest alarm, overdue, wherever it appears: the outline round the card and the Overdue tile. On a card, overdue is said once: the ring plus the deadline in danger red (no badge). At night maroon is too dark to read on the canvas, so the ring and the danger colour turn **rose** (#f27a8f, OKLCH hue 10°), kept 37° of hue clear of the brand orange so a late task never reads as a branded one and a destructive button never reads as New task.
 - **Clay Rust** (panel-rust): urgent priority (the one priority with a hue) and the Trash count badge.
 - **Lichen Sage** (panel-sage): done. Completed work, the Done status and a ticked checkbox. Nothing else. A ticked box's edge and hover border are `--done-edge` (a deeper sage, #4a7266, by day, where Lichen Sage is only about 2.5:1 on the card; Lichen Sage itself at night) with its tint `--done-soft` as the halo.
 - **Sandstone Taupe** (panel-taupe): low emphasis. To do, the Overdue tile when nothing is overdue, and the stripe on trashed cards.
@@ -347,7 +347,7 @@ Calm at rest, clear on hover. All buttons are 14px medium Inter with 6px icon ga
 - **Shadow Strategy:** flat at rest; pop on hover (see Elevation & Depth).
 - **Border:** none. An Urgent task has a 6px rust stripe down the card's left edge; Low, Medium and High have none. High reads by its glyph and word: an ink stripe looked like the selection marker beside it, so the marker stays the only ink bar on the list.
 - **Internal Padding:** 16px, with 20px on the stripe side.
-- **States:** hover takes the hover tone plus a pop shadow and a 3px lift (mouse only). Each card mark has its own form, so no two read as the same line (the One Form Rule): the Urgent **stripe** runs down the left edge, **overdue** is a 2px ring around the card in `--alert-outline` (maroon by day, the danger red at night, 3:1 or more on the canvas), and **selection** is a lift (the pop shadow) plus a 4px ink **marker** in the gutter 7px left of the card, which grows in over 200ms. Selection never draws a ring, so a selected overdue card shows both.
+- **States:** hover takes the hover tone plus a pop shadow and a 3px lift (mouse only). Each card mark has its own form, so no two read as the same line (the One Form Rule): the Urgent **stripe** runs down the left edge, **overdue** is a 2px ring around the card in `--alert-outline` (maroon by day, the rose danger at night, 3:1 or more on the canvas), and **selection** is a lift (the pop shadow) plus a 4px ink **marker** in the gutter 7px left of the card, which grows in over 200ms. Selection never draws a ring, so a selected overdue card shows both.
 - **Metadata row:** one reading order, 12px, wrapping: **when** (the deadline, then Repeat), **what** (the priority badge unless Medium, In Progress), **labels** (`@project`, then tags), then **counts** (reminders, checklist, attachments, effort) in muted regular weight, last because they're the least urgent. An overdue deadline is medium-weight danger red, titled "Overdue", and read as "Overdue, due 2 days ago"; the date's words plus the ring keep it from resting on colour alone. Tags stop at three: a Well Stone **+N** chip in muted text follows, titled with the rest ("#four, #five") and read as "2 more tags: #four, #five".
 - **Selection is focus:** J and K move real focus with the selection (to the title button, or the checkbox if that's where focus was), and Tabbing to a card selects it, so a screen reader hears the card and E and X act on what's in focus. While its card is selected, the title button's own focus ring and halo step aside (the marker shows where focus is); every other control in the card keeps its ring.
 - **When a card leaves** (ticked off, deleted, completed with X), focus moves to the same control on the card that takes its place, or to the empty state when none does. It never drops to the page.

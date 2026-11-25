@@ -88,10 +88,12 @@
   --on-primary: #0b0a0a; /* 7.0:1 */
   --accent: var(--panel-mustard);
   --on-accent: var(--on-panel-mustard);
-  --danger: #f0866a; /* 6.8:1 on raised */
-  --danger-hover: #f49c84;
-  --on-danger: #0b0a0a; /* 7.8:1 */
-  /* Maroon is about 1.5:1 on the night canvas; the danger red is 7.5:1. */
+  /* Rose, not coral: the old #f0866a sat 11° of hue from the brand orange, so a late task read as a
+     branded one. This is OKLCH hue 10°, 37° clear of --primary (47°), at the same lightness. */
+  --danger: #f27a8f; /* 6.5:1 on raised, 6.0:1 on subtle */
+  --danger-hover: #f58ca0; /* 7.4:1 on raised */
+  --on-danger: #0b0a0a; /* 7.5:1 */
+  /* Maroon is about 1.5:1 on the night canvas; the rose danger is 7.5:1 (6.9:1 on the card). */
   --alert-outline: var(--danger);
   /* Lichen Sage itself is about 7:1 on the night card. */
   --done-edge: var(--panel-sage);
