@@ -1,7 +1,8 @@
 import { X } from 'lucide-react'
+import type { HTMLAttributes } from 'react'
 import { labelTint } from '../lib/colors'
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
   name: string
   color: string
   prefix?: string
@@ -13,9 +14,10 @@ interface Props {
  * outline; the text stays in the body colour, so any hue the user picks remains readable
  * (colour-tinted text dropped to 2:1 for light hues).
  */
-export function LabelChip({ name, color, prefix, onRemove }: Props) {
+export function LabelChip({ name, color, prefix, onRemove, ...rest }: Props) {
   return (
     <span
+      {...rest}
       className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-fg ring-1 ring-inset"
       style={labelTint(color)}
     >

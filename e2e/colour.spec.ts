@@ -29,9 +29,10 @@ for (const colorScheme of ['light', 'dark'] as const) {
       const state = await Promise.all(STATE_PANELS.map((t) => tokenColour(page, t)))
       const cases = [
         ['Reply to recruiter email', 'low', 1],
-        ['Grocery run', 'medium', 2],
         ['Pay rent', 'high', 3],
       ] as const
+      // Medium, the default, has no badge on the card (step 24).
+      await expect(app.taskRow('Grocery run').locator('[data-priority]')).toHaveCount(0)
       for (const [title, priority, lit] of cases) {
         const badge = app.taskRow(title).locator(`[data-priority="${priority}"]`)
         await expect(badge.locator(`[data-priority-glyph="${lit}"]`)).toHaveCount(1)

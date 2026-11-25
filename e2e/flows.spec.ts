@@ -58,7 +58,7 @@ test('delete with undo, then restore from Trash', async ({ app, page }) => {
 
 test('demo visitors can load sample data', async ({ app, page }) => {
   await page.getByRole('button', { name: 'Load sample data' }).click()
-  await expect(app.taskRow('Renew car insurance')).toContainText('Overdue')
+  await expect(app.taskRow('Renew car insurance').locator('[data-overdue]')).toBeVisible()
   await expect(page.getByText('No tasks yet')).toBeHidden()
 })
 

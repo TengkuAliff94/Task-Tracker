@@ -25,6 +25,8 @@ interface Props {
 const meta = 'inline-flex items-center gap-1 text-muted'
 const badge = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-medium'
 
+const MAX_TAGS = 3
+
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 /**
@@ -33,7 +35,7 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
  */
 function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; spoken: string }) {
   return (
-    <span className={meta} title={spoken}>
+    <span data-meta="count" className={meta} title={spoken}>
       <Icon className="size-3.5" aria-hidden />
       <span aria-hidden>{shown}</span>
       <span className="sr-only">{spoken}</span>
@@ -43,8 +45,7 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
 
 /**
  * One task as a card in an `AnimatedList`. Each kind of mark has its own form: an Urgent task
- * has a rust stripe down its left edge, an overdue card a maroon outline as well as its
- * badge, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
+ * has a rust stripe down its left edge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
 export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, onToggleDone, index = 0 }: Props) {
@@ -52,7 +53,10 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
   const done = task.status === 'done'
   const project = task.projectId ? projectsById.get(task.projectId) : undefined
   const checked = task.checklist.filter((c) => c.done).length
-
+  // Three tags at most, so a well-tagged task stays one line of labels; "+N" names the rest.
+  const tags = task.tagIds.flatMap((id) => tagsById.get(id) ?? [])
+  const shownTags = tags.slice(0, MAX_TAGS)
+  const hiddenTags = tags.slice(MAX_TAGS)
 
   return (
     <AnimatedItem
@@ -97,24 +101,55 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
         >
           {task.title}
         </div>
-        {/* Completed tasks keep full-strength metadata: fading it would push the text below 4.5:1. */}
+        {/* Completed tasks keep full-strength metadata: fading it would push the text below 4.5:1.
+            One reading order (step 24): when, then what, then labels, then counts. */}
         <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
-          <span data-priority={task.priority} className={`${badge} ${PRIORITY_TONE[task.priority].badge}`}>
-            <PriorityGlyph priority={task.priority} />
-            {PRIORITY_LABEL[task.priority]}
-          </span>
-          {task.status === 'in_progress' && <span className={`${badge} ${panel.info}`}>{STATUS_LABEL.in_progress}</span>}
-          {overdue && <span className={`${badge} ${panel.critical}`}>Overdue</span>}
           {task.deadline && (
-            <span className={overdue ? 'inline-flex items-center gap-1 font-medium text-danger' : meta}>
+            // Overdue is said once: the card's ring and this red date. The words carry it too, for
+            // assistive tech and as the tooltip, so it never rests on colour alone.
+            <span
+              data-meta="when"
+              data-overdue={overdue || undefined}
+              title={overdue ? 'Overdue' : undefined}
+              className={overdue ? 'inline-flex items-center gap-1 font-medium text-danger' : meta}
+            >
               <CalendarDays className="size-3.5" aria-hidden />
-              <span className="sr-only">Due </span>
+              <span className="sr-only">{overdue ? 'Overdue, due ' : 'Due '}</span>
               <span>{formatDeadline(task.deadline, now)}</span>
             </span>
           )}
           {task.recurrence && (
-            <span className={meta} title="Repeats">
+            <span data-meta="when" className={meta} title="Repeats">
               <Repeat className="size-3.5" role="img" aria-label="Repeats" /> {describeRecurrence(task.recurrence)}
+            </span>
+          )}
+          {/* Medium is the default, so it isn't drawn: the badge only shows when priority says something. */}
+          {task.priority !== 'medium' && (
+            <span data-meta="what" data-priority={task.priority} className={`${badge} ${PRIORITY_TONE[task.priority].badge}`}>
+              <PriorityGlyph priority={task.priority} />
+              {PRIORITY_LABEL[task.priority]}
+            </span>
+          )}
+          {task.status === 'in_progress' && (
+            <span data-meta="what" className={`${badge} ${panel.info}`}>
+              {STATUS_LABEL.in_progress}
+            </span>
+          )}
+          {project && <LabelChip data-meta="label" name={project.name} color={project.color} prefix="@" />}
+          {shownTags.map((tag) => (
+            <LabelChip key={tag.id} data-meta="label" data-tag name={tag.name} color={tag.color} prefix="#" />
+          ))}
+          {hiddenTags.length > 0 && (
+            <span
+              data-meta="label"
+              data-tag-more
+              title={hiddenTags.map((t) => `#${t.name}`).join(', ')}
+              className="inline-flex items-center rounded-md bg-subtle px-1.5 py-0.5 font-medium text-muted"
+            >
+              <span aria-hidden>+{hiddenTags.length}</span>
+              <span className="sr-only">
+                {plural(hiddenTags.length, 'more tag')}: {hiddenTags.map((t) => `#${t.name}`).join(', ')}
+              </span>
             </span>
           )}
           {task.reminders.length > 0 && (
@@ -131,11 +166,6 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
           {task.effortMinutes !== undefined && (
             <Meta icon={Clock} shown={formatEffort(task.effortMinutes)} spoken={`Effort: ${describeEffort(task.effortMinutes)}`} />
           )}
-          {project && <LabelChip name={project.name} color={project.color} prefix="@" />}
-          {task.tagIds.map((id) => {
-            const tag = tagsById.get(id)
-            return tag ? <LabelChip key={id} name={tag.name} color={tag.color} prefix="#" /> : null
-          })}
         </div>
       </button>
       <ChevronRight
