@@ -102,13 +102,24 @@ test('a tile left picked when the list empties is dropped, so the next task show
   await expect(tile(page, 'Overdue')).toHaveAttribute('aria-pressed', 'false')
 })
 
-test('the Completed tile shows only completed tasks, and Clear filters resets it', async ({ app, page }) => {
+test('the Completed tile shows only completed tasks, and picking it again resets it', async ({ app, page }) => {
   await app.loadSampleData()
   await tile(page, 'Completed').click()
   await expect(app.taskCards()).toHaveCount(2)
   await expect(page.getByText('2 completed tasks', { exact: true })).toBeVisible()
+  // The tile alone is its own way back: no lone Clear filters repeats it (#39).
+  await expect(page.getByRole('button', { name: 'Clear filters' })).toHaveCount(0)
 
-  await page.getByRole('button', { name: 'Clear filters' }).click()
+  await tile(page, 'Completed').click()
   await expect(tile(page, 'Completed')).toHaveAttribute('aria-pressed', 'false')
   await expect(app.taskCards()).toHaveCount(8)
+})
+
+test('with a search as well, Clear filters takes the tile off too', async ({ app, page }) => {
+  await app.loadSampleData()
+  await tile(page, 'Open').click()
+  await page.getByLabel('Search tasks').fill('run')
+  await page.getByRole('button', { name: 'Clear filters' }).click()
+  await expect(tile(page, 'Open')).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByLabel('Search tasks')).toHaveValue('')
 })

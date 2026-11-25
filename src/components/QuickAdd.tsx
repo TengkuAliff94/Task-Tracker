@@ -9,6 +9,7 @@ import { placeBelow } from './Menu'
 import { QuickAddSyntax } from './QuickAddSyntax'
 import { POP_FROM } from './motion/presets'
 import { Reveal } from './motion/Reveal'
+import { LabelChip } from './LabelChip'
 import { PriorityGlyph } from './PriorityGlyph'
 import { taskRepo } from '../db/tasks'
 import { projectRepo, tagRepo } from '../db/labels'
@@ -41,9 +42,24 @@ const SYNTAX: ReactNode[] = ['#tag', '@project', '!high', '~30m', 'tomorrow 5pm'
  * A typed project or tag name as the task will show it: an existing label's own spelling when one
  * matches (the lookup ignores case, like `findOrCreate`), else the name as typed.
  */
-function shownName(labels: Label[], typed: string): string {
+function findLabel(labels: Label[], typed: string): Label | undefined {
   const key = typed.trim().toLowerCase()
-  return labels.find((l) => l.name.trim().toLowerCase() === key)?.name ?? typed
+  return labels.find((l) => l.name.trim().toLowerCase() === key)
+}
+
+/**
+ * A project or tag in the preview. One that exists previews as it will look on the card (its
+ * `LabelChip`, with the colour dot and tint, in its saved spelling); a new one stays a plain chip,
+ * which is how the preview says "this makes a new one".
+ */
+function LabelPreview({ labels, typed, prefix }: { labels: Label[]; typed: string; prefix: '#' | '@' }) {
+  const label = findLabel(labels, typed)
+  if (!label) return <Chip>{prefix}{typed}</Chip>
+  return (
+    <Reveal from={POP_FROM} className="inline-flex">
+      <LabelChip name={label.name} color={label.color} prefix={prefix} />
+    </Reveal>
+  )
 }
 
 /** Lets the empty state's Try button put a line in the bar. */
@@ -170,9 +186,9 @@ export function QuickAdd({ projects, tags: knownTags, ref }: { projects: Label[]
       {parsed && (
         <div role="group" aria-label="Quick add preview" className="mt-1 flex animate-fade-up flex-wrap items-center gap-1.5 rounded-lg bg-subtle px-3 py-2 text-xs text-muted">
           <span className="font-medium text-fg">{parsed.title || '(no title)'}</span>
-          {parsed.projectName && <Chip key={`@${parsed.projectName}`}>@{shownName(projects, parsed.projectName)}</Chip>}
+          {parsed.projectName && <LabelPreview key={`@${parsed.projectName}`} labels={projects} typed={parsed.projectName} prefix="@" />}
           {parsed.tagNames.map((t) => (
-            <Chip key={`#${t}`}>#{shownName(knownTags, t)}</Chip>
+            <LabelPreview key={`#${t}`} labels={knownTags} typed={t} prefix="#" />
           ))}
           {parsed.priority && <Chip key={`!${parsed.priority}`} className={parsed.priority === 'urgent' ? PRIORITY_TONE.urgent.badge : undefined}>
               <PriorityGlyph priority={parsed.priority} />

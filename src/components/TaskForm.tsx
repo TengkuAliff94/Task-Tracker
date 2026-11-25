@@ -691,6 +691,10 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
               <button type="button" onClick={leave} className={`${attentionQuiet} min-h-9`}>
                 Discard
               </button>
+              {/* Saves and closes, as the footer's Save would. A problem with a field focuses it, which puts the bar away. */}
+              <button type="submit" data-bar-save disabled={saving} className={`${attentionQuiet} min-h-9`}>
+                {task ? 'Save' : 'Add task'}
+              </button>
               <button type="button" ref={keepEditingRef} onClick={keepEditing} className={`${attentionAction} ${INVERTED_PANEL.warning} min-h-9`}>
                 Keep editing
               </button>

@@ -3,7 +3,6 @@ import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   EMPTY_FILTERS,
   filterChips,
-  hasActiveFilters,
   NO_PROJECT,
   removeChip,
   showsCompleted,
@@ -133,11 +132,10 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
 
   const set = (patch: Partial<Filters>) => onFilters({ ...f, ...patch })
   const chips = filterChips(f, projects, tags)
-  const active = hasActiveFilters(f)
 
   // Removing a chip unmounts the button that had focus. Hand focus to the chip that took its place,
   // or the one before it, never to Clear filters (a second Enter would wipe the rest). Once no chip
-  // is left: Clear filters if search or a tile still filters, else the Filters button.
+  // is left: Clear filters if a search still filters, else the Filters button.
   useEffect(() => {
     const target = refocus.current
     if (target === null) return
@@ -153,7 +151,9 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
     refocus.current = 'toggle'
     onFilters({ ...EMPTY_FILTERS, showCompleted: f.showCompleted })
   }
-  const clearButton = active && (
+  // Not for a picked tile alone: the tile shows the pick and unpicks itself, so a lone Clear filters
+  // would only repeat it. With a search or a chip it clears the tile too.
+  const clearButton = Boolean(f.query.trim() || chips.length) && (
     <button type="button" data-clear onClick={clear} className={`${pill} text-fg ${hoverHighlight}`}>
       Clear filters
     </button>
@@ -199,7 +199,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
         </button>
       </div>
 
-      {!open && active && (
+      {!open && clearButton && (
         <div ref={chipRowRef} className="mt-3 flex flex-wrap items-center gap-1.5">
           {chips.map((chip, i) => (
             <Chip

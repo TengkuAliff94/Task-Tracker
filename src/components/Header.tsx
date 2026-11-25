@@ -58,7 +58,10 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
     >
       {view === 'trash' ? (
         <div className="flex min-w-0 items-center gap-2">
-          <button onClick={onBack} aria-label="Back to tasks" className={btn.headerIcon}>
+          {/* A pointer shortcut beside the title; the named Back to tasks button sits in New task's slot.
+              Out of the tab order and the accessibility tree, so there is one control, not two. Phones
+              leave it out, giving the subtitle the room. */}
+          <button onClick={onBack} tabIndex={-1} aria-hidden className={cn(btn.headerIcon, 'max-sm:hidden')}>
             <ArrowLeft className="size-5" />
           </button>
           <div className="min-w-0">
@@ -141,15 +144,26 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             <Ellipsis className="size-5" aria-hidden /> More
           </Menu>
         </div>
-        {/* Not offered in Trash, where a new task wouldn't show. Hidden rather than removed, so the tray
-            keeps its place and the Trash button stays under the pointer to switch back. */}
-        <button
-          onClick={onNewTask}
-          aria-label="New task"
-          className={cn(btn.brand, 'max-sm:size-10 max-sm:px-0', view === 'trash' && 'invisible')}
-        >
-          <Plus className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">New task</span>
-        </button>
+        {/* One slot, two buttons stacked in it: New task, or in Trash (where a new task wouldn't show)
+            Back to tasks. Both fill the cell, which is as wide as the wider one in both views, so the
+            tray never moves and the Trash button stays under the pointer to switch back. */}
+        <div className="grid shrink-0">
+          <button
+            onClick={onNewTask}
+            aria-label="New task"
+            className={cn(btn.brand, '[grid-area:1/1] max-sm:size-10 max-sm:px-0', view === 'trash' && 'invisible')}
+          >
+            <Plus className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">New task</span>
+          </button>
+          <button
+            onClick={onBack}
+            aria-label="Back to tasks"
+            data-back-slot
+            className={cn(btn.secondary, '[grid-area:1/1] max-sm:size-10 max-sm:px-0', view !== 'trash' && 'invisible')}
+          >
+            <ArrowLeft className="size-4" strokeWidth={2.5} /> <span className="hidden sm:inline">Back to tasks</span>
+          </button>
+        </div>
       </div>
     </header>
   )

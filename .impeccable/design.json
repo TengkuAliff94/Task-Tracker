@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-25T13:00:51.000Z",
+  "generatedAt": "2026-11-25T13:21:47.000Z",
   "title": "Design System: Task Tracker",
   "extensions": {
     "colorMeta": {
@@ -527,8 +527,8 @@
       "name": "Discard Bar",
       "kind": "custom",
       "refersTo": "dialog",
-      "description": "The task editor’s sticky footer when a close would lose unsaved changes: a Noon Mustard bar with the question, a quiet Discard and the inverted Keep editing, which takes focus. Esc on it means Keep editing.",
-      "html": "<div class=\"ds-discard-bar\" role=\"group\" aria-labelledby=\"ds-discard-q\"><p id=\"ds-discard-q\" class=\"ds-discard-bar__q\">Discard your changes?</p><div class=\"ds-discard-bar__actions\"><button type=\"button\" class=\"ds-discard-bar__quiet\">Discard</button><button type=\"button\" class=\"ds-discard-bar__keep\">Keep editing</button></div></div>",
+      "description": "The task editor’s sticky footer when a close would lose unsaved changes: a Noon Mustard bar with the question, a quiet Discard, a quiet Save (saves and closes, as the footer's would) and the inverted Keep editing, which takes focus. Esc on it means Keep editing.",
+      "html": "<div class=\"ds-discard-bar\" role=\"group\" aria-labelledby=\"ds-discard-q\"><p id=\"ds-discard-q\" class=\"ds-discard-bar__q\">Discard your changes?</p><div class=\"ds-discard-bar__actions\"><button type=\"button\" class=\"ds-discard-bar__quiet\">Discard</button><button type=\"submit\" class=\"ds-discard-bar__quiet\">Save</button><button type=\"button\" class=\"ds-discard-bar__keep\">Keep editing</button></div></div>",
       "css": ".ds-discard-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:14px 24px;border-radius:0 0 16px 16px;background:var(--panel-mustard,#e3b867);color:var(--on-panel-mustard,#141110);font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;}.ds-discard-bar__q{flex:1;margin:0;font-size:14px;line-height:20px;font-weight:600;}.ds-discard-bar__actions{display:flex;gap:8px;margin-left:auto;}.ds-discard-bar__quiet{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:0;cursor:pointer;border-radius:8px;padding:6px 12px;font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:12px;line-height:16px;font-weight:600;transition:background-color 200ms,opacity 200ms;background:transparent;color:inherit;opacity:.85;}.ds-discard-bar__quiet:hover{background:rgb(0 0 0 / .1);opacity:1;}.ds-discard-bar__keep{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:0;cursor:pointer;border-radius:8px;padding:6px 12px;font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:12px;line-height:16px;font-weight:600;transition:background-color 200ms,opacity 200ms;background:var(--on-panel-mustard,#141110);color:var(--panel-mustard,#e3b867);}.ds-discard-bar__keep:hover{opacity:.85;}.ds-discard-bar__quiet:focus-visible,.ds-discard-bar__keep:focus-visible{outline:2px solid var(--ring,#141110);outline-offset:2px;box-shadow:0 0 0 2px var(--bg,#f4f1ee);}"
     },
     {

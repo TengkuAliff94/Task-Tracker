@@ -31,10 +31,13 @@ export function Dialog({ title, onClose, width = 'max-w-lg', children }: Props) 
   )
 }
 
-/** The top of every dialog panel: a heavy title and the Close button, pinned while the body scrolls. */
+/**
+ * The top of every dialog panel: a heavy title and the Close button, pinned while the body scrolls.
+ * Solid, like the editor's footer: a see-through blur smeared the labels scrolling under it.
+ */
 export function DialogTitleBar({ title, onClose }: { title: string; onClose: () => void }) {
   return (
-    <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-raised/90 px-6 pt-5 pb-3 backdrop-blur">
+    <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-raised px-6 pt-5 pb-3">
       <h2 className="text-xl font-bold tracking-tight">{title}</h2>
       <button type="button" onClick={onClose} aria-label="Close" className={btn.headerIcon}>
         <X className="size-5" />
