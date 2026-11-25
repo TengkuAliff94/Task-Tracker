@@ -102,6 +102,7 @@ Beyond the user flows, a few suites guard the design: `contrast.spec.ts` runs ax
 | `J` / `K` | Next / previous task |
 | `E` | Edit selected task |
 | `X` | Toggle selected task done |
+| `Delete` | Move selected task to Trash |
 | `Z` | Undo, while its message shows |
 | `Esc` | Leave a field / clear selection |
 | `?` | Show shortcuts |

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type SyntheticEvent } from 'react'
 import { ChevronDown, Trash2 } from 'lucide-react'
+import { useReducedMotionConfig } from 'motion/react'
 import { useModalDialog } from '../hooks/useModalDialog'
 import { DialogTitleBar } from './Dialog'
 import { taskRepo } from '../db/tasks'
@@ -103,6 +104,17 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const [confirming, setConfirming] = useState(false)
   /** Showing the rarely used fields (status, effort, repeat, reminders, attachments). Closed on every open: its summary says what's set. */
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const detailsRef = useRef<HTMLDivElement>(null)
+  /** Set by the More details button, so only opening it by hand scrolls (not a Save error opening it). */
+  const detailsJustOpened = useRef(false)
+  const reduceMotion = useReducedMotionConfig()
+  // Opened near the bottom of a tall editor, its fields would appear below the footer. Bring them in,
+  // only as far as needed (`nearest`), with the scroll margins keeping clear of the title bar and footer.
+  useEffect(() => {
+    if (!detailsOpen || !detailsJustOpened.current) return
+    detailsJustOpened.current = false
+    detailsRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'instant' : 'smooth' })
+  }, [detailsOpen, reduceMotion])
 
   const formRef = useRef<HTMLFormElement>(null)
   /** Set by a Save that found errors, so focus moves to the first one once they render. */
@@ -577,12 +589,15 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
 
           {/* The fields few tasks need wait behind one row. Closed, it says what's set behind it, so
               nothing is out of sight; with nothing set, it names what's there. */}
-          <div>
+          <div ref={detailsRef} className="scroll-mt-22 scroll-mb-20">
             <button
               type="button"
               aria-expanded={detailsOpen}
               aria-controls={detailsId}
-              onClick={() => setDetailsOpen((o) => !o)}
+              onClick={() => {
+                detailsJustOpened.current = !detailsOpen
+                setDetailsOpen(!detailsOpen)
+              }}
               data-details-toggle
               className="-mx-3 flex min-h-11 w-[calc(100%+1.5rem)] items-center gap-x-2 rounded-lg px-3 py-2 text-left text-[13px] transition-colors duration-200 hover:bg-subtle"
             >

@@ -358,6 +358,17 @@ export default function App() {
     })
   }
 
+  /** Trash's Restore: puts the task back and says so, since it leaves the screen you're on. */
+  async function restoreFromTrash(task: Task) {
+    try {
+      await taskRepo.restore(task.id)
+    } catch (err) {
+      showSaveError(`“${toastTitle(task.title)}” couldn’t be restored.`, err)
+      return
+    }
+    showToast({ message: `“${toastTitle(task.title)}” restored`, detail: 'It’s back in your tasks.' })
+  }
+
   // Tasks whose tick is being saved. A second toggle meanwhile (a double click, X X) is ignored:
   // it would act on the task as it was before the first one landed.
   const savingDone = useRef(new Set<string>())
@@ -490,6 +501,8 @@ export default function App() {
           k: () => moveSelection(-1),
           e: () => selected && openTask(selected),
           x: (e) => !e.repeat && selected && toggleDone(selected),
+          // Undo is in the toast (and Z), so no question first; a held key doesn't trash the next card too.
+          Delete: (e) => !e.repeat && selected && void trashTask(selected),
           z: undoLatest,
           '?': () => setModal('shortcuts'),
           Escape: () => setSelectedId(null),
@@ -515,7 +528,7 @@ export default function App() {
 
       <main>
       {view === 'trash' ? (
-        <TrashView />
+        <TrashView onRestore={restoreFromTrash} />
       ) : (
         // Urgency first, then capture, then refine, then the list. Groups sit 24px apart; things
         // inside a group, 12px (the panel gutter).

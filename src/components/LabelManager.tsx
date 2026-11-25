@@ -84,17 +84,24 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
           onChange={(e) => save({ color: e.target.value })}
           className="swatch"
         />
-        {/* A field well like every other text field, so it reads as editable; it saves on blur or Enter. */}
-        <input
-          aria-label={`Name of ${label.name}`}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={[count !== undefined && countId, error && errorId].filter(Boolean).join(' ') || undefined}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={() => name !== label.name && save({ name })}
-          onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-          className={cn(field, 'min-w-0 flex-1 py-1.5', error && INVALID_FIELD)}
-        />
+        {/* A field well like every other text field, so it reads as editable; it saves on blur or Enter.
+            The muted sigil sits inside the well before the name, spelt as everywhere else (#finance, @Home). */}
+        <div className="relative min-w-0 flex-1">
+          <span data-sigil aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted">
+            {kind === 'project' ? '@' : '#'}
+          </span>
+          <input
+            aria-label={`Name of ${label.name}`}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={[count !== undefined && countId, error && errorId].filter(Boolean).join(' ') || undefined}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => name !== label.name && save({ name })}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            // Padding per sigil (@ is wider than #), so the name starts right against it.
+            className={cn(field, 'py-1.5', kind === 'project' ? 'pl-[1.625rem]' : 'pl-[1.3125rem]', error && INVALID_FIELD)}
+          />
+        </div>
         {count !== undefined && (
           <span id={countId} className="min-w-14 shrink-0 text-right text-xs text-muted tabular-nums">
             {plural(count, 'task')}

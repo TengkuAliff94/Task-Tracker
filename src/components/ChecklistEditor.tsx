@@ -27,10 +27,12 @@ export function ChecklistEditor({ value, onChange, draft, onDraftChange }: Props
     <div className="space-y-1.5">
       {value.length > 0 && (
         <>
-          <div className="h-1 overflow-hidden rounded-full bg-subtle" aria-hidden>
+          {/* A meter, not a rule: 6px, rounded, filling in the done sage (the checked box's rim), so it
+              reads as progress rather than a divider in brand orange. */}
+          <div data-checklist-bar className="h-1.5 overflow-hidden rounded-full bg-subtle" aria-hidden>
             {/* Scaled, not resized, so the fill animates on transform only. */}
             <div
-              className="h-full origin-left bg-primary transition-transform duration-200"
+              className="h-full origin-left rounded-full bg-done-edge transition-transform duration-200"
               style={{ transform: `scaleX(${done / value.length})` }}
             />
           </div>

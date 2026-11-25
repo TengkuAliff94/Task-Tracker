@@ -4,6 +4,7 @@ import { RotateCcw, Trash2 } from 'lucide-react'
 import { taskRepo, TRASH_RETENTION_DAYS } from '../db/tasks'
 import { useConfirm } from '../hooks/useConfirm'
 import { plural } from '../lib/utils'
+import type { Task } from '../types'
 import { btn, card, panel } from '../ui'
 import { EmptyState } from './EmptyState'
 import { AnimatedItem, AnimatedList } from './motion/AnimatedList'
@@ -11,7 +12,7 @@ import { AnimatedItem, AnimatedList } from './motion/AnimatedList'
 const DAY = 86_400_000
 
 /** Trashed tasks as cards in the same grid as the task list, each with Restore and Delete forever. */
-export function TrashView() {
+export function TrashView({ onRestore }: { onRestore: (task: Task) => Promise<void> | void }) {
   const trashed = useLiveQuery(() => taskRepo.listTrash(), [])
   const now = Date.now()
   const [confirmDialog, ask] = useConfirm()
@@ -119,7 +120,7 @@ export function TrashView() {
               <button
                 onClick={() => {
                   handOverFocus(i, 'restore')
-                  void taskRepo.restore(t.id)
+                  void onRestore(t)
                 }}
                 aria-label={`Restore "${t.title}"`}
                 data-restore

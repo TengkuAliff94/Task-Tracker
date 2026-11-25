@@ -8,6 +8,7 @@ export const SHORTCUTS: { keys: string; label: string }[] = [
   { keys: 'J / K', label: 'Next / previous task' },
   { keys: 'E', label: 'Edit selected task' },
   { keys: 'X', label: 'Toggle selected task done' },
+  { keys: 'Delete', label: 'Move selected task to Trash' },
   { keys: 'Z', label: 'Undo, while its message shows' },
   { keys: 'Esc', label: 'Leave a field / clear selection' },
   { keys: '?', label: 'Show shortcuts' },

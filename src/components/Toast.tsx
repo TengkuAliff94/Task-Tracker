@@ -69,7 +69,8 @@ export function Toast({ toast, onDismiss, onAction, shortcut, paused = false }: 
       {/* Callers shorten task titles (toastTitle in App.tsx), so nothing here is clipped; a title
           can still be one unbroken string, so the text wraps anywhere. */}
       <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-        <p className="font-medium">{toast.message}</p>
+        {/* Pretty wrapping, so a short last word ("Trash") never sits alone on its line. */}
+        <p className="font-medium text-pretty">{toast.message}</p>
         {toast.detail && <p className="mt-0.5">{toast.detail}</p>}
       </div>
       {/* The panel's colours swapped, like Back up now on the backup reminder: one main action per panel, no second brand button. */}
