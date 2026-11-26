@@ -136,7 +136,7 @@ test.describe('with sample data', () => {
     const name = dialog.getByRole('textbox', { name: 'Name of Home' })
     expect(await style(name, 'background-color')).not.toBe('rgba(0, 0, 0, 0)')
     await expect(name).toHaveAccessibleDescription('4 tasks')
-    expect(await style(dialog.getByLabel('Color for Home'), 'border-top-left-radius')).toBe('9999px')
+    expect(await style(dialog.getByRole('button', { name: 'Color for Home' }), 'border-top-left-radius')).toBe('9999px')
   })
 })
 

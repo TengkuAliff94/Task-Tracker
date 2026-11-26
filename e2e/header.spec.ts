@@ -243,7 +243,8 @@ test.describe('phone More menu', () => {
     await expect(menu.getByRole('group', { name: 'Theme' }).getByRole('menuitemradio')).toHaveText(['System', 'Light', 'Dark'])
     // Every item takes a comfortable tap.
     for (const item of await menu.locator('[role^="menuitem"]').all()) {
-      expect((await item.boundingBox())!.height).toBeGreaterThanOrEqual(40)
+      // Rounded: measured while the menu fades up, the height can read 39.99998.
+      expect(Math.round((await item.boundingBox())!.height)).toBeGreaterThanOrEqual(40)
     }
     expect(await app.scrollsSideways()).toBe(false)
   })

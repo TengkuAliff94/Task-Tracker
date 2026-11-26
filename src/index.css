@@ -355,7 +355,7 @@ label:hover > .box-check {
 
 /*
  * A project or tag colour (Projects & tags): a round swatch, like the dot the label shows everywhere
- * else, instead of each browser's square picker. A faint inner ring keeps light colours visible.
+ * else. It opens ColorPicker's popover of the calm palette (no free colour input: see LABEL_COLORS).
  */
 .swatch {
   appearance: none;
@@ -365,24 +365,12 @@ label:hover > .box-check {
   padding: 0;
   border: 0;
   border-radius: 9999px;
-  background: transparent;
+  /* The colour itself is an inline background; the faint inner ring keeps a light one visible. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 15%, transparent);
   transition: box-shadow 200ms;
 }
 .swatch:hover {
-  box-shadow: 0 0 0 4px var(--primary-soft);
-}
-.swatch::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-.swatch::-webkit-color-swatch {
-  border: none;
-  border-radius: 9999px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 15%, transparent);
-}
-.swatch::-moz-color-swatch {
-  border: none;
-  border-radius: 9999px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 15%, transparent), 0 0 0 4px var(--primary-soft);
 }
 
 /*

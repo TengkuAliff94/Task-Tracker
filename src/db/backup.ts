@@ -2,6 +2,7 @@
 import type { Attachment, Label, Task } from '../types'
 import { createMetaStore, db as defaultDb, type TaskTrackerDB } from './db'
 import { createUsage } from './usage'
+import { calmLabelColor } from '../lib/colors'
 
 export const BACKUP_APP = 'task-tracker'
 export const BACKUP_VERSION = 1
@@ -110,8 +111,10 @@ export function createBackup(db: TaskTrackerDB = defaultDb) {
       await db.transaction('rw', [db.tasks, db.projects, db.tags, db.attachments, db.meta], async () => {
         await Promise.all([db.tasks.clear(), db.projects.clear(), db.tags.clear(), db.attachments.clear()])
         await db.tasks.bulkAdd(data.tasks)
-        await db.projects.bulkAdd(data.projects)
-        await db.tags.bulkAdd(data.tags)
+        // A backup from before the calm palette brings its labels' old colours; they move as the database's did.
+        const calm = (l: Label) => ({ ...l, color: calmLabelColor(l.color) })
+        await db.projects.bulkAdd(data.projects.map(calm))
+        await db.tags.bulkAdd(data.tags.map(calm))
         await db.attachments.bulkAdd(attachments)
         // A file with no readable date (hand-edited) still restores; "Last backup" is just left as it was.
         if (Number.isFinite(exportedAt)) await meta.set(LAST_BACKUP_KEY, Math.min(exportedAt, now))

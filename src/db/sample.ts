@@ -39,15 +39,15 @@ interface SampleTask {
 }
 
 const PROJECTS: [string, string][] = [
-  ['Home', '#14b8a6'],
-  ['Work', '#6366f1'],
-  ['Health', '#ef4444'],
+  ['Home', '#0ea5e9'],
+  ['Work', '#3b82f6'],
+  ['Health', '#3faa3f'],
 ]
 const TAGS: [string, string][] = [
-  ['finance', '#f59e0b'],
-  ['errand', '#0ea5e9'],
-  ['reading', '#8b5cf6'],
-  ['quick', '#10b981'],
+  ['finance', '#84cc16'],
+  ['errand', '#64748b'],
+  ['reading', '#d946ef'],
+  ['quick', '#b4469f'],
 ]
 
 const TASKS: SampleTask[] = [

@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { calmLabelColor } from '../lib/colors'
 import type { Attachment, Project, Tag, Task } from '../types'
 
 /** Meta key: when the person started using the app for real (see usage.ts). */
@@ -28,6 +29,20 @@ export class TaskTrackerDB extends Dexie {
         const oldest = await tx.table<Task>('tasks').orderBy('createdAt').first()
         if (oldest && !(await tx.table<Meta>('meta').get(FIRST_USED_KEY))) {
           await tx.table<Meta>('meta').put({ key: FIRST_USED_KEY, value: oldest.createdAt })
+        }
+      })
+    // Labels move to the calm palette (#52): a red @Health beside a red overdue date read as late.
+    // Colours that already keep clear of the reserved hues stay as they are.
+    this.version(4)
+      .stores({})
+      .upgrade(async (tx) => {
+        for (const table of ['projects', 'tags'] as const) {
+          await tx
+            .table<Project | Tag>(table)
+            .toCollection()
+            .modify((label) => {
+              label.color = calmLabelColor(label.color)
+            })
         }
       })
   }

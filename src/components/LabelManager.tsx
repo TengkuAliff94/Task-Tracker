@@ -6,6 +6,7 @@ import { useConfirm } from '../hooks/useConfirm'
 import { cn, plural } from '../lib/utils'
 import type { Label } from '../types'
 import { btn, field, INVALID_FIELD } from '../ui'
+import { ColorPicker } from './ColorPicker'
 import { Dialog } from './Dialog'
 import { FieldError } from './FieldError'
 
@@ -77,13 +78,7 @@ function LabelRow({ label, repo, kind, ask, onRemoved }: RowProps) {
   return (
     <li data-label-id={label.id}>
       <div className="flex items-center gap-2">
-        <input
-          type="color"
-          aria-label={`Color for ${label.name}`}
-          value={label.color}
-          onChange={(e) => save({ color: e.target.value })}
-          className="swatch"
-        />
+        <ColorPicker name={label.name} color={label.color} onPick={(color) => void save({ color })} />
         {/* A field well like every other text field, so it reads as editable; it saves on blur or Enter.
             The muted sigil sits inside the well before the name, spelt as everywhere else (#finance, @Home). */}
         <div className="relative min-w-0 flex-1">
