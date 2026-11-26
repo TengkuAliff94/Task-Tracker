@@ -41,8 +41,11 @@ interface Props {
  * use `matchesScope`). Numbers count up when they first show and whenever they change. Tiles
  * reveal in turn, starting at `firstIndex`.
  *
- * Layout: a 2×2 grid of slim tiles (label and number on one line) on phones, one row of four
- * from `sm`, where each tile stacks its label over a large number.
+ * Layout: one row of four at every width, each tile stacking its label over its number. On phones
+ * the row is compact and sits tight under the heading as one unit with it: tiles size to their
+ * labels at the least (so "Completed" fits at 320px) and sharing the room equally where there's more;
+ * small labels, no icons. Huge counts at 320px wrap a tile to a second line rather than overflow. From `sm` the tiles share the row
+ * equally and the number is large.
  */
 export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
   const count = (s: Scope) => tasks.filter((t) => matchesScope(t, s, now)).length
@@ -67,34 +70,34 @@ export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
   ]
 
   return (
-    <section aria-label="Overview" className="grid h-full grid-cols-2 gap-3 sm:grid-cols-4">
+    <section aria-label="Overview" className="flex h-full flex-wrap gap-1.5 sm:grid sm:grid-cols-4 sm:gap-3">
       {stats.map(({ scope: s, label, value, icon: Icon, tone, fill, alert, progress }, i) => {
         const picked = scope === s
         return (
-          <Reveal key={s} index={firstIndex + i} className="relative min-w-0">
+          <Reveal key={s} index={firstIndex + i} className="relative min-w-0 max-sm:min-w-fit max-sm:flex-1">
             <button
               type="button"
               aria-pressed={picked}
               onClick={() => onScope(picked ? undefined : s)}
-              className={`flex h-full w-full items-center justify-between gap-2 rounded-panel p-3 text-left transition-shadow duration-200 hover:shadow-pop sm:flex-col sm:items-stretch sm:justify-start sm:p-4 lg:p-5 ${
-                progress !== undefined ? 'pb-6 sm:pb-8 lg:pb-9' : ''
+              className={`flex h-full w-full flex-col gap-0.5 rounded-panel p-2 text-left transition-shadow duration-200 hover:shadow-pop sm:gap-2 sm:p-4 lg:p-5 ${
+                progress !== undefined ? 'pb-5 sm:pb-8 lg:pb-9' : ''
               } ${tone} ${picked ? SELECTED_OUTLINE : ''}`}
             >
               <span className="flex min-w-0 items-start justify-between gap-2">
-                <span className="truncate text-sm font-semibold">{label}</span>
+                <span className="truncate text-xs font-semibold sm:text-sm">{label}</span>
                 {/* Picked: a check in an ink disc takes the icon's place at every size, so "picked" never
                     looks like the focus outline alone. Otherwise the icon, left out where tiles are
                     slimmest: on phones, and beside the heading below `xl`. */}
                 {picked ? (
-                  <span data-picked-mark className="grid size-5 shrink-0 place-items-center rounded-full bg-current" aria-hidden>
-                    <Check className="size-3.5" style={{ color: fill }} strokeWidth={3} />
-                  </span>
+                  <PickedMark fill={fill} className="max-sm:hidden" />
                 ) : (
                   <Icon className={`size-5 shrink-0 max-sm:hidden lg:max-xl:hidden ${alert ? 'motion-safe:animate-pulse' : ''}`} aria-hidden />
                 )}
               </span>
-              <span className="flex items-end gap-1.5 sm:mt-auto sm:gap-2 sm:pt-3">
+              <span className="mt-auto flex items-end gap-1.5 sm:gap-2 sm:pt-3">
                 <CountUp value={value} className="font-display text-2xl leading-none font-extrabold tracking-tight tabular-nums sm:text-4xl" />
+                {/* On phones the mark sits by the number, which is narrower than the label. */}
+                {picked && <PickedMark fill={fill} className="sm:hidden" />}
                 {/* Not on phones, where it would squeeze the label; the meter shows it there. */}
                 {progress !== undefined && <span className="text-sm font-semibold tabular-nums max-sm:hidden sm:mb-0.5">{progress}%</span>}
               </span>
@@ -113,11 +116,19 @@ export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
  * percentage (a horizontal scale, so only transforms animate); under reduced motion it jumps
  * straight there. Clicks pass through to the tile.
  */
+function PickedMark({ fill, className }: { fill: string; className: string }) {
+  return (
+    <span data-picked-mark className={`grid size-5 shrink-0 place-items-center rounded-full bg-current ${className}`} aria-hidden>
+      <Check className="size-3.5" style={{ color: fill }} strokeWidth={3} />
+    </span>
+  )
+}
+
 function Meter({ pct }: { pct: number }) {
   const reduce = useReducedMotionConfig()
   return (
     <div
-      className="pointer-events-none absolute inset-x-3 bottom-2.5 h-1.5 overflow-hidden rounded-full bg-current/20 text-on-panel-sage sm:inset-x-4 sm:bottom-4 lg:inset-x-5 lg:bottom-5"
+      className="pointer-events-none absolute inset-x-2 bottom-2 h-1.5 overflow-hidden rounded-full bg-current/20 text-on-panel-sage sm:inset-x-4 sm:bottom-4 lg:inset-x-5 lg:bottom-5"
       role="progressbar"
       aria-label="Tasks completed"
       aria-valuenow={pct}

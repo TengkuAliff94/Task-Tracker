@@ -673,8 +673,10 @@ export default function App() {
         // inside a group, 12px (the panel gutter).
         <div className="flex flex-col gap-6">
           {/* What needs attention: the heading says what's urgent and the Overview tiles filter to it.
-              Side by side from `lg`; below that the tiles run under the heading. */}
-          <div className="grid gap-3 lg:grid-cols-12">
+              Side by side from `lg`; below that the tiles run under the heading, and on phones they sit
+              tight under it (8px) as one unit. One minmax(0, 1fr) column below `lg`, so wide tile content
+              can never push the column past the page. */}
+          <div className="grid grid-cols-1 gap-2 sm:gap-3 lg:grid-cols-12">
             <Reveal index={0} className={hasTasks ? 'lg:col-span-5' : 'lg:col-span-12'}>
               <HeadingPanel dateLabel={todayLabel} urgency={urgency} />
             </Reveal>

@@ -13,14 +13,14 @@ test.describe('with sample data', () => {
     const overdue = page.getByRole('region', { name: 'Overview' }).getByRole('button', { name: /^Overdue/ })
     await expect(overdue.locator('[data-picked-mark]')).toHaveCount(0)
     await overdue.click()
-    await expect(overdue.locator('[data-picked-mark]')).toBeVisible()
+    await expect(overdue.locator('[data-picked-mark]:visible')).toHaveCount(1)
   })
 
   test('the picked check shows on phones too, where tile icons are left out', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     const open = page.getByRole('region', { name: 'Overview' }).getByRole('button', { name: /^Open/ })
     await open.click()
-    await expect(open.locator('[data-picked-mark]')).toBeVisible()
+    await expect(open.locator('[data-picked-mark]:visible')).toHaveCount(1)
   })
 
   test('project and tag chips put the sigil against the name, as typed', async ({ app }) => {
