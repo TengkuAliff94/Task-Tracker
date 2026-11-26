@@ -47,7 +47,7 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 25 | `/impeccable colorize` | fifth critique P2: dark overdue outline and danger move off the brand orange (rose #f27a8f, 37° of hue clear) | **done** ([#48](https://github.com/TengkuAliff94/Task-Tracker/issues/48)) |
 | 26 | `/impeccable clarify` | fifth critique P3: Due today taupe at 0; on touch (no hover) the header keeps bell, Trash (worded) and More up to `lg`, Theme worded from `lg`, no shortcuts button | **done** ([#49](https://github.com/TengkuAliff94/Task-Tracker/issues/49)) |
 | 27 | `/impeccable polish src`, then `/impeccable critique src` | fifth critique minors (Trash copy and arrow, still tray, restore copy, one overdue red, discard Save tint, no hint on touch, no @project when grouped), then re-score | **done** (`dd4ccce`, [#50](https://github.com/TengkuAliff94/Task-Tracker/issues/50)): 32/40 |
-| 28 | `/impeccable harden src/components/QuickAdd.tsx` | sixth critique P1: a quick add hidden by the picked tile or filters says so (toast "Added “X”. Hidden by your filters." with Show it); a visible one is selected and announced | to do |
+| 28 | `/impeccable harden src/components/QuickAdd.tsx` | sixth critique P1: a quick add hidden by the picked tile or filters says so (toast "Added “X”" + "Hidden by the Overdue tile." / "by your filters." with Show it); a visible one is selected and announced | **done** (`e69e3cb`, [#51](https://github.com/TengkuAliff94/Task-Tracker/issues/51)) |
 | 29 | `/impeccable colorize` | sixth critique P2: label palette hues ≥30° from danger, brand, mustard and violet; existing labels migrated to the nearest calm hue (Dexie upgrade); sample Health calm; a hue test | to do |
 | 30 | `/impeccable clarify` | sixth critique P2: quick reschedule for an overdue task ("Move to…" by the red date: Tomorrow, Next week, Pick…; a key; Undo toast) | to do |
 | 31 | `/impeccable distill src/components/TaskCard.tsx` | sixth critique P2: lighter chips at 390, no priority badge when grouped by priority, counts from `sm` | to do |
@@ -55,7 +55,15 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 28 (the silent hidden quick add, `/impeccable harden src/components/QuickAdd.tsx`). For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+**To resume:** step 29 (label palette, `/impeccable colorize`). Step 28 is done (`e69e3cb`, #51). For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+
+## Hidden quick add in brief (step 28, [#51](https://github.com/TengkuAliff94/Task-Tracker/issues/51), `e69e3cb`)
+
+- `QuickAdd` takes `onAdded(task)`; App keeps `justAdded` and, once the live query lists the task, either selects it and announces "Added “X”." (ToastAnnouncer; focus stays in the field) or shows a `quick-add`-slot toast: "Added “X”" with "Hidden by the <tile> tile." when only a tile narrows the list, else "Hidden by your filters.", and **Show it** (also Z) that clears filters and tile (Show completed kept), selects the task and focuses its title (`revealId` effect).
+- `ToastData.noKeyHint`: the announcement leaves out "Press Z to …" because focus is in the quick-add field, where Z types.
+- Tests: `e2e/quick-add-landing.spec.ts` (4, all failed on the old source). `addTasks` in `completion.spec` and `accessibility.spec` now press Escape after the adds.
+
+**Gotcha:** a quick add now selects its task, so J after a run of adds moves on from the newest card. Tests that expect J to start at the top press Escape first (focus out of the field, then Escape clears the selection).
 
 ## Sixth critique (2026-11-26, 32/40): open findings
 
