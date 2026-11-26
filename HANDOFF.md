@@ -50,12 +50,19 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 28 | `/impeccable harden src/components/QuickAdd.tsx` | sixth critique P1: a quick add hidden by the picked tile or filters says so (toast "Added “X”" + "Hidden by the Overdue tile." / "by your filters." with Show it); a visible one is selected and announced | **done** (`e69e3cb`, [#51](https://github.com/TengkuAliff94/Task-Tracker/issues/51)) |
 | 29 | `/impeccable colorize` | sixth critique P2: label palette hues ≥30° from danger, brand, mustard and violet; existing labels migrated to the nearest calm hue (Dexie upgrade); sample Health calm; a hue test | **done** (`2dfc673`, [#52](https://github.com/TengkuAliff94/Task-Tracker/issues/52)) |
 | 30 | `/impeccable clarify` | sixth critique P2: quick reschedule for an overdue task ("Move to…" by the red date: Tomorrow, Next week, Pick…; a key; Undo toast) | **done** (`49b9ad9`, [#53](https://github.com/TengkuAliff94/Task-Tracker/issues/53)) |
-| 31 | `/impeccable distill src/components/TaskCard.tsx` | sixth critique P2: lighter chips at 390, no priority badge when grouped by priority, counts from `sm` | to do |
+| 31 | `/impeccable distill src/components/TaskCard.tsx` | sixth critique P2: lighter chips at 390, no priority badge when grouped by priority, counts from `sm` | **done** (`5e51001`, [#54](https://github.com/TengkuAliff94/Task-Tracker/issues/54)) |
 | 32 | `/impeccable polish src`, then `/impeccable critique src` | sixth critique P3 (Project select "@", "Empty Trash", "45m effort", Undo restore under an error) + minors (EmptyState `text-balance` straggler, bare `#` task, toasts over the last card, Trash grid), then re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 31 (card chips, `/impeccable distill src/components/TaskCard.tsx`). Steps 28 (`e69e3cb`, #51), 29 (`2dfc673`, #52) and 30 (`49b9ad9`, #53) are done. For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+**To resume:** step 32 (polish, then `/impeccable critique src`). Steps 28 (`e69e3cb`, #51), 29 (`2dfc673`, #52), 30 (`49b9ad9`, #53) and 31 (`5e51001`, #54) are done. For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+
+## Lighter card chips in brief (step 31, [#54](https://github.com/TengkuAliff94/Task-Tracker/issues/54), `5e51001`)
+
+- `LabelChip quiet="phone"`: below `sm` the chip is its dot and name (`max-sm:bg-transparent!`, important to beat the inline tint; `max-sm:ring-0 max-sm:px-0`). Card tags use it; the project chip doesn't. The `+N` drops its well on phones too.
+- `TaskCard hidePriority` (App passes `group === 'priority'`) drops the badge; the Urgent stripe stays.
+- `Meta` counts (reminders, checklist, attachments, effort) are `max-sm:hidden`.
+- Tests: `e2e/card-chips.spec.ts` (4; 3 failed on the old source). No separate review agent for this small CSS step; contrast, layout, card-marks and colour specs pass.
 
 ## Quick reschedule in brief (step 30, [#53](https://github.com/TengkuAliff94/Task-Tracker/issues/53), `49b9ad9`)
 
