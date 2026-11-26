@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useReducedMotionConfig } from 'motion/react'
-import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowDownUp, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   EMPTY_FILTERS,
   filterChips,
@@ -353,7 +353,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
         </button>
       </div>
 
-      {!open && (chips.length > 0 || clearButton) && (
+      {!open && (chips.length > 0 || clearButton || sort !== 'smart') && (
         <div ref={chipRowRef} className="mt-3 flex flex-wrap items-center gap-1.5">
           {chips.map((chip, i) => (
             <Chip
@@ -365,6 +365,26 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
               }}
             />
           ))}
+          {/* Not a filter (it narrows nothing, Clear filters leaves it, the badge doesn't count it), so it
+              comes after the filters, in a plain Well Stone well: a note on why the order looks as it does. */}
+          {sort !== 'smart' && (
+            <button
+              type="button"
+              data-sort-chip
+              onClick={() => {
+                // Focus then goes to the last filter chip, else Clear filters, else the Filters button.
+                refocus.current = chips.length
+                onSort('smart')
+              }}
+              aria-label={`Sorted by ${SORT_LABEL[sort]}. Sort by Smart instead`}
+              title="Sort by Smart instead"
+              className={`${pillClass} bg-subtle pr-2.5 font-medium text-fg/80 hover:shadow-pop`}
+            >
+              <ArrowDownUp className="size-3.5 opacity-75" aria-hidden />
+              Sorted by {SORT_LABEL[sort]}
+              <X className="size-3.5 opacity-75" aria-hidden />
+            </button>
+          )}
           {clearButton}
         </div>
       )}

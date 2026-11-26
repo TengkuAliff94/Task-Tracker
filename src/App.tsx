@@ -7,6 +7,7 @@ import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
 import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, withoutMissingLabels, type Filters, type Scope } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
+import { loadArrangement, saveArrangement } from './lib/arrangement'
 import { formatDeadline, movedDeadline } from './lib/deadline'
 import { QUICK_ADD_EXAMPLE } from './lib/quickAdd'
 import { describeSaveError } from './lib/utils'
@@ -221,9 +222,14 @@ export default function App() {
   useKeepStorage()
 
   const [view, setView] = useState<View>('tasks')
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
-  const [sort, setSort] = useState<SortKey>('smart')
-  const [group, setGroup] = useState<GroupKey>('none')
+  // Sort, Group by and Show completed are remembered on this device (see lib/arrangement); the
+  // filters and the picked tile start fresh each visit.
+  const [stored] = useState(loadArrangement)
+  const [filters, setFilters] = useState<Filters>(() => ({ ...EMPTY_FILTERS, showCompleted: stored.showCompleted }))
+  const [sort, setSort] = useState<SortKey>(stored.sort)
+  const [group, setGroup] = useState<GroupKey>(stored.group)
+  const showCompleted = filters.showCompleted
+  useEffect(() => saveArrangement({ sort, group, showCompleted }), [sort, group, showCompleted])
   const [editing, setEditing] = useState<Editing>(null)
   const [modal, setModal] = useState<Modal>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
