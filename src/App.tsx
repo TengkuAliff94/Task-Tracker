@@ -364,20 +364,33 @@ export default function App() {
   }
 
   /**
+   * A card to select, focus and scroll to once it's listed: a quick add Show it brought back, or a
+   * moved task. `ready` waits for the live query to catch up (a moved card is revealed where the
+   * re-sort puts it, not where it was); a ready task that isn't listed is dropped, not kept for later.
+   */
+  const [reveal, setReveal] = useState<{ id: string; control: CardControl; ready?: (t: Task) => boolean } | null>(null)
+
+  /**
    * Moves a task's deadline to `days` after today, keeping its time (an overdue card's Move to, or T).
-   * A toast says where it went and offers Undo, which puts the old deadline back.
+   * A toast says where it went and offers Undo, which puts the old deadline back. The card stays
+   * selected and in view wherever the re-sort sends it.
    */
   async function moveTask(task: Task, days: number) {
     const title = toastTitle(task.title)
     const deadline = movedDeadline(task.deadline, days, now)
     // Already there (T pressed twice): nothing to save, and the toast that can undo the first move stays.
     if (task.deadline?.date === deadline.date && task.deadline?.time === deadline.time) return
+    // Where focus is now (the checkbox or the title), before the save and the re-sort can move it.
+    const control: CardControl = document.activeElement?.matches(`[data-task-id="${CSS.escape(task.id)}"] input[type="checkbox"]`)
+      ? 'check'
+      : 'edit'
     try {
       await taskRepo.update(task.id, { deadline })
     } catch (err) {
       showSaveError(`“${title}” couldn’t be moved.`, err)
       return
     }
+    setReveal({ id: task.id, control, ready: (t) => t.deadline?.date === deadline.date && t.deadline?.time === deadline.time })
     showToast({
       // One per task, so moving another task doesn't take away this one's Undo.
       slot: `move:${task.id}`,
@@ -608,8 +621,6 @@ export default function App() {
    * or the picked tile or a filter hides it, so a toast says so and offers Show it.
    */
   const [justAdded, setJustAdded] = useState<string | null>(null)
-  /** A task Show it brought back: focused and scrolled to once it's listed. */
-  const [revealId, setRevealId] = useState<string | null>(null)
   useEffect(() => {
     const task = justAdded ? tasks?.find((t) => t.id === justAdded) : undefined
     if (!task) return
@@ -637,16 +648,27 @@ export default function App() {
           setView('tasks')
           setFilters((f) => ({ ...EMPTY_FILTERS, showCompleted: f.showCompleted }))
           setSelectedId(task.id)
-          setRevealId(task.id)
+          setReveal({ id: task.id, control: 'edit' })
         },
       },
     })
   }, [justAdded, tasks, visible, filters, showToast])
   useEffect(() => {
-    if (!revealId || !ordered.some((t) => t.id === revealId)) return
-    setRevealId(null)
-    if (focusCard(revealId, 'edit')) document.querySelector(`[data-task-id="${CSS.escape(revealId)}"]`)?.scrollIntoView({ block: 'nearest' })
-  }, [revealId, ordered])
+    if (!reveal) return
+    if (reveal.ready) {
+      const task = tasks?.find((t) => t.id === reveal.id)
+      if (!task || !reveal.ready(task)) return
+    }
+    const listed = ordered.some((t) => t.id === reveal.id)
+    // Show it waits for its filters to clear; a moved card that left the list (a picked tile) is let go.
+    if (!listed && !reveal.ready) return
+    setReveal(null)
+    if (!listed) return
+    // Focus went elsewhere while the save was on its way (another card, a field): don't pull it back.
+    if (reveal.ready && !focusLostWith(reveal.id)) return
+    setSelectedId(reveal.id)
+    if (focusCard(reveal.id, reveal.control)) document.querySelector(`[data-task-id="${CSS.escape(reveal.id)}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [reveal, ordered, tasks])
 
   const liveAlerts = alerts.filter((a) => !a.missed)
   const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })

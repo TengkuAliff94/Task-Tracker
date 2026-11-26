@@ -200,6 +200,11 @@ html {
 main :is(a[href], button, input, select, textarea, [tabindex]) {
   scroll-margin-top: 6rem;
 }
+/* A card scrolled to from below (J, a moved card coming into view) stops clear of the toast in the
+   bottom corner, which a move or a completion has just put there (the page keeps room for it, pb-48). */
+[data-task-id] {
+  scroll-margin-bottom: 7rem;
+}
 
 /*
  * Inside a dialog, a control that gets focus (Tab, or Save moving to the first field with an error)
