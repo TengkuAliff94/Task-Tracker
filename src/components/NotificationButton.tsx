@@ -4,8 +4,10 @@ import { cn } from '../lib/utils'
 import { btn } from '../ui'
 import { placeBelow } from './Menu'
 
-/** Phones get the smaller tile; from lg the button carries its words too. */
-const BUTTON = cn(btn.headerIcon, 'max-sm:size-8 lg:w-auto lg:px-2.5')
+/** Phones get the smaller tile. */
+const ICON = cn(btn.headerIcon, 'max-sm:size-8')
+/** The ask is the one state worth words, so from lg it carries them. */
+const WORDED = cn(ICON, 'lg:w-auto lg:px-2.5')
 
 /** Asks for notification permission, from the header's button panel. Hidden once granted or when the browser has no support. */
 export function NotificationButton() {
@@ -29,6 +31,7 @@ export function NotificationButton() {
   if (permission === 'denied') {
     // A real button, so keyboard and touch can reach the explanation, not only a hover tooltip. It opens
     // a popover (Esc or a tap elsewhere closes it); a screen reader also hears the text as its description.
+    // A bare glyph at every width: a standing negative status shouldn't be the widest thing in the tray.
     return (
       <>
         <button
@@ -37,9 +40,10 @@ export function NotificationButton() {
           popoverTarget={tipId}
           aria-label="Notifications blocked"
           aria-describedby={`${tipId}-text`}
-          className={BUTTON}
+          title="Notifications blocked"
+          className={ICON}
         >
-          <BellOff className="size-5" aria-hidden /> <span className="max-lg:hidden">Notifications blocked</span>
+          <BellOff className="size-5" aria-hidden />
         </button>
         <div
           ref={tipRef}
@@ -57,8 +61,14 @@ export function NotificationButton() {
   }
 
   return (
-    <button onClick={async () => setPermission(await Notification.requestPermission())} className={BUTTON}>
-      <Bell className="size-5" aria-hidden /> <span className="max-lg:hidden">Enable notifications</span>
+    <button
+      type="button"
+      onClick={async () => setPermission(await Notification.requestPermission())}
+      aria-label="Turn on reminders"
+      title="Turn on reminders"
+      className={WORDED}
+    >
+      <Bell className="size-5" aria-hidden /> <span className="max-lg:hidden">Turn on reminders</span>
     </button>
   )
 }
