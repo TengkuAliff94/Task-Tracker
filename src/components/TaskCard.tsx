@@ -1,9 +1,12 @@
-import { Bell, CalendarDays, ChevronRight, Clock, ListChecks, Paperclip, Repeat, type LucideIcon } from 'lucide-react'
+import { useRef } from 'react'
+import { Bell, CalendarArrowUp, CalendarDays, CalendarRange, ChevronRight, Clock, ListChecks, Paperclip, Repeat, Sunrise, type LucideIcon } from 'lucide-react'
 import { formatDeadline, isOverdue } from '../lib/deadline'
 import { describeEffort, formatEffort } from '../lib/effort'
 import { describeRecurrence } from '../lib/recurrence'
 import { PRIORITY_LABEL, STATUS_LABEL, type Label, type Task } from '../types'
-import { ALERT_OUTLINE, panel, PRIORITY_TONE } from '../ui'
+import { ALERT_OUTLINE, btn, panel, PRIORITY_TONE } from '../ui'
+import { cn } from '../lib/utils'
+import { Menu } from './Menu'
 import { LabelChip } from './LabelChip'
 import { PriorityGlyph } from './PriorityGlyph'
 import { AnimatedItem } from './motion/AnimatedList'
@@ -22,6 +25,10 @@ interface Props {
   index?: number
   /** Leaves out the `@project` chip, when the list is grouped by project and the heading already says it. */
   hideProject?: boolean
+  /** Moves the deadline to `days` after today (Move to → Tomorrow, Next week). Offered on overdue cards. */
+  onMove?: (days: number) => void
+  /** Opens the editor at the deadline (Move to → Pick a date…). */
+  onPickDate?: () => void
 }
 
 const meta = 'inline-flex items-center gap-1 text-muted'
@@ -50,8 +57,23 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
  * has a rust stripe down its left edge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
-export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, selected, onEdit, onToggleDone, index = 0, hideProject = false }: Props) {
+export function TaskCard({
+  task,
+  now,
+  projectsById,
+  tagsById,
+  attachmentCount,
+  selected,
+  onEdit,
+  onToggleDone,
+  index = 0,
+  hideProject = false,
+  onMove,
+  onPickDate,
+}: Props) {
   const overdue = isOverdue(task, now)
+  const titleRef = useRef<HTMLButtonElement>(null)
+  const focusTitle = () => titleRef.current?.focus({ preventScroll: true })
   const done = task.status === 'done'
   const project = task.projectId && !hideProject ? projectsById.get(task.projectId) : undefined
   const checked = task.checklist.filter((c) => c.done).length
@@ -95,7 +117,7 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
           className="task-check mt-px"
         />
       </label>
-      <button onClick={onEdit} data-card-edit className="min-w-0 flex-1 rounded-lg text-left">
+      <button ref={titleRef} onClick={onEdit} data-card-edit className="min-w-0 flex-1 rounded-lg text-left">
         <div
           className={`line-clamp-2 text-[15px] leading-5 font-medium break-words transition-colors duration-200 ${
             done ? 'text-muted line-through decoration-muted/60' : ''
@@ -170,10 +192,29 @@ export function TaskCard({ task, now, projectsById, tagsById, attachmentCount, s
           )}
         </div>
       </button>
-      <ChevronRight
+      {/* Overdue is the one state with an obvious next step, so it gets one: a quick reschedule beside the
+          red date's card, instead of the full editor. Its own button, since the card's text is the edit button. */}
+      {overdue && onMove && (
+        <Menu
+          label={`Move “${task.title}” to…`}
+          title="Move to…"
+          triggerClassName={cn(btn.small, '-my-1 shrink-0 gap-1 font-medium text-muted hover:text-fg')}
+          // Focus goes to the card's title first: once it isn't overdue, this button goes, and focus with
+          // it would drop to the page (the editor would hand it back to a button that's gone, too).
+          entries={[
+            { kind: 'action', label: 'Tomorrow', icon: Sunrise, onSelect: () => (focusTitle(), onMove(1)) },
+            { kind: 'action', label: 'Next week', icon: CalendarRange, onSelect: () => (focusTitle(), onMove(7)) },
+            ...(onPickDate ? [{ kind: 'action' as const, label: 'Pick a date…', icon: CalendarDays, onSelect: () => (focusTitle(), onPickDate()) }] : []),
+          ]}
+        >
+          <CalendarArrowUp className="size-3.5" aria-hidden />
+          Move
+        </Menu>
+      )}
+      {!(overdue && onMove) && <ChevronRight
         className="mt-0.5 size-4 shrink-0 text-muted opacity-0 transition-[opacity,translate] duration-200 group-hover:translate-x-0.5 group-hover:opacity-100 max-sm:hidden"
         aria-hidden
-      />
+      />}
     </AnimatedItem>
   )
 }

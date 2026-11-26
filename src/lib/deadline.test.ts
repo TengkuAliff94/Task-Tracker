@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { describeDeadline, formatDate, formatDateTime, formatDeadline, isOverdue } from './deadline'
+import { describeDeadline, formatDate, formatDateTime, formatDeadline, isOverdue, movedDeadline } from './deadline'
 
 const at = (y: number, m: number, d: number, hh = 0, mm = 0) => new Date(y, m - 1, d, hh, mm)
 
@@ -63,5 +63,19 @@ describe('formatDateTime', () => {
   it('uses DD/MM/YYYY and a 24-hour clock', () => {
     expect(formatDateTime(at(2026, 3, 5, 7, 5))).toBe('Thu 05/03/2026, 07:05')
     expect(formatDateTime(at(2026, 3, 5, 19, 45))).toBe('Thu 05/03/2026, 19:45')
+  })
+})
+
+describe('movedDeadline (#53)', () => {
+  const now = new Date(2026, 2, 31, 22, 15) // Tue 31 Mar, late evening
+
+  it('moves to a day after today, keeping the time of day', () => {
+    expect(movedDeadline({ date: '2026-03-20', time: '07:00' }, 1, now)).toEqual({ date: '2026-04-01', time: '07:00' })
+    expect(movedDeadline({ date: '2026-03-20', time: '07:00' }, 7, now)).toEqual({ date: '2026-04-07', time: '07:00' })
+  })
+
+  it('leaves a date-only deadline date-only, and gives a task with none a date', () => {
+    expect(movedDeadline({ date: '2026-03-20' }, 1, now)).toEqual({ date: '2026-04-01' })
+    expect(movedDeadline(undefined, 1, now)).toEqual({ date: '2026-04-01' })
   })
 })

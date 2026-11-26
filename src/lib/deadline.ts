@@ -66,6 +66,15 @@ export function formatDateTime(at: Date): string {
   return `${weekday.format(at)} ${pad(at.getDate())}/${pad(at.getMonth() + 1)}/${at.getFullYear()}, ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
+/**
+ * A deadline moved to `days` after today (1 = tomorrow, 7 = a week today), keeping its time of day,
+ * for the quick "Move to…" on an overdue card and the T key.
+ */
+export function movedDeadline(d: Deadline | undefined, days: number, now: Date = new Date()): Deadline {
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days)
+  return d?.time ? { date: toDateInput(day), time: d.time } : { date: toDateInput(day) }
+}
+
 /** Local date as YYYY-MM-DD, for <input type="date">. */
 export function toDateInput(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`

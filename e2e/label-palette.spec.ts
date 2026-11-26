@@ -68,7 +68,7 @@ test('the palette closes when focus leaves it, so it never covers the next contr
   await openLabels(page)
   await labelsDialog(page).getByRole('button', { name: 'Color for Home' }).click()
   const group = page.getByRole('radiogroup', { name: 'Color for Home' })
-  await expect(group).toBeVisible()
+  await expect(group.getByRole('radio', { name: 'Sky' })).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(group).toBeHidden()
   await expect(labelsDialog(page)).toBeVisible()

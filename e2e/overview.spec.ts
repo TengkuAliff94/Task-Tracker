@@ -110,7 +110,7 @@ test('a tile left picked when the list empties is dropped, so the next task show
   await expect(app.taskCards()).toHaveCount(1)
 
   // Delete the only task while Overdue is picked: the list empties and the tiles go with it.
-  await app.taskRow('Late task').getByRole('button').click()
+  await app.taskRow('Late task').locator('[data-card-edit]').click()
   await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
   await expect(overview(page)).toHaveCount(0)
 

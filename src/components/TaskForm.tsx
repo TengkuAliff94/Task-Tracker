@@ -43,6 +43,8 @@ interface Props {
   tags: Label[]
   onClose: () => void
   onTrash: (task: Task) => void
+  /** Opens with the deadline's date field focused instead of the title (Move to → Pick a date…). */
+  focusDeadline?: boolean
 }
 
 interface FieldProps {
@@ -71,7 +73,7 @@ type FieldErrors = Partial<Record<'title' | 'effort' | 'date' | 'time' | 'remind
 const invalidProps = (error: string | undefined, errorId: string) =>
   error ? { 'aria-invalid': true as const, 'aria-describedby': errorId } : {}
 
-export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
+export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline = false }: Props) {
   const { ref: dialogRef, close } = useModalDialog()
   const [title, setTitle] = useState(task?.title ?? '')
   const [description, setDescription] = useState(task?.description ?? '')
@@ -124,6 +126,13 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
   const cancelRef = useRef<HTMLButtonElement>(null)
   /** Where focus was when the bar appeared, to go back to on Keep editing. */
   const returnFocus = useRef<HTMLElement | null>(null)
+  // Pick a date… from an overdue card's Move to: the date is what's being changed, so it starts there, selected.
+  useEffect(() => {
+    if (!focusDeadline) return
+    const date = formRef.current?.querySelector<HTMLInputElement>('input[aria-label="Deadline date"]')
+    date?.focus()
+    date?.select()
+  }, [focusDeadline])
   const restoreFocus = useRef(false)
   /** Set just before a close that should go through: Save, Discard, Delete, or a close with nothing changed. */
   const leaving = useRef(false)
@@ -453,7 +462,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash }: Props) {
         <div className="space-y-4 px-6 py-5" onFocus={() => setConfirming(false)}>
           <Field label="Title" error={fieldErrors.title} errorId={errorIds.title}>
             <input
-              autoFocus
+              autoFocus={!focusDeadline}
               required
               value={title}
               onChange={(e) => {

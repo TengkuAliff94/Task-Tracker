@@ -7,7 +7,7 @@ import { projectRepo, tagRepo } from './db/labels'
 import { attachmentRepo } from './db/attachments'
 import { applyFilters, EMPTY_FILTERS, hasActiveFilters, matchesScope, withoutMissingLabels, type Filters, type Scope } from './lib/filter'
 import { groupTasks, sortTasks, type GroupKey, type SortKey } from './lib/sort'
-import { formatDeadline } from './lib/deadline'
+import { formatDeadline, movedDeadline } from './lib/deadline'
 import { QUICK_ADD_EXAMPLE } from './lib/quickAdd'
 import { describeSaveError } from './lib/utils'
 import { useNow } from './hooks/useNow'
@@ -144,9 +144,9 @@ function ListEmpty({
 }
 
 /** "Next due tomorrow 09:00". The relative label sits mid-sentence, so it starts lower case. */
-function nextDueLabel(deadline: Deadline): string {
+function nextDueLabel(deadline: Deadline, lead = 'Next due'): string {
   const when = formatDeadline(deadline, new Date())
-  return `Next due ${when.charAt(0).toLowerCase()}${when.slice(1)}`
+  return `${lead} ${when.charAt(0).toLowerCase()}${when.slice(1)}`
 }
 
 /** The Overview tiles' names, for a toast that says which one hides a task. */
@@ -173,7 +173,7 @@ function toastTitle(title: string): string {
   return `${cut.join('').trimEnd()}…`
 }
 
-type Editing = { mode: 'create' } | { mode: 'edit'; task: Task } | null
+type Editing = { mode: 'create' } | { mode: 'edit'; task: Task; focusDeadline?: boolean } | null
 type Modal = 'labels' | 'backup' | 'shortcuts' | null
 
 const focusById = (id: string) => {
@@ -359,6 +359,35 @@ export default function App() {
         label: 'Undo',
         run: () =>
           void taskRepo.restore(task.id).catch((err) => showSaveError(`“${toastTitle(task.title)}” couldn’t be restored.`, err)),
+      },
+    })
+  }
+
+  /**
+   * Moves a task's deadline to `days` after today, keeping its time (an overdue card's Move to, or T).
+   * A toast says where it went and offers Undo, which puts the old deadline back.
+   */
+  async function moveTask(task: Task, days: number) {
+    const title = toastTitle(task.title)
+    const deadline = movedDeadline(task.deadline, days, now)
+    // Already there (T pressed twice): nothing to save, and the toast that can undo the first move stays.
+    if (task.deadline?.date === deadline.date && task.deadline?.time === deadline.time) return
+    try {
+      await taskRepo.update(task.id, { deadline })
+    } catch (err) {
+      showSaveError(`“${title}” couldn’t be moved.`, err)
+      return
+    }
+    showToast({
+      // One per task, so moving another task doesn't take away this one's Undo.
+      slot: `move:${task.id}`,
+      taskId: task.id,
+      message: `“${title}” moved to ${days === 1 ? 'tomorrow' : days === 7 ? 'next week' : `${days} days from now`}`,
+      detail: nextDueLabel(deadline, 'Now due'),
+      action: {
+        label: 'Undo',
+        run: () =>
+          void taskRepo.update(task.id, { deadline: task.deadline }).catch((err) => showSaveError(`“${title}” couldn’t be moved back.`, err)),
       },
     })
   }
@@ -561,6 +590,8 @@ export default function App() {
           k: () => moveSelection(-1),
           e: () => selected && openTask(selected),
           x: (e) => !e.repeat && selected && toggleDone(selected),
+          // To tomorrow, at the same time: the quick way out of overdue. Undo is in the toast (and Z).
+          t: (e) => !e.repeat && selected && selected.status !== 'done' && void moveTask(selected, 1),
           // Undo is in the toast (and Z), so no question first; a held key doesn't trash the next card too.
           Delete: (e) => !e.repeat && selected && void trashTask(selected),
           z: undoLatest,
@@ -733,6 +764,11 @@ export default function App() {
                           attachmentCount={attachmentCounts?.get(task.id) ?? 0}
                           selected={task.id === selectedId}
                           hideProject={group === 'project'}
+                          onMove={(days) => void moveTask(task, days)}
+                          onPickDate={() => {
+                            setSelectedId(task.id)
+                            setEditing({ mode: 'edit', task, focusDeadline: true })
+                          }}
                           onEdit={() => {
                             setSelectedId(task.id)
                             setEditing({ mode: 'edit', task })
@@ -795,6 +831,7 @@ export default function App() {
           tags={tags}
           onClose={() => setEditing(null)}
           onTrash={trashTask}
+          focusDeadline={editing.mode === 'edit' && editing.focusDeadline}
         />
       )}
       {modal === 'labels' && <LabelManager projects={projects} tags={tags} onClose={() => setModal(null)} />}
