@@ -35,7 +35,7 @@ const select =
   'h-9 w-full min-w-0 rounded-lg border border-transparent bg-subtle px-2.5 text-sm text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-muted hover:border-line-strong focus:border-ring focus:shadow-[0_0_0_3px_var(--primary-soft)]'
 
 /** The 32px pill shared by the filter toggles, the active-filter chips and Clear filters. */
-const pill = 'inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200'
+const pillClass = 'inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200'
 
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
@@ -62,7 +62,7 @@ interface PillProps {
 function Pill({ active, onClick, children, activeTone = panel.brand, color }: PillProps) {
   const tone = !active ? `bg-subtle text-fg/80 ${hoverHighlight}` : color ? labelPressed : activeTone
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className={`${pill} ${tone}`} style={active && color ? labelTint(color, 22) : undefined}>
+    <button type="button" onClick={onClick} aria-pressed={active} className={`${pillClass} ${tone}`} style={active && color ? labelTint(color, 22) : undefined}>
       {color && <span className="size-2 rounded-full" style={{ backgroundColor: color }} aria-hidden />}
       {children}
     </button>
@@ -92,7 +92,7 @@ function Chip({ chip, onRemove }: { chip: FilterChip; onRemove: () => void }) {
       data-chip
       onClick={onRemove}
       aria-label={`Remove ${chip.label} filter`}
-      className={`${pill} pr-2.5 hover:shadow-pop ${className}`}
+      className={`${pillClass} pr-2.5 hover:shadow-pop ${className}`}
       style={color ? labelTint(color, 22) : undefined}
     >
       {color && <span className="size-2 rounded-full" style={{ backgroundColor: color }} aria-hidden />}
@@ -117,6 +117,123 @@ function Cluster({ label, children }: { label: string; children: ReactNode }) {
       </span>
       <div className="flex flex-wrap items-center gap-1.5">{children}</div>
     </div>
+  )
+}
+
+/**
+ * One of the panel's two jobs, named: "Show" narrows what lists, "Arrange" orders what lists. The
+ * title is body-sized semibold ink, a step above the Field Labels it holds.
+ */
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  const id = useId()
+  return (
+    <section aria-labelledby={id} data-filter-section={title} className="space-y-3">
+      <h2 id={id} className="text-sm font-semibold text-fg">
+        {title}
+      </h2>
+      {children}
+    </section>
+  )
+}
+
+/** Tags shown before the rest fold behind "N more": past this, the cluster becomes a wall. */
+export const TAG_LIMIT = 4
+
+/**
+ * The Tags cluster, bounded. Up to TAG_LIMIT + 1 tags show as pills; past that, the picked ones
+ * and the first few show, and "N more" opens a search over all of them, so a long tag list never
+ * buries the panel. A picked tag is always in view.
+ */
+function TagCluster({ tags, picked, onToggle }: { tags: Label[]; picked: string[]; onToggle: (id: string) => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const [query, setQuery] = useState('')
+  const findRef = useRef<HTMLInputElement>(null)
+  const moreRef = useRef<HTMLButtonElement>(null)
+  const folds = tags.length > TAG_LIMIT + 1
+  const pill = (t: Label) => (
+    <Pill key={t.id} color={t.color} active={picked.includes(t.id)} onClick={() => onToggle(t.id)}>
+      #{t.name}
+    </Pill>
+  )
+
+  /** Set when the search folds away, so focus lands on "N more" rather than the page. */
+  const refocusMore = useRef(false)
+  useEffect(() => {
+    if (expanded) findRef.current?.focus()
+    else if (refocusMore.current) moreRef.current?.focus()
+    refocusMore.current = false
+  }, [expanded])
+  const collapse = () => {
+    refocusMore.current = true
+    setExpanded(false)
+    setQuery('')
+  }
+
+  if (!folds) return <Cluster label="Tags">{tags.map(pill)}</Cluster>
+
+  if (!expanded) {
+    const shown = [...tags.filter((t) => picked.includes(t.id)), ...tags.filter((t) => !picked.includes(t.id))].slice(
+      0,
+      Math.max(TAG_LIMIT, picked.length),
+    )
+    const order = new Set(shown.map((t) => t.id))
+    const rest = tags.length - shown.length
+    return (
+      <Cluster label="Tags">
+        {tags.filter((t) => order.has(t.id)).map(pill)}
+        {rest > 0 && (
+        <button
+          ref={moreRef}
+          type="button"
+          data-tags-more
+          aria-expanded={false}
+          onClick={() => setExpanded(true)}
+          className={`${pillClass} text-fg ${hoverHighlight}`}
+        >
+          {rest} more
+          <span className="sr-only"> tags</span>
+        </button>
+        )}
+      </Cluster>
+    )
+  }
+
+  const q = query.trim().toLowerCase().replace(/^#/, '')
+  const matches = q ? tags.filter((t) => t.name.toLowerCase().includes(q)) : tags
+  return (
+    <Cluster label="Tags">
+      <div className="relative w-full sm:w-56">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted" aria-hidden />
+        <input
+          ref={findRef}
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Escape') return
+            e.stopPropagation()
+            collapse()
+          }}
+          placeholder="Find a tag…"
+          aria-label="Find a tag"
+          className={`${select} h-8 pl-8 [&::-webkit-search-cancel-button]:hidden`}
+        />
+      </div>
+      {matches.map(pill)}
+      {matches.length === 0 && (
+        <p role="status" className="text-xs text-muted">
+          No tag matches “{query.trim()}”.
+        </p>
+      )}
+      <button
+        type="button"
+        aria-expanded
+        onClick={collapse}
+        className={`${pillClass} text-fg ${hoverHighlight}`}
+      >
+        Fewer tags
+      </button>
+    </Cluster>
   )
 }
 
@@ -186,7 +303,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
   // Not for a picked tile alone: the tile shows the pick and unpicks itself, so a lone Clear filters
   // would only repeat it. With a search or a chip it clears the tile too.
   const clearButton = Boolean(f.query.trim() || chips.length) && (
-    <button type="button" data-clear onClick={clear} className={`${pill} text-fg ${hoverHighlight}`}>
+    <button type="button" data-clear onClick={clear} className={`${pillClass} text-fg ${hoverHighlight}`}>
       Clear filters
     </button>
   )
@@ -253,69 +370,66 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
       {/* Always in the DOM so the toggle's aria-controls points at something; filled only while open. */}
       <div id={panelId} hidden={!open}>
         {open && (
-          <Reveal className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-x-2 gap-y-3 sm:grid-cols-3">
-              <Field label="Project" className="col-span-2 sm:col-span-1">
-                <select aria-label="Filter by project" value={f.projectId ?? ''} onChange={(e) => set({ projectId: e.target.value || undefined })} className={select}>
-                  <option value="">All projects</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                  <option value={NO_PROJECT}>No project</option>
-                </select>
-              </Field>
-              <Field label="Sort by">
-                <select value={sort} onChange={(e) => onSort(e.target.value as SortKey)} className={select}>
-                  {Object.entries(SORT_LABEL).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Group by">
-                <select value={group} onChange={(e) => onGroup(e.target.value as GroupKey)} className={select}>
-                  {Object.entries(GROUP_LABEL).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-
-            {/* Stacked on phones (each name in its own column); from sm, side by side and wrapping, 16px apart. */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-4">
-              <Cluster label="Priority">
-                {PRIORITIES.map((p) => (
-                  <Pill key={p} activeTone={PRIORITY_TONE[p].pressed} active={f.priorities.includes(p)} onClick={() => set({ priorities: toggle(f.priorities, p) })}>
-                    <PriorityGlyph priority={p} />
-                    {PRIORITY_LABEL[p]}
-                  </Pill>
-                ))}
-              </Cluster>
-              <Cluster label="Status">
-                {OPEN_STATUSES.map((s) => (
-                  <Pill key={s} activeTone={STATUS_PANEL[s]} active={f.statuses.includes(s)} onClick={() => set({ statuses: toggle(f.statuses, s) })}>
-                    {STATUS_LABEL[s]}
-                  </Pill>
-                ))}
-              </Cluster>
-              {tags.length > 0 && (
-                <Cluster label="Tags">
-                  {tags.map((t) => (
-                    <Pill key={t.id} color={t.color} active={f.tagIds.includes(t.id)} onClick={() => set({ tagIds: toggle(f.tagIds, t.id) })}>
-                      #{t.name}
+          // Show above Arrange; from lg, Arrange is a narrow column beside Show, so the panel stays short.
+          <Reveal className="mt-4 flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] lg:items-start lg:gap-8">
+            <Section title="Show">
+              {/* Stacked on phones (each name in its own column); from sm, side by side and wrapping, 16px apart. */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-x-4">
+                <Field label="Project" className="sm:w-48">
+                  <select aria-label="Filter by project" value={f.projectId ?? ''} onChange={(e) => set({ projectId: e.target.value || undefined })} className={select}>
+                    <option value="">All projects</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                    <option value={NO_PROJECT}>No project</option>
+                  </select>
+                </Field>
+                <Cluster label="Priority">
+                  {PRIORITIES.map((p) => (
+                    <Pill key={p} activeTone={PRIORITY_TONE[p].pressed} active={f.priorities.includes(p)} onClick={() => set({ priorities: toggle(f.priorities, p) })}>
+                      <PriorityGlyph priority={p} />
+                      {PRIORITY_LABEL[p]}
                     </Pill>
                   ))}
                 </Cluster>
-              )}
-            </div>
+                <Cluster label="Status">
+                  {OPEN_STATUSES.map((s) => (
+                    <Pill key={s} activeTone={STATUS_PANEL[s]} active={f.statuses.includes(s)} onClick={() => set({ statuses: toggle(f.statuses, s) })}>
+                      {STATUS_LABEL[s]}
+                    </Pill>
+                  ))}
+                </Cluster>
+                {tags.length > 0 && <TagCluster tags={tags} picked={f.tagIds} onToggle={(id) => set({ tagIds: toggle(f.tagIds, id) })} />}
+              </div>
 
-            <div className="flex min-h-8 items-center justify-between gap-3 text-sm text-muted">
-              <label className="flex items-center gap-2 font-medium tabular-nums">
-                {/* Ticked whenever done tasks list, including while the Completed tile is picked (see showsCompleted). */}
-                <input type="checkbox" checked={showsCompleted(f)} onChange={(e) => onFilters(withShowCompleted(f, e.target.checked))} className="box-check" />
-                Show completed ({doneCount})
-              </label>
-              {clearButton}
-            </div>
+              <div className="flex min-h-8 items-center justify-between gap-3 text-sm text-muted">
+                <label className="flex items-center gap-2 font-medium tabular-nums">
+                  {/* Ticked whenever done tasks list, including while the Completed tile is picked (see showsCompleted). */}
+                  <input type="checkbox" checked={showsCompleted(f)} onChange={(e) => onFilters(withShowCompleted(f, e.target.checked))} className="box-check" />
+                  Show completed ({doneCount})
+                </label>
+                {clearButton}
+              </div>
+            </Section>
+
+            <Section title="Arrange">
+              <div className="grid grid-cols-2 gap-x-2 sm:max-w-md">
+                <Field label="Sort by">
+                  <select value={sort} onChange={(e) => onSort(e.target.value as SortKey)} className={select}>
+                    {Object.entries(SORT_LABEL).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Group by">
+                  <select value={group} onChange={(e) => onGroup(e.target.value as GroupKey)} className={select}>
+                    {Object.entries(GROUP_LABEL).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            </Section>
           </Reveal>
         )}
       </div>

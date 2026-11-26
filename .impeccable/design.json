@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T02:57:37Z",
+  "generatedAt": "2026-11-26T04:44:37Z",
   "title": "Design System: Task Tracker",
   "extensions": {
     "colorMeta": {
@@ -471,7 +471,7 @@
       "name": "Filter Chip",
       "kind": "chip",
       "refersTo": "filter-chip",
-      "description": "Pill toggle inside the open filter panel: idle in Well Stone, mustard on hover. Pressed takes its own colour and keeps it under the pointer: the status panel, a label tint, or ink for a priority (Urgent rust). Priority pills carry the priority glyph before the word. The status pills are To Do and In Progress only; “Show completed” alone admits done tasks.",
+      "description": "Pill toggle inside the open filter panel: idle in Well Stone, mustard on hover. Pressed takes its own colour and keeps it under the pointer: the status panel, a label tint, or ink for a priority (Urgent rust). Priority pills carry the priority glyph before the word. The status pills are To Do and In Progress only; “Show completed” alone admits done tasks. The pills live in the panel’s Show section (Arrange holds Sort by and Group by); past five tags, the rest fold behind an “N more” pill that opens a Find a tag search.",
       "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"false\"><svg class=\"ds-pglyph\" width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" aria-hidden=\"true\"><rect x=\"0\" y=\"9\" width=\"2\" height=\"3\" rx=\"0.5\" fill=\"currentColor\"/><rect x=\"3\" y=\"6\" width=\"2\" height=\"6\" rx=\"0.5\" fill=\"currentColor\" opacity=\"0.3\"/><rect x=\"6\" y=\"3\" width=\"2\" height=\"9\" rx=\"0.5\" fill=\"currentColor\" opacity=\"0.3\"/><rect x=\"9\" y=\"0\" width=\"2\" height=\"12\" rx=\"0.5\" fill=\"currentColor\" opacity=\"0.3\"/></svg>Low</button><button class=\"ds-chip ds-chip-active\" aria-pressed=\"true\"><svg class=\"ds-pglyph\" width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" aria-hidden=\"true\"><rect x=\"0\" y=\"9\" width=\"2\" height=\"3\" rx=\"0.5\" fill=\"currentColor\"/><rect x=\"3\" y=\"6\" width=\"2\" height=\"6\" rx=\"0.5\" fill=\"currentColor\"/><rect x=\"6\" y=\"3\" width=\"2\" height=\"9\" rx=\"0.5\" fill=\"currentColor\"/><rect x=\"9\" y=\"0\" width=\"2\" height=\"12\" rx=\"0.5\" fill=\"currentColor\" opacity=\"0.3\"/></svg>High</button></div>",
       "css": ".ds-chips{display:flex;gap:6px;flex-wrap:wrap;}.ds-chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:0;border-radius:9999px;font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:12px;font-weight:600;background:var(--subtle,#ebe5df);color:color-mix(in srgb,var(--fg,#141110) 80%,transparent);cursor:pointer;transition:background-color 200ms,color 200ms;}.ds-chip:not(.ds-chip-active):hover{background:var(--panel-mustard,#e3b867);color:var(--on-panel-mustard,#141110);}.ds-chip-active{background:var(--fg,#141110);color:var(--bg,#f4f1ee);}.ds-pglyph{flex-shrink:0;}.ds-chip:focus-visible{outline:2px solid var(--ring,#141110);outline-offset:2px;box-shadow:0 0 0 2px var(--bg,#f4f1ee);}"
     },
