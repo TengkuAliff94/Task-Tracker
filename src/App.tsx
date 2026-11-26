@@ -149,6 +149,9 @@ function nextDueLabel(deadline: Deadline): string {
   return `Next due ${when.charAt(0).toLowerCase()}${when.slice(1)}`
 }
 
+/** The Overview tiles' names, for a toast that says which one hides a task. */
+const SCOPE_TILE: Record<Scope, string> = { overdue: 'Overdue', today: 'Due today', open: 'Open', done: 'Completed' }
+
 /** Completion toasts share one slot: in a quick J/X run, only the latest stays on screen. */
 const COMPLETION_SLOT = 'completion'
 
@@ -307,7 +310,7 @@ export default function App() {
       setToasts((prev) => [...prev.filter((p) => !t.slot || p.slot !== t.slot), { ...t, id }])
       // A failure announces itself (role="alert"). Z only means something with a keyboard to hand.
       if (!t.urgent) {
-        const shortcut = t.action && window.matchMedia('(pointer: fine)').matches ? 'z' : undefined
+        const shortcut = t.action && !t.noKeyHint && window.matchMedia('(pointer: fine)').matches ? 'z' : undefined
         setAnnouncement({ id, text: toastAnnouncement({ ...t, id }, shortcut) })
       }
     },
@@ -567,6 +570,52 @@ export default function App() {
       : { z: undoLatest, '?': () => setModal('shortcuts'), Escape: () => setView('tasks') },
   )
 
+  /**
+   * A quick add never vanishes unsaid. Once the new task reaches the list (the live query lags the
+   * write), it's either in view, so it becomes the selection and a screen reader hears it was added,
+   * or the picked tile or a filter hides it, so a toast says so and offers Show it.
+   */
+  const [justAdded, setJustAdded] = useState<string | null>(null)
+  /** A task Show it brought back: focused and scrolled to once it's listed. */
+  const [revealId, setRevealId] = useState<string | null>(null)
+  useEffect(() => {
+    const task = justAdded ? tasks?.find((t) => t.id === justAdded) : undefined
+    if (!task) return
+    setJustAdded(null)
+    const title = toastTitle(task.title)
+    if (visible.some((t) => t.id === task.id)) {
+      setSelectedId(task.id)
+      setAnnouncement({ id: crypto.randomUUID(), text: `Added “${title}”.` })
+      return
+    }
+    showToast({
+      slot: 'quick-add',
+      taskId: task.id,
+      message: `Added “${title}”`,
+      // A picked tile alone isn't what people call a filter, so it's named.
+      detail:
+        filters.scope && !hasActiveFilters({ ...filters, scope: undefined })
+          ? `Hidden by the ${SCOPE_TILE[filters.scope]} tile.`
+          : 'Hidden by your filters.',
+      // Focus is still in the quick-add field, where Z types a "z", so the announcement doesn't offer it.
+      noKeyHint: true,
+      action: {
+        label: 'Show it',
+        run: () => {
+          setView('tasks')
+          setFilters((f) => ({ ...EMPTY_FILTERS, showCompleted: f.showCompleted }))
+          setSelectedId(task.id)
+          setRevealId(task.id)
+        },
+      },
+    })
+  }, [justAdded, tasks, visible, filters, showToast])
+  useEffect(() => {
+    if (!revealId || !ordered.some((t) => t.id === revealId)) return
+    setRevealId(null)
+    if (focusCard(revealId, 'edit')) document.querySelector(`[data-task-id="${CSS.escape(revealId)}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [revealId, ordered])
+
   const liveAlerts = alerts.filter((a) => !a.missed)
   const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -611,7 +660,7 @@ export default function App() {
 
           <div className="flex flex-col gap-3">
             <Reveal index={hasTasks ? 1 + OVERVIEW_TILE_COUNT : 1}>
-              <QuickAdd ref={quickAdd} projects={projects} tags={tags} />
+              <QuickAdd ref={quickAdd} projects={projects} tags={tags} onAdded={(t) => setJustAdded(t.id)} />
             </Reveal>
             {/* Nothing to filter yet on an empty list, so the empty state's way out stays in view. */}
             {hasTasks && (

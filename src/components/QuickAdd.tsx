@@ -16,7 +16,7 @@ import { projectRepo, tagRepo } from '../db/labels'
 import { parseQuickAdd, QUICK_ADD_EXAMPLE } from '../lib/quickAdd'
 import { formatDeadline } from '../lib/deadline'
 import { formatEffort } from '../lib/effort'
-import { PRIORITY_LABEL, type Label } from '../types'
+import { PRIORITY_LABEL, type Label, type Task } from '../types'
 
 /**
  * One recognised token in the preview. It pops in when the parser first picks it up; the key
@@ -68,7 +68,18 @@ export interface QuickAddHandle {
   fill: (text: string) => void
 }
 
-export function QuickAdd({ projects, tags: knownTags, ref }: { projects: Label[]; tags: Label[]; ref?: Ref<QuickAddHandle> }) {
+export function QuickAdd({
+  projects,
+  tags: knownTags,
+  onAdded,
+  ref,
+}: {
+  projects: Label[]
+  tags: Label[]
+  /** Hears about each task added, so the page can say where it went (or that the filters hide it). */
+  onAdded?: (task: Task) => void
+  ref?: Ref<QuickAddHandle>
+}) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
@@ -114,7 +125,7 @@ export function QuickAdd({ projects, tags: knownTags, ref }: { projects: Label[]
       if (!parsed.title) throw new Error('Add a title as well as the #tags, @project or date')
       const project = parsed.projectName ? await projectRepo.findOrCreate(parsed.projectName) : undefined
       const tags = await Promise.all(parsed.tagNames.map((n) => tagRepo.findOrCreate(n)))
-      await taskRepo.create({
+      const task = await taskRepo.create({
         title: parsed.title,
         priority: parsed.priority,
         deadline: parsed.deadline,
@@ -124,6 +135,7 @@ export function QuickAdd({ projects, tags: knownTags, ref }: { projects: Label[]
       })
       setText('')
       setError(null)
+      onAdded?.(task)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     }

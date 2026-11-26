@@ -19,6 +19,7 @@ async function addTasks(app: App, ...titles: string[]) {
   for (const t of titles) await app.quickAdd(t)
   await expect(app.taskCards()).toHaveCount(titles.length)
   await app.quickAddInput.blur() // so J, K, X and Z reach the shortcuts, not the field
+  await app.page.keyboard.press('Escape') // the last add is selected (#51); start J from the top
 }
 
 /** The fixture pins today to Tuesday 10 March 2026. */

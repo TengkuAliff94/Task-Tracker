@@ -19,6 +19,8 @@ export interface ToastData {
   urgent?: boolean
   /** Not a failure, but it stays until dismissed: its action is still good long after 6 seconds (Undo restore). */
   sticky?: boolean
+  /** Its announcement doesn't offer the Z key, because focus is somewhere Z would be typed (quick add). */
+  noKeyHint?: boolean
 }
 
 const AUTO_DISMISS_MS = 6000
