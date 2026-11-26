@@ -41,6 +41,6 @@ test('grouped by priority, cards leave out the priority badge the heading alread
   await page.getByLabel('Group by').selectOption({ label: 'Priority' })
   await expect(page.getByRole('list', { name: /^High tasks$/ })).toBeVisible()
   await expect(page.locator('[data-task-id] [data-priority]')).toHaveCount(0)
-  // Urgent keeps its stripe: that's a different mark.
-  await expect(app.taskRow('Renew car insurance').locator('[data-priority-stripe]')).toHaveCount(1)
+  // No stripe stands in for the badge (#61): the group tab says it.
+  await expect(app.taskRow('Renew car insurance').locator('[data-priority-stripe]')).toHaveCount(0)
 })

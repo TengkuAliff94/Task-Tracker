@@ -1,5 +1,5 @@
 // Colour means time and state, so each panel hue has one job (re-critique P2, #31).
-// Priority is a glyph and a word, not a colour; only Urgent keeps a hue (rust).
+// Priority is a glyph and a word, not a colour; Urgent is ink (#61), so red means overdue alone.
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 
@@ -40,17 +40,17 @@ for (const colorScheme of ['light', 'dark'] as const) {
       }
       const urgent = app.taskRow('Renew car insurance').locator('[data-priority="urgent"]')
       await expect(urgent.locator('[data-priority-glyph="4"]')).toHaveCount(1)
-      expect(await bgOf(urgent)).toBe(await tokenColour(page, '--panel-rust'))
+      expect(await bgOf(urgent)).toBe(await tokenColour(page, '--fg'))
     })
 
-    test('only Urgent cards carry a stripe, in rust (High has none, #40)', async ({ app, page }) => {
+    test('no card carries a priority stripe (High since #40, Urgent since #61)', async ({ app, page }) => {
       await app.loadSampleData()
       await expect(app.taskRow('Reply to recruiter email').locator('[data-priority-stripe]')).toHaveCount(0)
       await expect(app.taskRow('Grocery run').locator('[data-priority-stripe]')).toHaveCount(0)
       // High keeps its glyph and word; an ink stripe would read as the selection marker.
       await expect(app.taskRow('Pay rent').locator('[data-priority-stripe]')).toHaveCount(0)
       await expect(app.taskRow('Pay rent').locator('[data-priority="high"] [data-priority-glyph="3"]')).toHaveCount(1)
-      expect(await bgOf(app.taskRow('Renew car insurance').locator('[data-priority-stripe]'))).toBe(await tokenColour(page, '--panel-rust'))
+      await expect(app.taskRow('Renew car insurance').locator('[data-priority-stripe]')).toHaveCount(0)
     })
 
     test('a pressed priority filter is ink, not the Due today mustard', async ({ app, page }) => {

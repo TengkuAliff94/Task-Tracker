@@ -57,7 +57,7 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
 
 /**
  * One task as a card in an `AnimatedList`. Each kind of mark has its own form: an Urgent task
- * has a rust stripe down its left edge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
+ * has an ink priority badge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
 export function TaskCard({
@@ -96,7 +96,7 @@ export function TaskCard({
         selected ? 'shadow-pop' : 'shadow-card'
       } ${overdue ? ALERT_OUTLINE : ''}`}
     >
-      {/* Selection's own form, outside the card so it never meets the stripe or the outline: a short
+      {/* Selection's own form, outside the card so it never meets the outline: a short
           ink bar in the gutter, 7px out, so on two columns it sits nearer its card than the neighbour. */}
       <span
         aria-hidden
@@ -105,12 +105,6 @@ export function TaskCard({
           selected ? 'opacity-100' : 'scale-y-0 opacity-0'
         }`}
       />
-      {PRIORITY_TONE[task.priority].stripe && (
-        // Clipped to the card's rounded corners by its own layer; the card itself doesn't clip, or the marker would go.
-        <span aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-          <span data-priority-stripe className={`absolute inset-y-0 left-0 w-1.5 ${PRIORITY_TONE[task.priority].stripe}`} />
-        </span>
-      )}
       {/* The label pads the 20px circle out to a 44px touch target without moving it. */}
       <label className="-m-3 grid shrink-0 p-3">
         <input

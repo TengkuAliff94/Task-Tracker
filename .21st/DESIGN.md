@@ -57,8 +57,6 @@ Generated from project sources at 2026-11-08T14:57:30.792Z.
 - `--color-on-panel-mustard`: `var(--on-panel-mustard)` (src/index.css)
 - `--color-panel-maroon`: `var(--panel-maroon)` (src/index.css)
 - `--color-on-panel-maroon`: `var(--on-panel-maroon)` (src/index.css)
-- `--color-panel-rust`: `var(--panel-rust)` (src/index.css)
-- `--color-on-panel-rust`: `var(--on-panel-rust)` (src/index.css)
 - `--color-panel-violet`: `var(--panel-violet)` (src/index.css)
 - `--color-on-panel-violet`: `var(--on-panel-violet)` (src/index.css)
 - `--color-panel-sage`: `var(--panel-sage)` (src/index.css)
@@ -100,11 +98,11 @@ Generated from project sources at 2026-11-08T14:57:30.792Z.
 ### Must
 
 - Direction (issue #9): card-style, colour-panel UI inspired by the 21st.dev Sill template. Dark follows Sill (canvas #0b0a0a, off-white text, saturated panels); light inverts it (warm off-white canvas, near-black text) with the same panels
-- Panel palette (same in both themes; panel / on-panel text): orange #cf6224 / #141110, mustard #e3b867 / #141110, maroon #6e1116 / #f4f1ee, rust #9b3418 / #f4f1ee, violet #5a3cd4 / #f4f1ee, sage #80a89b / #141110, taupe #bca59d / #141110, mauve #a97d9c / #141110
+- Panel palette (same in both themes; panel / on-panel text): orange #cf6224 / #141110, mustard #e3b867 / #141110, maroon #6e1116 / #f4f1ee, violet #5a3cd4 / #f4f1ee, sage #80a89b / #141110, taupe #bca59d / #141110, mauve #a97d9c / #141110
 - Canvas and text tokens, light / dark: bg #f4f1ee / #0b0a0a, surface #fbfaf8 / #171413, raised #ffffff / #1f1b19, subtle #ebe5df / #26211f, fg #141110 / #f4f1ee, muted #5c534d / #b0a69e, primary #a3440f / #ec7a3a, danger #b42318 / #f27a8f; focus ring is var(--fg) with a var(--bg) halo
 - Motion dial is Expressive (Motion for React only): panels slide in, cards reveal, numbers count up, cards lift, completion bursts, reorders glide, dialogs and toasts spring; all of it with the reduced-motion guarantee below
 - Reuse the shared primitives before adding new ones: ui.ts class strings and panels, motion/presets.ts, Reveal, CountUp, AnimatedList/AnimatedItem, EmptyState, Dialog, Toast
-- Use the Sill panel palette tokens (panel-orange/mustard/maroon/rust/violet/sage/taupe/mauve) with their paired on-panel text tokens; every pairing meets 4.5:1 (3:1 for large display text) in both themes
+- Use the Sill panel palette tokens (panel-orange/mustard/maroon/violet/sage/taupe/mauve) with their paired on-panel text tokens; every pairing meets 4.5:1 (3:1 for large display text) in both themes
 - Anything that carries meaning by colour (stats, priority, status) uses a panel from ui.ts, never a raw hue
 - User-picked project and tag colours show as a tint, dot and ring with body-coloured text, never as text colour
 - Headings and big numbers in Gabarito (font-display, extra-bold); body text in Inter; both self-hosted via fontsource, no CDN

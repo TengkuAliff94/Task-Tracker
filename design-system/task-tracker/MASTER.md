@@ -45,7 +45,6 @@ WCAG AA (4.5:1). Where Sill's own pairing failed, the text colour was changed.
 | Orange | `#cf6224` | `#141110` | 4.9:1 | `brand`: primary emphasis, heading panel, New task |
 | Mustard | `#e3b867` | `#141110` | 10.1:1 | `warning`: due today, high priority, Sill hover |
 | Maroon | `#6e1116` | `#f4f1ee` | 10.6:1 | `critical`: Overdue |
-| Rust | `#9b3418` | `#f4f1ee` | 6.4:1 | `danger`: urgent priority, Trash count |
 | Violet | `#5a3cd4` | `#f4f1ee` | 6.2:1 | `info`: open, in progress, toasts, backup reminder |
 | Sage | `#80a89b` | `#141110` | 7.2:1 | `calm`: completed, medium priority |
 | Taupe | `#bca59d` | `#141110` | 8.1:1 | `neutral`: low priority, to do, Trash stripe |
@@ -58,7 +57,7 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 
 - Overview tiles, most urgent first, each a filter: Overdue → maroon (taupe at zero), Due today → mustard (taupe at zero), Open → violet, Completed → sage.
 - Colour means time and state, one job per hue (DESIGN.md, the One Job Rule).
-- `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well, pressed pills are ink (`panel.ink`), and only Urgent cards get a stripe (rust). High has none, so the selection marker is the only ink bar on a card (#40). Urgent alone keeps a hue: rust.
+- `PRIORITY_TONE`: priority is `PriorityGlyph` plus its word, not a colour. Badges and group tabs are a Well Stone well (Urgent: `panel.urgent`, ink), pressed pills are ink (`panel.ink`), and no card has a priority stripe, so the selection marker is the only ink bar (#40) and red means overdue alone (#61). The Trash count is ink too.
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
 - `panel.ink` (fg on canvas): toasts, Back up now, pressed priority pills. The backup reminder itself is a neutral surface panel.
 - Overdue: an outline in `--alert-outline` (`ALERT_OUTLINE`) and the deadline, both in `--danger` (#b42318 by day, rose at night). The Overdue tile is maroon.
@@ -118,7 +117,7 @@ Reuse these before building anything new.
 | Dialog | `Dialog` / `useModalDialog` on native `<dialog>`, with `DialogTitleBar` |
 | Toast | `ToastPanel` inside `AnimatePresence` |
 | Empty state | `EmptyState`: a big panel named by its title, with a floating icon tile |
-| Task | `TaskCard`: an Urgent stripe on the left edge, badges, metadata chips |
+| Task | `TaskCard`: badges (Urgent ink), metadata chips |
 | Group heading | `GroupHeading`: a coloured tab with a count |
 | Labels | `LabelChip` |
 | Selection | Cards: the margin marker and lift (`TaskCard`). Overview tiles: `SELECTED_OUTLINE` plus the check |

@@ -6,7 +6,7 @@ import { PriorityGlyph } from './PriorityGlyph'
 
 /**
  * A group's heading as a tab with its task count. Status groups take their panel colour; priority
- * groups are a neutral tab with the priority's glyph (Urgent in rust); project groups take the project's own colour as a dot and tint (the text stays in
+ * groups are a neutral tab with the priority's glyph (Urgent in ink); project groups take the project's own colour as a dot and tint (the text stays in
  * the body colour so any colour the user picked stays readable).
  */
 export function GroupHeading({ by, group }: { by: GroupKey; group: TaskGroup }) {

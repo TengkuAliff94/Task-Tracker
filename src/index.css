@@ -27,8 +27,6 @@
   --on-panel-mustard: #141110; /* 10.1:1 */
   --panel-maroon: #6e1116;
   --on-panel-maroon: #f4f1ee; /* 10.6:1 */
-  --panel-rust: #9b3418;
-  --on-panel-rust: #f4f1ee; /* 6.4:1 */
   --panel-violet: #5a3cd4;
   --on-panel-violet: #f4f1ee; /* 6.2:1 */
   --panel-sage: #80a89b;
@@ -55,8 +53,6 @@
   --primary-hover: #8a390c;
   --primary-soft: #a3440f14;
   --on-primary: #ffffff; /* 6.2:1 */
-  --accent: var(--panel-rust);
-  --on-accent: var(--on-panel-rust);
   --danger: #b42318; /* 5.3:1 on subtle */
   --danger-hover: #971d14;
   --on-danger: #ffffff; /* 6.6:1, the solid button in a confirmation */
@@ -93,8 +89,6 @@
   --primary-hover: #f28f55;
   --primary-soft: #ec7a3a1f;
   --on-primary: #0b0a0a; /* 7.0:1 */
-  --accent: var(--panel-mustard);
-  --on-accent: var(--on-panel-mustard);
   /* Rose, not coral: the old #f0866a sat 11° of hue from the brand orange, so a late task read as a
      branded one. This is OKLCH hue 10°, 37° clear of --primary (47°), at the same lightness. */
   --danger: #f27a8f; /* 6.5:1 on raised, 6.0:1 on subtle */
@@ -133,8 +127,6 @@
   --color-primary-soft: var(--primary-soft);
   --color-done-edge: var(--done-edge);
   --color-on-primary: var(--on-primary);
-  --color-accent: var(--accent);
-  --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
   --color-alert-outline: var(--alert-outline);
   --color-danger-hover: var(--danger-hover);
@@ -145,8 +137,6 @@
   --color-on-panel-mustard: var(--on-panel-mustard);
   --color-panel-maroon: var(--panel-maroon);
   --color-on-panel-maroon: var(--on-panel-maroon);
-  --color-panel-rust: var(--panel-rust);
-  --color-on-panel-rust: var(--on-panel-rust);
   --color-panel-violet: var(--panel-violet);
   --color-on-panel-violet: var(--on-panel-violet);
   --color-panel-sage: var(--panel-sage);

@@ -119,7 +119,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
                 initial={reduce ? false : { scale: 0.4 }}
                 animate={{ scale: 1 }}
                 transition={SPRING.pop}
-                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface ${panel.danger}`}
+                className={`absolute -top-0.5 -right-0.5 h-4.5 min-w-4.5 rounded-full px-1 text-center text-xs leading-4.5 font-semibold tabular-nums ring-2 ring-surface ${panel.ink}`}
               >
                 {trashCount}
               </motion.span>

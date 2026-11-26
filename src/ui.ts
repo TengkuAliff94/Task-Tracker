@@ -42,7 +42,7 @@ export const labelText = 'text-[13px] font-medium text-fg/90'
 /**
  * Saturated colour panels, each with its paired readable text colour. Colour means time and
  * state (overdue, due today, open, done), so each hue has one job. Priority isn't a colour: it's
- * the signal-bars glyph and its word (`PriorityGlyph`), and only Urgent keeps a hue (rust).
+ * the signal-bars glyph and its word (`PriorityGlyph`). Urgent is ink, so red means overdue alone.
  */
 export const panel = {
   /** Brand and primary emphasis (orange). */
@@ -51,8 +51,8 @@ export const panel = {
   info: 'bg-panel-violet text-on-panel-violet',
   /** Needs attention soon: due today, missed reminders, the discard question (mustard). Also the hover light. */
   warning: 'bg-panel-mustard text-on-panel-mustard',
-  /** Urgent priority, the Trash count (rust). */
-  danger: 'bg-panel-rust text-on-panel-rust',
+  /** Urgent priority: ink, the strongest neutral, so it stands out without borrowing overdue's red. */
+  urgent: 'bg-fg text-bg',
   /** The strongest alarm: overdue, wherever it shows (the badge, the card outline, the Overview tile) (maroon). */
   critical: 'bg-panel-maroon text-on-panel-maroon',
   /** Done: completed work (sage). Nothing else. */
@@ -71,17 +71,16 @@ export const INVERTED_PANEL = {
 
 /**
  * How a priority looks wherever it's shown. Every priority carries `PriorityGlyph` and its word;
- * colour is left to time and state, except Urgent, which keeps the rust panel.
- * - `badge`: the card badge, the quick-add preview and priority group tabs (a neutral well).
+ * colour is left to time and state. No priority draws a stripe: an ink one would read as the
+ * selection marker (the One Form Rule), a red one as overdue.
+ * - `badge`: the card badge, the quick-add preview and priority group tabs (a neutral well; Urgent ink).
  * - `pressed`: a pressed priority filter pill and its collapsed chip (ink, so it reads as on).
- * - `stripe`: the card's left edge, Urgent only. High has none: an ink stripe read as the
- *   selection marker, which must stay the only ink bar on the list (the One Form Rule).
  */
-export const PRIORITY_TONE: Record<Priority, { badge: string; pressed: string; stripe?: string }> = {
+export const PRIORITY_TONE: Record<Priority, { badge: string; pressed: string }> = {
   low: { badge: 'bg-subtle text-fg', pressed: panel.ink },
   medium: { badge: 'bg-subtle text-fg', pressed: panel.ink },
   high: { badge: 'bg-subtle text-fg', pressed: panel.ink },
-  urgent: { badge: panel.danger, pressed: panel.danger, stripe: 'bg-panel-rust' },
+  urgent: { badge: panel.urgent, pressed: panel.ink },
 }
 
 /** Each status's colour, e.g. for status group headings. */
