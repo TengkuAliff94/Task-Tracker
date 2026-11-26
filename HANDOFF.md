@@ -49,13 +49,22 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 27 | `/impeccable polish src`, then `/impeccable critique src` | fifth critique minors (Trash copy and arrow, still tray, restore copy, one overdue red, discard Save tint, no hint on touch, no @project when grouped), then re-score | **done** (`dd4ccce`, [#50](https://github.com/TengkuAliff94/Task-Tracker/issues/50)): 32/40 |
 | 28 | `/impeccable harden src/components/QuickAdd.tsx` | sixth critique P1: a quick add hidden by the picked tile or filters says so (toast "Added “X”" + "Hidden by the Overdue tile." / "by your filters." with Show it); a visible one is selected and announced | **done** (`e69e3cb`, [#51](https://github.com/TengkuAliff94/Task-Tracker/issues/51)) |
 | 29 | `/impeccable colorize` | sixth critique P2: label palette hues ≥30° from danger, brand, mustard and violet; existing labels migrated to the nearest calm hue (Dexie upgrade); sample Health calm; a hue test | **done** (`2dfc673`, [#52](https://github.com/TengkuAliff94/Task-Tracker/issues/52)) |
-| 30 | `/impeccable clarify` | sixth critique P2: quick reschedule for an overdue task ("Move to…" by the red date: Tomorrow, Next week, Pick…; a key; Undo toast) | to do |
+| 30 | `/impeccable clarify` | sixth critique P2: quick reschedule for an overdue task ("Move to…" by the red date: Tomorrow, Next week, Pick…; a key; Undo toast) | **done** (`49b9ad9`, [#53](https://github.com/TengkuAliff94/Task-Tracker/issues/53)) |
 | 31 | `/impeccable distill src/components/TaskCard.tsx` | sixth critique P2: lighter chips at 390, no priority badge when grouped by priority, counts from `sm` | to do |
 | 32 | `/impeccable polish src`, then `/impeccable critique src` | sixth critique P3 (Project select "@", "Empty Trash", "45m effort", Undo restore under an error) + minors (EmptyState `text-balance` straggler, bare `#` task, toasts over the last card, Trash grid), then re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 30 (quick reschedule, `/impeccable clarify`). Steps 28 (`e69e3cb`, #51) and 29 (`2dfc673`, #52) are done. For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+**To resume:** step 31 (card chips, `/impeccable distill src/components/TaskCard.tsx`). Steps 28 (`e69e3cb`, #51), 29 (`2dfc673`, #52) and 30 (`49b9ad9`, #53) are done. For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+
+## Quick reschedule in brief (step 30, [#53](https://github.com/TengkuAliff94/Task-Tracker/issues/53), `49b9ad9`)
+
+- Overdue (not done) cards show a muted `btn.small` **Move** button (CalendarArrowUp + word) where the hover chevron sits; it's a `Menu` ("Move “X” to…"): Tomorrow, Next week, Pick a date…. `movedDeadline` (`src/lib/deadline.ts`) = today + days, time of day kept. Pick a date opens the editor with `focusDeadline` (date field focused and selected, title not autofocused).
+- `moveTask` in App: no-op if the deadline wouldn't change; toast slot `move:<id>` (one per task), "“X” moved to tomorrow" / `nextDueLabel(deadline, 'Now due')`, Undo (also Z) puts the old deadline back. **T** moves the selected not-done task to tomorrow.
+- Menu choices focus the card's title (`[data-card-edit]`) before acting, since the Move button unmounts once the card isn't overdue (and the editor would hand focus back to it).
+- Tests: `e2e/reschedule.spec.ts` (9), `movedDeadline` unit tests. A review agent found focus dropping to the page (menu and editor), and a second T or another card's move losing the first Undo; fixed and tested.
+
+**Gotcha:** overdue cards now have two buttons, so `taskRow(x).getByRole('button')` is ambiguous; open a card with `locator('[data-card-edit]')`.
 
 ## Calm label palette in brief (step 29, [#52](https://github.com/TengkuAliff94/Task-Tracker/issues/52), `2dfc673`)
 
