@@ -25,6 +25,8 @@ interface Props {
   index?: number
   /** Leaves out the `@project` chip, when the list is grouped by project and the heading already says it. */
   hideProject?: boolean
+  /** Leaves out the priority badge, when the list is grouped by priority and the heading already says it. */
+  hidePriority?: boolean
   /** Moves the deadline to `days` after today (Move to → Tomorrow, Next week). Offered on overdue cards. */
   onMove?: (days: number) => void
   /** Opens the editor at the deadline (Move to → Pick a date…). */
@@ -44,7 +46,8 @@ const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
  */
 function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; spoken: string }) {
   return (
-    <span data-meta="count" className={meta} title={spoken}>
+    // Counts are the least of the card, so phones leave them to the editor (from `sm` on they show).
+    <span data-meta="count" className={`${meta} max-sm:hidden`} title={spoken}>
       <Icon className="size-3.5" aria-hidden />
       <span aria-hidden>{shown}</span>
       <span className="sr-only">{spoken}</span>
@@ -68,6 +71,7 @@ export function TaskCard({
   onToggleDone,
   index = 0,
   hideProject = false,
+  hidePriority = false,
   onMove,
   onPickDate,
 }: Props) {
@@ -148,7 +152,7 @@ export function TaskCard({
             </span>
           )}
           {/* Medium is the default, so it isn't drawn: the badge only shows when priority says something. */}
-          {task.priority !== 'medium' && (
+          {task.priority !== 'medium' && !hidePriority && (
             <span data-meta="what" data-priority={task.priority} className={`${badge} ${PRIORITY_TONE[task.priority].badge}`}>
               <PriorityGlyph priority={task.priority} />
               {PRIORITY_LABEL[task.priority]}
@@ -161,14 +165,16 @@ export function TaskCard({
           )}
           {project && <LabelChip data-meta="label" name={project.name} color={project.color} prefix="@" />}
           {shownTags.map((tag) => (
-            <LabelChip key={tag.id} data-meta="label" data-tag name={tag.name} color={tag.color} prefix="#" />
+            // On phones tags drop their tint and ring to a dot and the name, so a row of them stops reading as
+            // a row of buttons; the project keeps its chip, as the one label that groups.
+            <LabelChip key={tag.id} data-meta="label" data-tag name={tag.name} color={tag.color} prefix="#" quiet="phone" />
           ))}
           {hiddenTags.length > 0 && (
             <span
               data-meta="label"
               data-tag-more
               title={hiddenTags.map((t) => `#${t.name}`).join(', ')}
-              className="inline-flex items-center rounded-md bg-subtle px-1.5 py-0.5 font-medium text-muted"
+              className="inline-flex items-center rounded-md bg-subtle px-1.5 py-0.5 font-medium text-muted max-sm:bg-transparent max-sm:px-0"
             >
               <span aria-hidden>+{hiddenTags.length}</span>
               <span className="sr-only">

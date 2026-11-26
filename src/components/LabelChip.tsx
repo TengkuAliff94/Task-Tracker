@@ -7,6 +7,8 @@ interface Props extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
   color: string
   prefix?: string
   onRemove?: () => void
+  /** "phone": below `sm` the chip is just its dot and name, with no tint or ring (tags on a task card). */
+  quiet?: 'phone'
 }
 
 /**
@@ -14,11 +16,14 @@ interface Props extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
  * outline; the text stays in the body colour, so any hue the user picks remains readable
  * (colour-tinted text dropped to 2:1 for light hues).
  */
-export function LabelChip({ name, color, prefix, onRemove, ...rest }: Props) {
+export function LabelChip({ name, color, prefix, onRemove, quiet, ...rest }: Props) {
   return (
     <span
       {...rest}
-      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-fg ring-1 ring-inset"
+      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium text-fg ring-1 ring-inset ${
+        // Important, to beat the inline tint.
+        quiet === 'phone' ? 'max-sm:bg-transparent! max-sm:px-0 max-sm:ring-0' : ''
+      }`}
       style={labelTint(color)}
     >
       <span className="size-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />

@@ -764,6 +764,7 @@ export default function App() {
                           attachmentCount={attachmentCounts?.get(task.id) ?? 0}
                           selected={task.id === selectedId}
                           hideProject={group === 'project'}
+                          hidePriority={group === 'priority'}
                           onMove={(days) => void moveTask(task, days)}
                           onPickDate={() => {
                             setSelectedId(task.id)
