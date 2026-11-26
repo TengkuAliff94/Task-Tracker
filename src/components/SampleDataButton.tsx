@@ -37,20 +37,29 @@ export function SampleDataButton({
   async function askThenLoad() {
     // Ask before going busy: a disabled button drops focus, and the question hands focus back to it.
     const existing = await taskRepo.countAll()
-    if (
-      existing > 0 &&
-      !(await ask({
-        title: 'Add sample tasks?',
-        body: (
-          <p>
-            They go alongside your {plural(existing, 'existing task')}. Nothing is replaced. Projects and tags with the same names
-            are reused.
-          </p>
-        ),
-        confirmLabel: 'Add sample tasks',
-      }))
-    )
-      return
+    if (existing > 0) {
+      // Already here: say so, rather than quietly adding a second copy of every task.
+      const loaded = await sampleData.isLoaded()
+      const ok = await ask(
+        loaded
+          ? {
+              title: 'Sample tasks are already here',
+              body: <p>All {sampleData.size} sample tasks are already in your list. Loading again adds a second copy of each.</p>,
+              confirmLabel: 'Add another copy',
+            }
+          : {
+              title: 'Add sample tasks?',
+              body: (
+                <p>
+                  They go alongside your {plural(existing, 'existing task')}. Nothing is replaced. Projects and tags with the same
+                  names are reused.
+                </p>
+              ),
+              confirmLabel: 'Add sample tasks',
+            },
+      )
+      if (!ok) return
+    }
     setBusy(true)
     try {
       const count = await sampleData.load()

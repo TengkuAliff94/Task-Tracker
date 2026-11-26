@@ -7,7 +7,7 @@ import { expect, test } from './fixtures'
 test.use({ reducedMotion: 'reduce' })
 
 const moveButton = (page: Page, title: string) => page.getByRole('button', { name: `Move “${title}” to…` })
-const moveToast = (page: Page) => page.getByRole('status').filter({ hasText: / moved to / })
+const moveToast = (page: Page) => page.getByRole('status').filter({ hasText: /” moved(?! to Trash)/ })
 
 test('only overdue cards offer Move', async ({ app, page }) => {
   await app.loadSampleData()
@@ -20,14 +20,18 @@ test('Move → Tomorrow keeps the time, says where it went, and Undo puts it bac
   await app.loadSampleData()
   await moveButton(page, 'Morning run').click()
   const menu = page.getByRole('menu', { name: 'Move “Morning run” to…' })
-  await expect(menu.getByRole('menuitem')).toHaveText(['Tomorrow', 'Next week', 'Pick a date…'])
+  await expect(menu.getByRole('menuitem')).toHaveCount(3)
+  for (const name of ['Tomorrow', 'Next week', 'Pick a date…']) await expect(menu.getByRole('menuitem', { name, exact: true })).toBeVisible()
+  // Tomorrow shows its key, T, which does the same from the list.
+  await expect(menu.getByRole('menuitem', { name: 'Tomorrow' }).locator('kbd')).toHaveText('T')
+  await expect(menu.getByRole('menuitem', { name: 'Tomorrow' })).toHaveAttribute('aria-keyshortcuts', 'T')
   await expect(menu.getByRole('menuitem', { name: 'Tomorrow' })).toBeFocused()
   await page.keyboard.press('Enter')
 
   const row = app.taskRow('Morning run')
   await expect(row).toContainText('Tomorrow 07:00')
   await expect(moveButton(page, 'Morning run')).toHaveCount(0)
-  await expect(moveToast(page)).toContainText('“Morning run” moved to tomorrow')
+  await expect(moveToast(page)).toHaveText(/“Morning run” moved(?! to)/)
   await expect(moveToast(page)).toContainText('Now due tomorrow 07:00')
 
   await moveToast(page).getByRole('button', { name: 'Undo' }).click()

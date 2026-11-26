@@ -11,7 +11,7 @@ export const LABEL_COLORS = [
   '#d946ef', // fuchsia
   '#3faa3f', // green
   '#64748b', // slate
-  '#b4469f', // orchid
+  '#8c3274', // plum
 ]
 
 /** The names a screen reader hears in the colour picker, one per LABEL_COLORS entry. */
@@ -22,7 +22,7 @@ export const LABEL_COLOR_NAMES: Record<string, string> = {
   '#d946ef': 'Fuchsia',
   '#3faa3f': 'Green',
   '#64748b': 'Slate',
-  '#b4469f': 'Orchid',
+  '#8c3274': 'Plum',
 }
 
 /**
@@ -56,6 +56,12 @@ export function hueDistance(a: number, b: number): number {
   return Math.min(d, 360 - d)
 }
 
+/**
+ * Palette colours since replaced, and what replaced them. Orchid (312°) sat 20° from fuchsia at
+ * nearly the same lightness, so the two read as one colour; plum (316°) is far darker.
+ */
+const RETIRED: Record<string, string> = { '#b4469f': '#8c3274' }
+
 /** Below this saturation a colour reads as a grey, whatever its hue, so it never clashes. */
 export const GREY = 0.15
 
@@ -66,6 +72,8 @@ export const GREY = 0.15
  * the database upgrades, and so do labels in a backup restored from then.
  */
 export function calmLabelColor(color: string): string {
+  // A retired palette colour moves to the one that replaced it.
+  if (typeof color === 'string' && RETIRED[color.trim().toLowerCase()]) return RETIRED[color.trim().toLowerCase()]
   // (A non-string colour comes back as it was; see hueOf.)
   const own = hueOf(color)
   if (!own || own.saturation < GREY) return color

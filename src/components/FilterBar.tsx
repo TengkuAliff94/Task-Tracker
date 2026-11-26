@@ -28,6 +28,8 @@ interface Props {
   projects: Label[]
   tags: Label[]
   doneCount: number
+  /** Nothing lists: the empty state offers Clear filters, so the bar doesn't say it a second time. */
+  listEmpty?: boolean
 }
 
 /** A flat well like the form fields: no outline at rest, a border on hover and focus. */
@@ -255,7 +257,7 @@ const Field = ({ label, className = '', children }: { label: string; className?:
  * the panel is collapsed, each active filter shows as a chip beside it that removes that filter, so
  * the list is never narrowed by something out of sight.
  */
-export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup, projects, tags, doneCount }: Props) {
+export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup, projects, tags, doneCount, listEmpty = false }: Props) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const barRef = useRef<HTMLDivElement>(null)
@@ -302,7 +304,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
   }
   // Not for a picked tile alone: the tile shows the pick and unpicks itself, so a lone Clear filters
   // would only repeat it. With a search or a chip it clears the tile too.
-  const clearButton = Boolean(f.query.trim() || chips.length) && (
+  const clearButton = !listEmpty && Boolean(f.query.trim() || chips.length) && (
     <button type="button" data-clear onClick={clear} className={`${pillClass} text-fg ${hoverHighlight}`}>
       Clear filters
     </button>
@@ -351,7 +353,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
         </button>
       </div>
 
-      {!open && clearButton && (
+      {!open && (chips.length > 0 || clearButton) && (
         <div ref={chipRowRef} className="mt-3 flex flex-wrap items-center gap-1.5">
           {chips.map((chip, i) => (
             <Chip

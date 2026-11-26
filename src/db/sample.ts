@@ -47,7 +47,7 @@ const TAGS: [string, string][] = [
   ['finance', '#84cc16'],
   ['errand', '#64748b'],
   ['reading', '#d946ef'],
-  ['quick', '#b4469f'],
+  ['quick', '#8c3274'],
 ]
 
 const TASKS: SampleTask[] = [
@@ -184,6 +184,13 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
     load(now: Date = new Date()): Promise<number> {
       return db.transaction('rw', [db.projects, db.tags, db.tasks, db.attachments], () => addAll(now))
     },
+    /** True when every sample task is already in the list (not in Trash), matched by title: loading again would only copy them. */
+    async isLoaded(): Promise<boolean> {
+      const titles = new Set((await tasks.list()).map((t) => t.title))
+      return TASKS.every((s) => titles.has(s.title))
+    },
+    /** How many tasks a load adds. */
+    size: TASKS.length,
   }
 
   async function addAll(now: Date): Promise<number> {

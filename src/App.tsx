@@ -382,7 +382,8 @@ export default function App() {
       // One per task, so moving another task doesn't take away this one's Undo.
       slot: `move:${task.id}`,
       taskId: task.id,
-      message: `“${title}” moved to ${days === 1 ? 'tomorrow' : days === 7 ? 'next week' : `${days} days from now`}`,
+      // The detail names the new date, so the message doesn't say "tomorrow" as well.
+      message: `“${title}” moved`,
       detail: nextDueLabel(deadline, 'Now due'),
       action: {
         label: 'Undo',
@@ -709,6 +710,7 @@ export default function App() {
                 projects={projects}
                 tags={tags}
                 doneCount={doneCount}
+                listEmpty={tasks !== undefined && visible.length === 0}
               />
             )}
           </div>

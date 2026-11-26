@@ -45,12 +45,12 @@ describe('the label palette (#52)', () => {
 
 describe('calmLabelColor', () => {
   it('moves alarm, brand, mustard and violet hues to the nearest calm one', () => {
-    expect(calmLabelColor('#ef4444')).toBe('#b4469f') // red → orchid
+    expect(calmLabelColor('#ef4444')).toBe('#8c3274') // red → plum
     expect(calmLabelColor('#10b981')).toBe('#0ea5e9') // emerald, done's hue
     expect(calmLabelColor('#14b8a6')).toBe('#0ea5e9') // teal
     expect(calmLabelColor('#f97316')).toBe('#84cc16') // orange
     expect(calmLabelColor('#f59e0b')).toBe('#84cc16') // amber
-    expect(calmLabelColor('#ec4899')).toBe('#b4469f') // pink → orchid
+    expect(calmLabelColor('#ec4899')).toBe('#8c3274') // pink → plum
     expect(calmLabelColor('#6366f1')).toBe('#3b82f6') // indigo
     expect(calmLabelColor('#8b5cf6')).toBe('#d946ef') // violet
   })
@@ -79,8 +79,30 @@ describe('upgrading an install from before the calm palette', () => {
     old.close()
 
     const db = new TaskTrackerDB(name)
-    expect((await db.projects.get('h'))?.color).toBe('#b4469f')
+    expect((await db.projects.get('h'))?.color).toBe('#8c3274')
     expect((await db.projects.get('home'))?.color).toBe('#3b82f6')
     expect((await db.tags.get('f'))?.color).toBe('#84cc16')
+  })
+})
+
+describe('retiring orchid', () => {
+  it('moves orchid labels to plum, once, on upgrade and in a restored backup', async () => {
+    expect(calmLabelColor('#b4469f')).toBe('#8c3274')
+    expect(calmLabelColor('#B4469F')).toBe('#8c3274')
+    const name = `test-${crypto.randomUUID()}`
+    const old = new Dexie(name)
+    old.version(1).stores({ tasks: 'id, status, priority, projectId, *tagIds, createdAt, deletedAt', projects: 'id, name', tags: 'id, name', attachments: 'id, taskId' })
+    old.version(2).stores({ meta: 'key' })
+    old.version(3).stores({})
+    old.version(4).stores({})
+    await old.table('tags').bulkAdd([
+      { id: 'q', name: 'quick', color: '#b4469f' },
+      { id: 'r', name: 'reading', color: '#d946ef' },
+    ])
+    old.close()
+
+    const db = new TaskTrackerDB(name)
+    expect((await db.tags.get('q'))?.color).toBe('#8c3274')
+    expect((await db.tags.get('r'))?.color).toBe('#d946ef')
   })
 })

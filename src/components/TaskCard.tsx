@@ -208,7 +208,7 @@ export function TaskCard({
           // Focus goes to the card's title first: once it isn't overdue, this button goes, and focus with
           // it would drop to the page (the editor would hand it back to a button that's gone, too).
           entries={[
-            { kind: 'action', label: 'Tomorrow', icon: Sunrise, onSelect: () => (focusTitle(), onMove(1)) },
+            { kind: 'action', label: 'Tomorrow', icon: Sunrise, hint: 'T', onSelect: () => (focusTitle(), onMove(1)) },
             { kind: 'action', label: 'Next week', icon: CalendarRange, onSelect: () => (focusTitle(), onMove(7)) },
             ...(onPickDate ? [{ kind: 'action' as const, label: 'Pick a date…', icon: CalendarDays, onSelect: () => (focusTitle(), onPickDate()) }] : []),
           ]}

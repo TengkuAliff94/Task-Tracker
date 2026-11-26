@@ -45,6 +45,19 @@ export class TaskTrackerDB extends Dexie {
             })
         }
       })
+    // Orchid leaves the palette (seventh critique): it read as fuchsia's twin. Plum takes its place.
+    this.version(5)
+      .stores({})
+      .upgrade(async (tx) => {
+        for (const table of ['projects', 'tags'] as const) {
+          await tx
+            .table<Project | Tag>(table)
+            .toCollection()
+            .modify((label) => {
+              label.color = calmLabelColor(label.color)
+            })
+        }
+      })
   }
 }
 

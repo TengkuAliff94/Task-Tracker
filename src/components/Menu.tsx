@@ -4,7 +4,7 @@ import { cn } from '../lib/utils'
 
 /** One line in a menu: an action, or a labelled set of choices where one is picked (the theme). */
 export type MenuEntry =
-  | { kind: 'action'; label: string; icon: LucideIcon; onSelect: () => void }
+  | { kind: 'action'; label: string; icon: LucideIcon; onSelect: () => void; /** A key that does the same from the list, shown at the end where there's a keyboard. */ hint?: string }
   | {
       kind: 'choice'
       label: string
@@ -136,10 +136,16 @@ export function Menu({ label, title, triggerClassName, children, entries }: Prop
               role="menuitem"
               tabIndex={-1}
               onClick={() => choose(entry.onSelect)}
+              aria-keyshortcuts={entry.hint}
               className={ITEM}
             >
               <entry.icon className="size-4.5 shrink-0" aria-hidden />
               {entry.label}
+              {entry.hint && (
+                <kbd className="ms-auto touch:hidden" aria-hidden>
+                  {entry.hint}
+                </kbd>
+              )}
             </button>
           ) : (
             <div key={entry.label} role="group" aria-labelledby={`${id}-${entry.label}`} className="not-first:mt-1.5">
