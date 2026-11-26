@@ -9,14 +9,14 @@ test.describe('with sample data', () => {
     await app.loadSampleData()
   })
 
-  test('a picked Overview tile shows a check, not only an outline like keyboard focus', async ({ page }) => {
+  test('a picked Overview tile shows a clear mark, not only an outline like keyboard focus', async ({ page }) => {
     const overdue = page.getByRole('region', { name: 'Overview' }).getByRole('button', { name: /^Overdue/ })
     await expect(overdue.locator('[data-picked-mark]')).toHaveCount(0)
     await overdue.click()
     await expect(overdue.locator('[data-picked-mark]:visible')).toHaveCount(1)
   })
 
-  test('the picked check shows on phones too, where tile icons are left out', async ({ page }) => {
+  test('the picked mark shows on phones too, where tile icons are left out', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     const open = page.getByRole('region', { name: 'Overview' }).getByRole('button', { name: /^Open/ })
     await open.click()

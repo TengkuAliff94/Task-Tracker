@@ -106,7 +106,7 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
             className={cn(
               btn.headerIcon,
               // With its word showing, 18px on the right keeps the corner badge clear of the word, count or not.
-              'relative max-sm:size-8 md:w-auto md:pr-4.5 md:pl-2.5 sm:touch:w-auto sm:touch:pr-4.5 sm:touch:pl-2.5 aria-pressed:bg-panel-mustard aria-pressed:text-on-panel-mustard',
+              'relative max-sm:size-8 md:w-auto md:pr-4.5 md:pl-2.5 sm:touch:w-auto sm:touch:pr-4.5 sm:touch:pl-2.5 aria-pressed:bg-fg aria-pressed:text-bg',
             )}
           >
             <Trash2 className="size-5" aria-hidden /> <span className="hidden md:inline sm:touch:inline">Trash</span>

@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarClock, Check, CircleCheck, CircleDashed, type LucideIcon } from 'lucide-react'
+import { AlertCircle, CalendarClock, CircleCheck, CircleDashed, X, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotionConfig } from 'motion/react'
 import { matchesScope, type Scope } from '../lib/filter'
 import type { Task } from '../types'
@@ -13,7 +13,7 @@ interface Stat {
   value: number
   icon: LucideIcon
   tone: string
-  /** The tile's panel colour, which the check on a picked tile is cut out in. */
+  /** The tile's panel colour, which the mark on a picked tile is cut out in. */
   fill: string
   /** Draws the eye: the icon pulses. */
   alert?: boolean
@@ -85,7 +85,7 @@ export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
             >
               <span className="flex min-w-0 items-start justify-between gap-2">
                 <span className="truncate text-xs font-semibold sm:text-sm">{label}</span>
-                {/* Picked: a check in an ink disc takes the icon's place at every size, so "picked" never
+                {/* Picked: a clear (×) in an ink disc takes the icon's place at every size, so "picked" never
                     looks like the focus outline alone. Otherwise the icon, left out where tiles are
                     slimmest: on phones, and beside the heading below `xl`. */}
                 {picked ? (
@@ -112,18 +112,22 @@ export function Overview({ tasks, now, scope, onScope, firstIndex }: Props) {
 }
 
 /**
- * The completion bar, along the bottom of the Completed tile. It fills smoothly to each new
- * percentage (a horizontal scale, so only transforms animate); under reduced motion it jumps
- * straight there. Clicks pass through to the tile.
+ * A picked tile's mark: a clear (×) cut out of an ink disc, saying "this filter is on; press to take
+ * it off". Not a check, which would read as done (sage's job).
  */
 function PickedMark({ fill, className }: { fill: string; className: string }) {
   return (
-    <span data-picked-mark className={`grid size-5 shrink-0 place-items-center rounded-full bg-current ${className}`} aria-hidden>
-      <Check className="size-3.5" style={{ color: fill }} strokeWidth={3} />
+    <span data-picked-mark="clear" className={`grid size-5 shrink-0 place-items-center rounded-full bg-current ${className}`} aria-hidden>
+      <X className="size-3.5" style={{ color: fill }} strokeWidth={3} />
     </span>
   )
 }
 
+/**
+ * The completion bar, along the bottom of the Completed tile. It fills smoothly to each new
+ * percentage (a horizontal scale, so only transforms animate); under reduced motion it jumps
+ * straight there. Clicks pass through to the tile.
+ */
 function Meter({ pct }: { pct: number }) {
   const reduce = useReducedMotionConfig()
   return (
