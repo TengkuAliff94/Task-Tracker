@@ -57,7 +57,7 @@ function Meta({ icon: Icon, shown, spoken }: { icon: LucideIcon; shown: string; 
 
 /**
  * One task as a card in an `AnimatedList`. Each kind of mark has its own form: an Urgent task
- * has an ink priority badge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink marker in the gutter beside it. Ticking it hands over to the app,
+ * has an ink priority badge, an overdue card a maroon outline and a red date, and the selected card (J/K, or Tab) lifts with an ink bar inside its left edge, its focused title underlined. Ticking it hands over to the app,
  * which saves it, celebrates and offers Undo (see `setDone` in App.tsx).
  */
 export function TaskCard({
@@ -96,12 +96,12 @@ export function TaskCard({
         selected ? 'shadow-pop' : 'shadow-card'
       } ${overdue ? ALERT_OUTLINE : ''}`}
     >
-      {/* Selection's own form, outside the card so it never meets the outline: a short
-          ink bar in the gutter, 7px out, so on two columns it sits nearer its card than the neighbour. */}
+      {/* Selection's own form: an ink bar along the card's left edge, inside it, so it belongs to its
+          card in one column or two. No priority draws a stripe there (#61), so it's the only bar. */}
       <span
         aria-hidden
         data-selection-marker
-        className={`pointer-events-none absolute inset-y-3 -left-[7px] w-1 rounded-full bg-fg transition-[opacity,scale] duration-200 motion-reduce:transition-none ${
+        className={`pointer-events-none absolute inset-y-3 left-1.5 w-1 rounded-full bg-fg transition-[opacity,scale] duration-200 motion-reduce:transition-none ${
           selected ? 'opacity-100' : 'scale-y-0 opacity-0'
         }`}
       />

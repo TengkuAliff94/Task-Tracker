@@ -243,11 +243,21 @@ body {
     box-shadow: 0 0 0 2px var(--bg);
   }
 }
-/* A selected card's title button: the margin marker and lift already say where you are, so its
-   own ring would be a third dark line. Tabbing to a card selects it, so this is never the only cue. */
+/* A selected card's title button: a ring would be a second outline inside the card (overdue owns
+   the ring), so focus shows as an ink underline on the title instead. A done title keeps its
+   strike-through alongside it. */
 li[aria-current] [data-card-edit]:focus-visible {
   outline-color: transparent;
   box-shadow: none;
+}
+li[aria-current] [data-card-edit]:focus-visible > div:first-child {
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--fg);
+  text-underline-offset: 4px;
+}
+li[aria-current] [data-card-edit]:focus-visible > div.line-through:first-child {
+  text-decoration-line: line-through underline;
 }
 
 button:not(:disabled),

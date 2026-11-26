@@ -61,7 +61,7 @@ CSS variables: `--panel-<name>` and `--on-panel-<name>`, exposed to Tailwind as
 - `STATUS_PANEL`: to do → taupe, in progress → violet, done → sage.
 - `panel.ink` (fg on canvas): toasts, Back up now, pressed priority pills. The backup reminder itself is a neutral surface panel.
 - Overdue: an outline in `--alert-outline` (`ALERT_OUTLINE`) and the deadline, both in `--danger` (#b42318 by day, rose at night). The Overdue tile is maroon.
-- Selected: lift plus the ink margin marker (`data-selection-marker`), never a ring.
+- Selected: lift plus the ink bar inside the left edge (`data-selection-marker`, `left-1.5`), never a ring; the focused title gets a 2px ink underline (`index.css`, `li[aria-current] [data-card-edit]:focus-visible`).
 - Anything that carries meaning by colour uses one of these panels, never a raw hue.
 - User-picked project and tag colours stay as they are. They show as a dot, a tint and a ring
   (`labelTint` in `src/lib/colors.ts`) with body-coloured text, never as the text colour itself.
@@ -120,7 +120,7 @@ Reuse these before building anything new.
 | Task | `TaskCard`: badges (Urgent ink), metadata chips |
 | Group heading | `GroupHeading`: a coloured tab with a count |
 | Labels | `LabelChip` |
-| Selection | Cards: the margin marker and lift (`TaskCard`). Overview tiles: `SELECTED_OUTLINE` plus the check |
+| Selection | Cards: the inner-edge bar, lift and underlined title (`TaskCard`). Overview tiles: `SELECTED_OUTLINE` plus the clear mark |
 | Hover | `hoverHighlight` (Sill's mustard hover) |
 
 ---

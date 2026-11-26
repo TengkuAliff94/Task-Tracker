@@ -1,7 +1,7 @@
-// Each mark on a task card has its own form (#36): the Urgent stripe down the left edge (#40), the
-// overdue outline around the card, and selection as a lift plus an ink marker in the gutter.
-// Selection never draws a ring, never hides the overdue outline, and the title's own focus ring
-// steps aside while its card is selected.
+// Each mark on a task card has its own form (#36): the overdue outline around the card, and
+// selection as a lift plus an ink bar inside the card's left edge (#62; it was in the gutter, where
+// on two columns it hung between cards). Selection never draws a ring, never hides the overdue
+// outline, and the focused title shows an ink underline in place of its ring.
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures'
 
@@ -50,11 +50,14 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expect(marker(card)).toHaveCSS('opacity', '1')
       expect(await rings(card), 'selection draws no ring around the card').toEqual([])
 
-      // The marker sits in the gutter, outside the card, in ink that reads on the canvas.
+      // The marker sits inside the card, in its left padding, in ink that reads on the card.
       const [m, c] = [await marker(card).boundingBox(), await card.boundingBox()]
-      expect(m!.x + m!.width).toBeLessThanOrEqual(c!.x)
+      expect(m!.x, 'inside the card').toBeGreaterThanOrEqual(c!.x)
+      expect(m!.x + m!.width, 'within the left padding').toBeLessThanOrEqual(c!.x + 20)
+      expect(m!.height, 'a bar, not a dot').toBeGreaterThanOrEqual(c!.height / 2)
       const ink = await marker(card).evaluate((el) => getComputedStyle(el).backgroundColor)
-      expect(contrast(ink, await canvas(page))).toBeGreaterThanOrEqual(3)
+      const surface = await card.evaluate((el) => getComputedStyle(el).backgroundColor)
+      expect(contrast(ink, surface)).toBeGreaterThanOrEqual(3)
     })
 
     test(`a selected overdue card keeps its outline, which reads on the canvas (${colorScheme})`, async ({ app, page }) => {
@@ -90,7 +93,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(inkBars[0]).toMatch(/:marker$/)
     })
 
-    test(`the title's own focus ring steps aside while its card is selected (${colorScheme})`, async ({ app, page }) => {
+    test(`a selected card's focused title is underlined in ink instead of ringed (${colorScheme})`, async ({ app, page }) => {
       await app.loadSampleData()
       await page.keyboard.press('j')
       const title = page.locator('li[aria-current] [data-card-edit]')
@@ -98,6 +101,15 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await expect(title).toHaveCSS('outline-color', 'rgba(0, 0, 0, 0)')
       // Nor its halo, which would otherwise draw a box inside the card.
       await expect(title).toHaveCSS('box-shadow', 'none')
+      // Focus still shows on the title itself: a 2px ink underline that reads on the card.
+      const text = title.locator('> div').first()
+      await expect(text).toHaveCSS('text-decoration-line', 'underline')
+      await expect(text).toHaveCSS('text-decoration-thickness', '2px')
+      const [line, surface] = await Promise.all([
+        text.evaluate((el) => getComputedStyle(el).textDecorationColor),
+        page.locator('li[aria-current]').evaluate((el) => getComputedStyle(el).backgroundColor),
+      ])
+      expect(contrast(line, surface)).toBeGreaterThanOrEqual(3)
       // The checkbox beside it still shows its own ring.
       await page.keyboard.press('Shift+Tab')
       await expect(page.locator('li[aria-current] input[type="checkbox"]')).toBeFocused()
@@ -107,18 +119,19 @@ for (const colorScheme of ['light', 'dark'] as const) {
 }
 
 for (const width of [320, 768]) {
-  test(`the marker fits the gutter at ${width}px without sideways scrolling`, async ({ app, page }) => {
+  test(`the marker sits inside its own card at ${width}px without sideways scrolling`, async ({ app, page }) => {
     await page.setViewportSize({ width, height: 900 })
     await app.loadSampleData()
     const cards = app.taskCards()
-    // On two columns, the second card's marker sits in the gap, nearer its own card.
+    // On two columns, the right-hand card: its marker must not sit in the gap beside the left one.
     const card = width >= 768 ? cards.nth(1) : cards.first()
     await select(page, card)
     const [m, c] = [await marker(card).boundingBox(), await card.boundingBox()]
-    expect(m!.x).toBeGreaterThanOrEqual(0)
+    expect(m!.x).toBeGreaterThanOrEqual(c!.x)
+    expect(m!.x + m!.width).toBeLessThanOrEqual(c!.x + c!.width)
     if (width >= 768) {
       const left = await cards.nth(0).boundingBox()
-      expect(m!.x - (left!.x + left!.width), 'clear of the neighbour').toBeGreaterThan(c!.x - (m!.x + m!.width))
+      expect(m!.x, 'clear of the gap').toBeGreaterThan(left!.x + left!.width)
     }
     expect(await app.scrollsSideways()).toBe(false)
   })
