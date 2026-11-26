@@ -38,6 +38,14 @@ describe('parseQuickAdd', () => {
     expect(parseQuickAdd('Buy milk', ref)).toEqual({ title: 'Buy milk', tagNames: [] })
   })
 
+  it('drops a bare # or @, which is a tag or project not yet typed', () => {
+    expect(parseQuickAdd('#', ref).title).toBe('')
+    expect(parseQuickAdd('Call mum # @', ref)).toEqual({ title: 'Call mum', tagNames: [] })
+    expect(parseQuickAdd('Learn C# basics', ref).title).toBe('Learn C# basics')
+    expect(parseQuickAdd('Lunch @ cafe', ref).title).toBe('Lunch @ cafe')
+    expect(parseQuickAdd('Fix issue # 42', ref).title).toBe('Fix issue # 42')
+  })
+
   it('collects several tags and ignores duplicates', () => {
     expect(parseQuickAdd('Read #book #Learning #book', ref).tagNames).toEqual(['book', 'Learning'])
   })

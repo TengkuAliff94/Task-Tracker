@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-26T01:20:35Z",
+  "generatedAt": "2026-11-26T01:27:35Z",
   "title": "Design System: Task Tracker",
   "extensions": {
     "colorMeta": {
@@ -448,7 +448,7 @@
       "kind": "disclosure",
       "refersTo": "field",
       "description": "The task editor's More details row: full width, 44px tall, 13px, a semibold name, then a plain-words summary of what's set behind it (fg/80) or, with nothing set, what's there (muted), and a muted chevron at the right that turns over when open. Hover fills it Well Stone. It starts closed every time the editor opens; its fields stay in the DOM and fade up when it opens, and a Save that finds a problem there opens it.",
-      "html": "<button type=\"button\" class=\"ds-details\" aria-expanded=\"false\"><span class=\"ds-details-name\">More details</span><span class=\"ds-details-summary\">In Progress · 3h · 1 attachment</span><svg class=\"ds-details-chevron\" aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "html": "<button type=\"button\" class=\"ds-details\" aria-expanded=\"false\"><span class=\"ds-details-name\">More details</span><span class=\"ds-details-summary\">In Progress · 3h effort · 1 attachment</span><svg class=\"ds-details-chevron\" aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
       "css": ".ds-details{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;box-sizing:border-box;padding:8px 12px;border:0;border-radius:8px;background:transparent;text-align:left;font-family:'Inter Variable',ui-sans-serif,system-ui,sans-serif;font-size:13px;line-height:18px;color:var(--fg,#141110);cursor:pointer;transition:background-color 200ms;}.ds-details:hover{background:var(--subtle,#ebe5df);}.ds-details-name{font-weight:600;flex-shrink:0;}.ds-details-summary{min-width:0;color:color-mix(in oklab,var(--fg,#141110) 80%,transparent);font-variant-numeric:tabular-nums;}.ds-details-chevron{margin-left:auto;flex-shrink:0;color:var(--muted,#5c534d);transition:transform 200ms;}.ds-details[aria-expanded=true] .ds-details-chevron{transform:rotate(180deg);}"
     },
     {

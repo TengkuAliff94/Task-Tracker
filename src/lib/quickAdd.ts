@@ -76,6 +76,9 @@ export function parseQuickAdd(input: string, ref: Date = new Date()): QuickAddRe
     }
     return whole
   })
+  // A # or @ left at the end of the line is a tag or project not yet typed, never part of the title (a
+  // line of just "#" used to save a task called "#"). One mid-line ("Lunch @ cafe") is a word, and stays.
+  text = text.replace(/(?:(?:^|\s)[#@])+\s*$/, '')
 
   const [hit] = chrono.en.GB.parse(text, ref, { forwardDate: true })
   if (hit) {

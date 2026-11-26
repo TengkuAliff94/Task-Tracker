@@ -95,7 +95,7 @@ export function TrashView({ onRestore }: { onRestore: (task: Task) => Promise<vo
       <div className={`${card} mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 sm:px-5`}>
         <p className="text-sm text-muted">Tasks here are deleted for good after {TRASH_RETENTION_DAYS} days.</p>
         <button onClick={emptyAll} className={btn.danger}>
-          <Trash2 className="size-4" /> Empty trash
+          <Trash2 className="size-4" /> Empty Trash
         </button>
       </div>
       <AnimatedList ref={listRef} aria-label="Trashed tasks" className="grid gap-3 md:grid-cols-2">

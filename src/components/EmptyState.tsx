@@ -28,7 +28,7 @@ export function EmptyState({ icon: Icon, title, children, example, action, note 
           <Icon className="size-8" aria-hidden />
         </span>
         <h2 id={titleId} className="text-3xl font-extrabold tracking-tight">{title}</h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted">{children}</p>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-balance text-muted">{children}</p>
         {example && <div className="mt-5 flex justify-center">{example}</div>}
         {action && <div className="mt-7 flex justify-center">{action}</div>}
         {note && <p className="mx-auto mt-8 max-w-sm text-xs text-balance text-muted">{note}</p>}

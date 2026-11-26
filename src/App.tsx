@@ -651,7 +651,9 @@ export default function App() {
   const todayLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16">
+    // Room under the list to scroll the last cards clear of the toast stack in the bottom corner.
+    // Always there: growing it only while toasts show made the page jump when one went.
+    <div className="mx-auto max-w-6xl px-4 pb-48">
       <Header
         view={view}
         trashCount={trashCount}

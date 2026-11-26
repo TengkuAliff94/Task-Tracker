@@ -299,11 +299,12 @@ export function BackupDialog({ onClose, canUndo, onRestored, onUndo }: DialogPro
             <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => importFile(e.target.files?.[0])} />
           </div>
           <p className="text-xs text-muted">The backup is one JSON file with all tasks, projects, tags and attachments.</p>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          {/* The result (or a problem) on its own line, always on the page so it's announced; Undo restore
+              sits apart below it with its own reason, so it never reads as the fix for a bad file. */}
+          <MessageLine message={message} />
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 empty:hidden">
             {/* Reopened later in the session, the window still says why Undo restore is there. */}
-            <MessageLine
-              message={message ?? (canUndo ? { ok: true, text: 'You restored a backup this session. Undo puts back what was here before.' } : null)}
-            />
+            {canUndo && !message?.ok && <p className="text-fg">You restored a backup this session. Undo puts back what was here before.</p>}
             {canUndo && (
               <button type="button" onClick={undoRestore} className={btn.secondary}>
                 <Undo2 className="size-4" aria-hidden /> Undo restore

@@ -52,14 +52,14 @@ test('closed, More details says what is set behind it', async ({ app, page }) =>
   const dialog = await openTask(app, page, 'Water the plants ~30m tomorrow', 'Water the plants')
   const toggle = toggleIn(page)
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
-  await expect(toggle).toHaveAccessibleName('More details 30m')
+  await expect(toggle).toHaveAccessibleName('More details 30m effort')
 
   await openMoreDetails(dialog)
   await dialog.getByLabel('Status').selectOption({ label: 'In Progress' })
   await dialog.getByLabel('Repeat').selectOption({ label: 'Weekly' })
   await dialog.getByLabel('Add reminder').selectOption({ label: 'At deadline' })
   await toggle.click()
-  await expect(toggle).toHaveAccessibleName('More details In Progress · 30m · Repeats weekly · 1 reminder')
+  await expect(toggle).toHaveAccessibleName('More details In Progress · 30m effort · Repeats weekly · 1 reminder')
 })
 
 test('a problem behind a closed More details opens it and takes focus', async ({ app, page }) => {

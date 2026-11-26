@@ -193,7 +193,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
   const detailsSummary = [
     status !== 'todo' && STATUS_LABEL[status],
-    effort.trim() && (parsedEffort ? formatEffort(parsedEffort) : effort.trim()),
+    // Worded, so a bare "45m" doesn't sit among "In Progress" and "2 reminders" unexplained.
+    effort.trim() && `${parsedEffort ? formatEffort(parsedEffort) : effort.trim()} effort`,
     // A repeat needs a deadline, and isn't saved without one.
     recurrence && date && `Repeats ${describeRecurrence(recurrence).toLowerCase()}`,
     reminders.length > 0 && plural(reminders.length, 'reminder'),
