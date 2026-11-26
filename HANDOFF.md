@@ -48,14 +48,24 @@ Each fix runs as one Impeccable command at a time. Run the step, verify it, comm
 | 26 | `/impeccable clarify` | fifth critique P3: Due today taupe at 0; on touch (no hover) the header keeps bell, Trash (worded) and More up to `lg`, Theme worded from `lg`, no shortcuts button | **done** ([#49](https://github.com/TengkuAliff94/Task-Tracker/issues/49)) |
 | 27 | `/impeccable polish src`, then `/impeccable critique src` | fifth critique minors (Trash copy and arrow, still tray, restore copy, one overdue red, discard Save tint, no hint on touch, no @project when grouped), then re-score | **done** (`dd4ccce`, [#50](https://github.com/TengkuAliff94/Task-Tracker/issues/50)): 32/40 |
 | 28 | `/impeccable harden src/components/QuickAdd.tsx` | sixth critique P1: a quick add hidden by the picked tile or filters says so (toast "Added “X”" + "Hidden by the Overdue tile." / "by your filters." with Show it); a visible one is selected and announced | **done** (`e69e3cb`, [#51](https://github.com/TengkuAliff94/Task-Tracker/issues/51)) |
-| 29 | `/impeccable colorize` | sixth critique P2: label palette hues ≥30° from danger, brand, mustard and violet; existing labels migrated to the nearest calm hue (Dexie upgrade); sample Health calm; a hue test | to do |
+| 29 | `/impeccable colorize` | sixth critique P2: label palette hues ≥30° from danger, brand, mustard and violet; existing labels migrated to the nearest calm hue (Dexie upgrade); sample Health calm; a hue test | **done** (`2dfc673`, [#52](https://github.com/TengkuAliff94/Task-Tracker/issues/52)) |
 | 30 | `/impeccable clarify` | sixth critique P2: quick reschedule for an overdue task ("Move to…" by the red date: Tomorrow, Next week, Pick…; a key; Undo toast) | to do |
 | 31 | `/impeccable distill src/components/TaskCard.tsx` | sixth critique P2: lighter chips at 390, no priority badge when grouped by priority, counts from `sm` | to do |
 | 32 | `/impeccable polish src`, then `/impeccable critique src` | sixth critique P3 (Project select "@", "Empty Trash", "45m effort", Undo restore under an error) + minors (EmptyState `text-balance` straggler, bare `#` task, toasts over the last card, Trash grid), then re-score | to do |
 
 Each issue holds the full problem statement, file:line pointers and acceptance criteria. Read the issue before starting its step.
 
-**To resume:** step 29 (label palette, `/impeccable colorize`). Step 28 is done (`e69e3cb`, #51). For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+**To resume:** step 30 (quick reschedule, `/impeccable clarify`). Steps 28 (`e69e3cb`, #51) and 29 (`2dfc673`, #52) are done. For each step open an issue first (REST route, keep `@` tokens in backticks), link it under #19, then follow "How each step was done". Read "Sixth critique" below for the details.
+
+## Calm label palette in brief (step 29, [#52](https://github.com/TengkuAliff94/Task-Tracker/issues/52), `2dfc673`)
+
+- `LABEL_COLORS` (`src/lib/colors.ts`) is seven calm colours: sky `#0ea5e9`, blue `#3b82f6`, lime `#84cc16`, fuchsia `#d946ef`, green `#3faa3f`, slate `#64748b`, orchid `#b4469f`. `RESERVED_HUES` = danger (4°, 350°), brand (22°), mustard (39°), violet (252°) and done sage (161°); every label hue keeps 30° clear. `src/lib/colors.test.ts` reads those tokens from `index.css` (with `node:fs`, behind a `/// <reference types="node" />`; `?raw` came back empty under Vitest).
+- `calmLabelColor`: reserved hue → nearest palette hue; greys (saturation < 0.15), calm colours and non-strings stay. Applied once by Dexie **version 4** (`db.ts`) and to labels in a restored backup (`backup.ts`; snapshots are left as they are). Old red and pink → orchid, amber and orange → lime, indigo → blue, violet → fuchsia, teal and emerald → sky.
+- `ColorPicker.tsx` replaces `<input type="color">` in Projects & tags: the swatch button ("Color for X") opens a `popover="auto"` radiogroup (same name). Arrows move and pick, Enter/Space/click pick and close, Esc cancels; `focusout` closes it (2.4.11); it flips above the swatch when there's no room. The pick: a dark check plus `inset 0 0 0 3px var(--raised)`; the outline is focus's alone.
+- Sample colours: Home sky, Work blue, Health green; finance lime, errand slate, reading fuchsia, quick orchid.
+- Tests: `e2e/label-palette.spec.ts` (6), `colors.test.ts` (7); `polish.spec` finds the swatch by role. A review agent caught focus-obscured, off-screen popover, checked = focus look, three greens on done's hue, a crash on a colourless label; all fixed. The More-menu tap-height test now rounds (it flaked at 39.99998 mid-fade).
+
+**Gotchas:** `getByLabel('Color for X')` now matches the button and the (hidden) radiogroup; use `getByRole('button', …)`. The detector flags `colors.test.ts` fixture hexes (`#ef4444`, `#3b82f6`) as advisory `design-system-color`, like the `#000` fixture.
 
 ## Hidden quick add in brief (step 28, [#51](https://github.com/TengkuAliff94/Task-Tracker/issues/51), `e69e3cb`)
 
