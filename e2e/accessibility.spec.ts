@@ -47,7 +47,7 @@ test.describe('focus after something disappears', () => {
   test('deleting from the editor moves focus to the card that takes its place', async ({ app, page }) => {
     await addTasks(app, 'A', 'B', 'C') // listed C, B, A
     await editButton(app, 'B').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await expect(app.taskRow('B')).toHaveCount(0)
     await expect(editButton(app, 'A')).toBeFocused()
   })
@@ -55,7 +55,7 @@ test.describe('focus after something disappears', () => {
   test('deleting the only task moves focus to the empty list', async ({ app, page }) => {
     await addTasks(app, 'Only one')
     await editButton(app, 'Only one').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await expect(page.getByRole('region', { name: 'No tasks yet' })).toBeFocused()
   })
 
@@ -78,7 +78,7 @@ test.describe('focus after something disappears', () => {
     await addTasks(app, 'A', 'B')
     for (const t of ['A', 'B']) {
       await editButton(app, t).click()
-      await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+      await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
       await expect(app.taskRow(t)).toHaveCount(0)
     }
     await page.getByRole('button', { name: 'Trash (2)' }).click()
@@ -89,7 +89,7 @@ test.describe('focus after something disappears', () => {
 
     await page.getByRole('button', { name: 'Back to tasks' }).click()
     await editButton(app, 'A').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await page.getByRole('button', { name: 'Trash (1)' }).click()
     await page.getByRole('button', { name: 'Empty trash' }).click()
     await page.getByRole('alertdialog', { name: 'Empty Trash?' }).getByRole('button', { name: 'Delete forever' }).click()

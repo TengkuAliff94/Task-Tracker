@@ -61,7 +61,8 @@ export function Header({ view, trashCount, onToggleTrash, onBack, onNewTask, onL
         <div className="flex min-w-0 items-center gap-2">
           <div className="min-w-0">
             <h1 id="page-heading" tabIndex={-1} className="truncate text-xl font-bold tracking-tight sm:text-2xl">Trash</h1>
-            <p className="truncate text-xs text-muted">Restore or permanently delete</p>
+            {/* Wraps rather than truncating: at 390 the tray leaves it about 150px ("Restore or perm…"). */}
+            <p className="text-xs text-balance text-muted">Restore or permanently delete</p>
           </div>
         </div>
       ) : (

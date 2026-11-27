@@ -87,7 +87,7 @@ test.describe('with sample data', () => {
 
   test('Trash: titles aren\'t struck through, the heading is bold, and New task isn\'t offered', async ({ app, page }) => {
     await app.taskRow('Renew car insurance').locator('[data-card-edit]').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await page.getByRole('button', { name: 'Trash (1)' }).click()
     const title = page.getByRole('list', { name: 'Trashed tasks' }).getByText('Renew car insurance')
     expect(await style(title, 'text-decoration-line')).toBe('none')
@@ -150,7 +150,7 @@ test('the sticky header is solid canvas, not a blur over the tiles', async ({ ap
 test('small type stays on the scale: key caps and the Trash count are 12px', async ({ app, page }) => {
   await app.quickAdd('Throw away')
   await app.taskRow('Throw away').locator('[data-card-edit]').click()
-  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
   const badge = page.getByRole('button', { name: 'Trash (1)' }).locator('span[aria-hidden]')
   expect(await style(badge, 'font-size')).toBe('12px')
   expect(await style(page.locator('kbd').first(), 'font-size')).toBe('12px')

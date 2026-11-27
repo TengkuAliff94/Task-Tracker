@@ -239,7 +239,7 @@ test.describe('the 6-second countdown', () => {
   test('holding Z down undoes only the newest toast', async ({ app, page }) => {
     await addTasks(app, 'Keep me', 'Old errand')
     await app.taskRow('Old errand').getByRole('button').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await expect(page.getByRole('status').filter({ hasText: 'moved to Trash' })).toBeVisible()
     await checkbox(page, 'Keep me').click()
     await expect(doneToast(page)).toBeVisible()
@@ -287,7 +287,7 @@ test.describe('phone', () => {
     const title = 'Ask the landlord about the boiler service and the damp patch in the back bedroom ceiling'
     await addTasks(app, title)
     await app.taskRow(title).getByRole('button').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
 
     const toast = page.getByRole('status').filter({ hasText: 'moved to Trash' })
     await expect(toast).toContainText('“Ask the landlord about the boiler service and the damp…” moved to Trash')

@@ -42,7 +42,8 @@ interface Props {
   projects: Label[]
   tags: Label[]
   onClose: () => void
-  onTrash: (task: Task) => void
+  /** `unsavedEdits` is true when the form had changes: they go with the task's move to Trash, and the toast says so. */
+  onTrash: (task: Task, opts: { unsavedEdits: boolean }) => void
   /** Opens with the deadline's date field focused instead of the title (Move to → Pick a date…). */
   focusDeadline?: boolean
 }
@@ -140,6 +141,7 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
   /** The task's id once it exists, so a retry after a half-finished save updates it instead of adding a copy. */
   const savedId = useRef(task?.id)
   const messageId = useId()
+  const changedId = useId()
   const detailsId = useId()
   const errorIds = {
     title: useId(),
@@ -186,6 +188,30 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
       reminderDraft.time.trim(),
   )
   const isDirty = () => snapshot !== initialSnapshot || pendingFiles.length > 0 || removedFiles.length > 0 || hasDrafts
+
+  /**
+   * What the discard bar names, in the form's order: on a phone the bar covers the bottom of the
+   * form, so it says which fields changed. A half-typed "add" field or a file counts as its field.
+   */
+  const changedFields = (): string[] => {
+    const before = JSON.parse(initialSnapshot) as typeof values
+    const differs = (...keys: (keyof typeof values)[]) => keys.some((k) => JSON.stringify(values[k]) !== JSON.stringify(before[k]))
+    const fields: [string, boolean][] = [
+      ['Title', differs('title')],
+      ['Deadline', differs('date', 'time')],
+      ['Priority', differs('priority')],
+      ['Description', differs('description')],
+      ['Checklist', differs('checklist') || Boolean(checklistDraft.trim())],
+      ['Project', differs('projectId') || Boolean(projectDraft?.trim())],
+      ['Tags', differs('tagIds') || Boolean(tagDraft.trim())],
+      ['Status', differs('status')],
+      ['Effort', differs('effort')],
+      ['Repeat', differs('recurrence')],
+      ['Reminders', differs('reminders') || Boolean(reminderDraft.date.trim() || reminderDraft.time.trim())],
+      ['Attachments', pendingFiles.length > 0 || removedFiles.length > 0 || Boolean(linkDraft.trim())],
+    ]
+    return fields.filter(([, changed]) => changed).map(([name]) => name)
+  }
 
   // What's set behind More details, so it can stay closed without hiding anything.
   const attachmentCount = existingFiles.filter((f) => !removedFiles.includes(f.id)).length + pendingFiles.length
@@ -446,6 +472,8 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
   const tab = (active: boolean) =>
     `rounded px-2 py-0.5 text-xs font-medium ${active ? 'bg-subtle text-fg' : 'text-muted hover:text-fg'}`
 
+  const changed = confirming ? changedFields() : []
+
   return (
     <dialog
       ref={dialogRef}
@@ -566,13 +594,15 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
                 )}
               </div>
             ) : (
+              // Grows with its text (four lines at least, up to 20rem), so a short note never shows cut
+              // mid-line; past 20rem it scrolls. `rows` is the fallback where field-sizing isn't supported.
               <textarea
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Markdown supported: **bold**, - lists, [links](https://…)"
                 aria-label="Description"
-                className={field}
+                className={cn(field, 'field-sizing-content min-h-[calc(4lh+1rem)] max-h-80')}
               />
             )}
           </div>
@@ -705,13 +735,21 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
             key="discard"
             role="group"
             aria-labelledby={messageId}
+            aria-describedby={(task || savedId.current) && changed.length > 0 ? changedId : undefined}
             className={`sticky bottom-0 flex flex-wrap items-center gap-x-3 gap-y-2 px-6 py-3.5 ${panel.warning}`}
           >
             {/* flex-auto, not flex-1: on narrow phones the buttons wrap below instead of crushing the question. */}
-            <p id={messageId} className="flex-auto animate-fade-up text-sm font-semibold">
-              {/* After a half-finished save, a new task already exists: only its attachments are unsaved. */}
-              {task || savedId.current ? 'Discard your changes?' : 'Discard this new task?'}
-            </p>
+            <div className="flex-auto animate-fade-up">
+              <p id={messageId} className="text-sm font-semibold">
+                {/* After a half-finished save, a new task already exists: only its attachments are unsaved. */}
+                {task || savedId.current ? 'Discard your changes?' : 'Discard this new task?'}
+              </p>
+              {(task || savedId.current) && changed.length > 0 && (
+                <p id={changedId} data-changed-fields className="text-xs font-medium">
+                  Changed: {changed.join(', ')}
+                </p>
+              )}
+            </div>
             <div className="ml-auto flex animate-fade-up gap-2">
               <button type="button" onClick={leave} className={`${attentionQuiet} min-h-9`}>
                 Discard
@@ -733,12 +771,13 @@ export function TaskForm({ task, projects, tags, onClose, onTrash, focusDeadline
               <button
                 type="button"
                 onClick={() => {
-                  onTrash(task)
+                  onTrash(task, { unsavedEdits: isDirty() })
                   leave()
                 }}
                 className={btn.danger}
               >
-                <Trash2 className="size-4" /> Delete
+                {/* Not "Delete": it goes to Trash for 30 days, with Undo. */}
+                <Trash2 className="size-4" /> Move to Trash
               </button>
             )}
             <div className="ml-auto flex gap-2">

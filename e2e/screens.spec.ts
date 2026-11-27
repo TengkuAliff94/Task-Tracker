@@ -29,7 +29,7 @@ test.describe('reduced motion', () => {
 test('a trashed task shows as a card with when it was deleted and how long it has left', async ({ app, page }) => {
   await app.quickAdd('Old errand')
   await app.taskRow('Old errand').locator('[data-card-edit]').click()
-  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
   await page.getByRole('button', { name: 'Trash (1)' }).click()
 
   const card = page.getByRole('list', { name: 'Trashed tasks' }).getByRole('listitem').filter({ hasText: 'Old errand' })
@@ -70,7 +70,7 @@ test.describe('phone', () => {
     expect(await app.scrollsSideways(), 'filter bar with every tag').toBe(false)
 
     await app.taskRow('Renew car insurance').locator('[data-card-edit]').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await page.getByRole('button', { name: 'Trash (1)' }).click()
     await expect(page.getByRole('list', { name: 'Trashed tasks' })).toBeVisible()
     expect(await app.scrollsSideways(), 'Trash').toBe(false)

@@ -130,7 +130,7 @@ test.describe('labels', () => {
   test('Backup and Trash say what they are from md, and Projects & tags from lg', async ({ app, page }) => {
     await app.quickAdd('Old errand')
     await app.taskRow('Old errand').getByRole('button').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
 
     await page.setViewportSize({ width: 700, height: 600 })
     expect(await shownText(page, 'Backup & restore')).toBe('')

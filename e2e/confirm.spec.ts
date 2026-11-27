@@ -36,7 +36,7 @@ async function trash(page: Page, titles: string[]) {
       .getByRole('button')
       .first()
       .click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await expect(page.getByRole('dialog', { name: 'Edit task' })).toBeHidden()
   }
 }

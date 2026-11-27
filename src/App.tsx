@@ -127,6 +127,7 @@ function ListEmpty({
       <EmptyState
         icon={SearchX}
         title="No matches"
+        tone="quiet"
         action={
           <button type="button" onClick={onClear} className={btn.secondary}>
             {onlySearch ? 'Clear search' : 'Clear filters'}
@@ -350,7 +351,8 @@ export default function App() {
     if (latest) setEditing({ mode: 'edit', task: latest })
   }
 
-  async function trashTask(task: Task) {
+  /** `unsavedEdits`: the editor had changes that weren't saved, so the toast says they weren't kept. */
+  async function trashTask(task: Task, { unsavedEdits = false }: { unsavedEdits?: boolean } = {}) {
     try {
       await taskRepo.trash(task.id)
     } catch (err) {
@@ -361,6 +363,8 @@ export default function App() {
     closeToastsAbout(task.id)
     showToast({
       message: `“${toastTitle(task.title)}” moved to Trash`,
+      // Undo brings the task back as it was saved; say so rather than lose the edits silently.
+      detail: unsavedEdits ? 'Your unsaved changes weren’t kept.' : undefined,
       action: {
         label: 'Undo',
         run: () =>
@@ -745,13 +749,19 @@ export default function App() {
 
           <div>
             {hasTasks && (
-              <div className="mb-3 flex items-center justify-between px-1 text-sm">
+              // With nothing listed the empty state says so in words, so "0 tasks" above it would only
+              // repeat it: the count stays for screen readers (it's the status region) but leaves the page.
+              <div className={visible.length === 0 ? undefined : 'mb-3 flex items-center justify-between px-1 text-sm'}>
                 {/* A status region, so a screen reader hears the new count after a filter changes. */}
-                <p role="status" className="font-medium text-muted">{countLabel(visible.length, filters.scope)}</p>
-                {/* A keyboard hint: only where a pointer can hover, so not on touch screens. */}
-                <p className="hidden items-center gap-1.5 text-xs text-muted sm:mouse:flex">
-                  Press <kbd>?</kbd> for shortcuts
+                <p role="status" className={visible.length === 0 ? 'sr-only' : 'font-medium text-muted'}>
+                  {countLabel(visible.length, filters.scope)}
                 </p>
+                {/* A keyboard hint: only where a pointer can hover, so not on touch screens. */}
+                {visible.length > 0 && (
+                  <p className="hidden items-center gap-1.5 text-xs text-muted sm:mouse:flex">
+                    Press <kbd>?</kbd> for shortcuts
+                  </p>
+                )}
               </div>
             )}
 

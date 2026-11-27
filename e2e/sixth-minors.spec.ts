@@ -13,7 +13,7 @@ const header = (page: Page) => page.getByRole('banner')
 test('Trash’s button and its question both say “Empty Trash”', async ({ app, page }) => {
   await app.quickAdd('Old errand')
   await app.taskRow('Old errand').locator('[data-card-edit]').click()
-  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
   await header(page).getByRole('button', { name: /^Trash/ }).click()
   await expect(page.getByRole('button', { name: 'Empty Trash', exact: true })).toBeVisible()
 })

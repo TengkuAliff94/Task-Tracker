@@ -66,7 +66,7 @@ test('a toast balances its lines, so no word is left alone at the end', async ({
 test('restoring from Trash says so', async ({ app, page }) => {
   await app.loadSampleData()
   await app.taskRow('Pay rent').locator('[data-card-edit]').click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Move to Trash' }).click()
   await page.getByRole('button', { name: /^Trash/ }).first().click()
   await page.getByRole('button', { name: 'Restore "Pay rent"' }).click()
   await expect(page.getByRole('status').filter({ hasText: '“Pay rent” restored' })).toBeVisible()

@@ -361,12 +361,16 @@ export function BackupNudge({ hasTasks, onOpen }: { hasTasks: boolean; onOpen: (
         <DatabaseBackup className="size-4.5" aria-hidden />
       </span>
       <span className="flex-1 font-medium">{text}</span>
-      <button onClick={onOpen} className={`${attentionAction} ${panel.ink}`}>
-        Back up now
-      </button>
-      <button onClick={() => backup.snoozeNudge(now + NUDGE_GRACE_DAYS * DAY)} className={attentionQuiet}>
-        Remind me later
-      </button>
+      {/* The two answers wrap as a pair: on a phone they share a row under the text, lined up with it
+          (the 32px icon plus the 12px gap), so Remind me later is never left on a line of its own. */}
+      <div data-nudge-actions className="flex items-center gap-2 max-sm:w-full max-sm:pl-11">
+        <button onClick={onOpen} className={`${attentionAction} ${panel.ink}`}>
+          Back up now
+        </button>
+        <button onClick={() => backup.snoozeNudge(now + NUDGE_GRACE_DAYS * DAY)} className={attentionQuiet}>
+          Remind me later
+        </button>
+      </div>
     </div>
   )
 }

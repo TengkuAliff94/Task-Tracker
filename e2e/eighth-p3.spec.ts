@@ -60,7 +60,7 @@ test('the open tag search shows the picked tags plus eight before anything is ty
 
 async function trash(app: App, page: Page, title: string) {
   await app.taskRow(title).locator('[data-card-edit]').click()
-  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
   await expect(app.taskRow(title)).toHaveCount(0)
 }
 

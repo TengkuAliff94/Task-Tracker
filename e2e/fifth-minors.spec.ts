@@ -46,7 +46,7 @@ for (const width of [768, 1280]) {
     const trash = header(page).getByRole('button', { name: /^Trash/ })
     const before = await trash.boundingBox()
     await app.taskRow('Grocery run').locator('[data-card-edit]').click()
-    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Move to Trash' }).click()
     await expect(trash).toHaveAccessibleName('Trash (1)')
     const after = await trash.boundingBox()
     expect(after!.width).toBe(before!.width)

@@ -40,7 +40,7 @@ const isUntransformed = (el: Locator) =>
 async function deleteATask(app: App, page: Page) {
   await app.quickAdd('Water the plants')
   await app.taskRow('Water the plants').getByRole('button').click()
-  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
   const toast = page.getByRole('status').filter({ hasText: 'moved to Trash' })
   await expect(toast).toBeVisible()
   return toast

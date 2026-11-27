@@ -114,7 +114,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
 
       await app.quickAdd('Old errand')
       await app.taskRow('Old errand').getByRole('button').click()
-      await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+      await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
       await expect(page.getByRole('status').filter({ hasText: 'moved to Trash' })).toBeVisible()
       expect(await contrastProblems(page)).toEqual([])
 

@@ -29,7 +29,7 @@ test('delete with undo, then restore from Trash', async ({ app, page }) => {
 
   const deleteTask = async () => {
     await app.taskRow('Old errand').getByRole('button').click()
-    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Delete' }).click()
+    await page.getByRole('dialog', { name: 'Edit task' }).getByRole('button', { name: 'Move to Trash' }).click()
     await expect(app.taskRow('Old errand')).toBeHidden()
   }
 
