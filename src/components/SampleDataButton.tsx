@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Sparkles } from 'lucide-react'
-import { sampleData } from '../db/sample'
+import { looksLoaded, sampleData } from '../db/sample'
 import { taskRepo } from '../db/tasks'
 import { useConfirm } from '../hooks/useConfirm'
 import { plural } from '../lib/utils'
@@ -36,15 +36,24 @@ export function SampleDataButton({
 
   async function askThenLoad() {
     // Ask before going busy: a disabled button drops focus, and the question hands focus back to it.
-    const existing = await taskRepo.countAll()
+    // Only the list counts: tasks in Trash are set aside, so they neither need asking about nor add to the count.
+    const existing = (await taskRepo.list()).length
     if (existing > 0) {
-      // Already here: say so, rather than quietly adding a second copy of every task.
-      const loaded = await sampleData.isLoaded()
+      // Already here (most of the set, so one task ticked off into Trash doesn't hide it): say so,
+      // rather than quietly adding a second copy.
+      const present = await sampleData.inList()
+      const { size } = sampleData
       const ok = await ask(
-        loaded
+        looksLoaded(present, size)
           ? {
               title: 'Sample tasks are already here',
-              body: <p>All {sampleData.size} sample tasks are already in your list. Loading again adds a second copy of each.</p>,
+              body: (
+                <p>
+                  {present === size
+                    ? `All ${size} sample tasks are already in your list. Loading again adds a second copy of each.`
+                    : `${present} of the ${size} sample tasks are already in your list. Loading again adds all ${size}, so those ${present} show twice.`}
+                </p>
+              ),
               confirmLabel: 'Add another copy',
             }
           : {

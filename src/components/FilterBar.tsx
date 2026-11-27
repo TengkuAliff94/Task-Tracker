@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useReducedMotionConfig } from 'motion/react'
-import { ArrowDownUp, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowDownUp, ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from 'lucide-react'
 import {
   EMPTY_FILTERS,
   filterChips,
@@ -38,6 +38,12 @@ const select =
 
 /** The 32px pill shared by the filter toggles, the active-filter chips and Clear filters. */
 const pillClass = 'inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200'
+
+/**
+ * A pill that acts rather than toggles ("N more", "Fewer tags", Clear filters): the same Well Stone
+ * well as its neighbours, so it reads as a control, in full ink where unpressed toggles are dimmed.
+ */
+const actionPill = `${pillClass} bg-subtle text-fg ${hoverHighlight}`
 
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
@@ -140,6 +146,14 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 /** Tags shown before the rest fold behind "N more": past this, the cluster becomes a wall. */
 export const TAG_LIMIT = 4
+/** Unpicked tags the open search shows before anything is typed; the rest are a search away. */
+export const SEARCH_PREVIEW = 8
+
+/** The picked tags plus the first `extra` unpicked ones, in the tag list's own order. */
+function pickedPlus(tags: Label[], picked: string[], extra: number): Label[] {
+  const keep = new Set([...picked, ...tags.filter((t) => !picked.includes(t.id)).slice(0, extra).map((t) => t.id)])
+  return tags.filter((t) => keep.has(t.id))
+}
 
 /**
  * The Tags cluster, bounded. Up to TAG_LIMIT + 1 tags show as pills; past that, the picked ones
@@ -174,34 +188,33 @@ function TagCluster({ tags, picked, onToggle }: { tags: Label[]; picked: string[
   if (!folds) return <Cluster label="Tags">{tags.map(pill)}</Cluster>
 
   if (!expanded) {
-    const shown = [...tags.filter((t) => picked.includes(t.id)), ...tags.filter((t) => !picked.includes(t.id))].slice(
-      0,
-      Math.max(TAG_LIMIT, picked.length),
-    )
-    const order = new Set(shown.map((t) => t.id))
+    const shown = pickedPlus(tags, picked, Math.max(0, TAG_LIMIT - picked.length))
     const rest = tags.length - shown.length
     return (
       <Cluster label="Tags">
-        {tags.filter((t) => order.has(t.id)).map(pill)}
+        {shown.map(pill)}
         {rest > 0 && (
-        <button
-          ref={moreRef}
-          type="button"
-          data-tags-more
-          aria-expanded={false}
-          onClick={() => setExpanded(true)}
-          className={`${pillClass} text-fg ${hoverHighlight}`}
-        >
-          {rest} more
-          <span className="sr-only"> tags</span>
-        </button>
+          <button
+            ref={moreRef}
+            type="button"
+            data-tags-more
+            aria-expanded={false}
+            onClick={() => setExpanded(true)}
+            className={`${actionPill} pr-2.5`}
+          >
+            {rest} more
+            <span className="sr-only"> tags</span>
+            <ChevronDown className="size-3.5 opacity-75" aria-hidden />
+          </button>
         )}
       </Cluster>
     )
   }
 
   const q = query.trim().toLowerCase().replace(/^#/, '')
-  const matches = q ? tags.filter((t) => t.name.toLowerCase().includes(q)) : tags
+  // Before anything is typed, the open search shows a bounded preview, not the whole wall again.
+  const matches = q ? tags.filter((t) => t.name.toLowerCase().includes(q)) : pickedPlus(tags, picked, SEARCH_PREVIEW)
+  const unlisted = tags.length - matches.length
   return (
     <Cluster label="Tags">
       <div className="relative w-full sm:w-56">
@@ -227,13 +240,14 @@ function TagCluster({ tags, picked, onToggle }: { tags: Label[]; picked: string[
           No tag matches “{query.trim()}”.
         </p>
       )}
-      <button
-        type="button"
-        aria-expanded
-        onClick={collapse}
-        className={`${pillClass} text-fg ${hoverHighlight}`}
-      >
+      {!q && unlisted > 0 && (
+        <p data-tags-unlisted className="text-xs text-muted">
+          Type to find the other {unlisted}.
+        </p>
+      )}
+      <button type="button" aria-expanded onClick={collapse} className={`${actionPill} pr-2.5`}>
         Fewer tags
+        <ChevronUp className="size-3.5 opacity-75" aria-hidden />
       </button>
     </Cluster>
   )
@@ -305,7 +319,7 @@ export function FilterBar({ filters: f, onFilters, sort, onSort, group, onGroup,
   // Not for a picked tile alone: the tile shows the pick and unpicks itself, so a lone Clear filters
   // would only repeat it. With a search or a chip it clears the tile too.
   const clearButton = !listEmpty && Boolean(f.query.trim() || chips.length) && (
-    <button type="button" data-clear onClick={clear} className={`${pillClass} text-fg ${hoverHighlight}`}>
+    <button type="button" data-clear onClick={clear} className={actionPill}>
       Clear filters
     </button>
   )

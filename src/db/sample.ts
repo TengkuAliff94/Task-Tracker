@@ -170,6 +170,14 @@ function resolve(when: When, today: Date): Date {
   return new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysFromToday(when.days, today), h, m)
 }
 
+/**
+ * Whether the sample set counts as loaded: more than half of it in the list. Every task would miss
+ * a set with one task trashed or retitled; any one would trip on a single shared title.
+ */
+export function looksLoaded(present: number, size: number): boolean {
+  return present * 2 > size
+}
+
 export function createSampleData(db: TaskTrackerDB = defaultDb) {
   const labels = createLabelRepo(db)
   const tasks = createTaskRepo(db)
@@ -184,10 +192,13 @@ export function createSampleData(db: TaskTrackerDB = defaultDb) {
     load(now: Date = new Date()): Promise<number> {
       return db.transaction('rw', [db.projects, db.tags, db.tasks, db.attachments], () => addAll(now))
     },
-    /** True when every sample task is already in the list (not in Trash), matched by title: loading again would only copy them. */
-    async isLoaded(): Promise<boolean> {
+    /**
+     * How many of the sample tasks are in the list, matched by title. Trash doesn't count either
+     * way: a trashed sample task isn't in the list, and the rest of the set still is.
+     */
+    async inList(): Promise<number> {
       const titles = new Set((await tasks.list()).map((t) => t.title))
-      return TASKS.every((s) => titles.has(s.title))
+      return TASKS.filter((s) => titles.has(s.title)).length
     },
     /** How many tasks a load adds. */
     size: TASKS.length,

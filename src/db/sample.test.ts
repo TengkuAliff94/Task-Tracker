@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { TaskTrackerDB } from './db'
 import { createTaskRepo } from './tasks'
 import { createLabelRepo } from './labels'
-import { createSampleData } from './sample'
+import { createSampleData, looksLoaded } from './sample'
 import { createAttachmentRepo } from './attachments'
 import { createBackup } from './backup'
 import { PRIORITIES, STATUSES } from '../types'
@@ -91,6 +91,25 @@ describe('sample data', () => {
     expect(await projects.list()).toEqual(projectsAfterFirst)
     expect(await tags.list()).toEqual(tagsAfterFirst)
     expect(await createTaskRepo(db).list()).toHaveLength(first + second)
+  })
+
+  it('counts the sample tasks in the list, leaving Trash out', async () => {
+    expect(await sample.inList()).toBe(0)
+    await sample.load(NOW)
+    expect(await sample.inList()).toBe(sample.size)
+    const repo = createTaskRepo(db)
+    const [first] = await repo.list()
+    await repo.trash(first.id)
+    expect(await sample.inList()).toBe(sample.size - 1)
+    expect(looksLoaded(sample.size - 1, sample.size)).toBe(true)
+  })
+
+  it('counts as loaded only past half the set', () => {
+    expect(looksLoaded(10, 10)).toBe(true)
+    expect(looksLoaded(6, 10)).toBe(true)
+    expect(looksLoaded(5, 10)).toBe(false)
+    expect(looksLoaded(1, 10)).toBe(false)
+    expect(looksLoaded(0, 10)).toBe(false)
   })
 
   it('matches existing label names case-insensitively', async () => {
